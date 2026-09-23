@@ -1,0 +1,244 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Ubuntu', sans-serif;
+}
+
+a{
+    text-decoration: none;
+    color: #000;
+}
+
+img {
+    object-fit: cover;
+}
+
+body {
+    background-color: #f1f1f1;
+}
+
+/* ================= NAVBAR ================= */
+
+nav{
+    padding: 0 80px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 80px;
+}
+
+nav a.logo{
+    font-size: 33px;
+    color: #0f2182;
+    font-weight: 600;
+}
+
+nav .links a:not(:last-child){
+    margin-right: 20px;
+}
+
+nav .login button{
+    padding: 8px 14px;
+    border: none;
+    cursor: pointer;
+    background-color: transparent;
+}
+
+nav button.signup{
+    background-color: black;
+    color: #fff;
+    border-radius: 4px;
+    margin-left: 14px;
+}
+
+/* ================= HEADER ================= */
+
+header {
+    position: relative;
+    padding: 0 80px;
+    height: calc(100vh - 80px);
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    overflow: hidden;
+}
+
+/* VIDEO */
+
+header .background-video {
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    z-index: 0;
+}
+
+/* DARK OVERLAY */
+
+header::after {
+    content: "";
+
+    position: absolute;
+    inset: 0;
+
+    background: rgba(0, 0, 0, 0.4);
+
+    z-index: 1;
+}
+
+/* CONTENT */
+
+header .left{
+    width: 700px;
+
+    position: relative;
+    z-index: 2;
+}
+
+header .left h1{
+    font-size: 80px;
+    color: white;
+}
+
+header .left h1 span{
+    font-size: 80px;
+    color: #0f2182;
+}
+
+header .left p{
+    margin: 40px 0;
+    color: #ddd;
+}
+
+header .left a{
+    display: flex;
+    align-items: center;
+
+    background: #000;
+
+    width: 200px;
+    padding: 8px;
+
+    border-radius: 60px;
+}
+
+header .left a i{
+    background-color: #fff;
+
+    font-size: 24px;
+
+    border-radius: 50%;
+
+    padding: 8px;
+}
+
+header .left a span{
+    color: #fff;
+    margin-left: 10px;
+}
+
+
+/* ================= SECTION ================= */
+
+h2.separator{
+    padding: 0 80px;
+    font-size: 40px;
+    margin-top: 40px;
+}
+
+.accountings {
+    padding: 0 80px;
+    margin: 50px 0 80px;
+
+    display: flex;
+    justify-content: space-between;
+
+    gap: 30px;
+}
+
+.accountings .item{
+    padding: 20px;
+
+    background: #fff;
+
+    border-radius: 18px;
+
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+
+    transition: all 0.3s ease;
+}
+
+.accountings .item:hover{
+    box-shadow: none;
+}
+
+.accountings .item .header{
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+}
+
+.accountings .item .header i{
+    font-size: 40px;
+}
+
+.accountings .item .header h5{
+    font-size: 17px;
+}
+
+.accountings .item p{
+    margin-top: 10px;
+    padding: 0 4px;
+}
+
+
+/* ================= NAVIGATOR ================= */
+
+.navigator {
+    padding: 0 80px;
+    margin-top: 30px;
+}
+
+.navigator .category {
+    display: flex;
+    gap: 14px;
+}
+
+.navigator .category a{
+    background-color: #dfdcdc;
+
+    padding: 8px 14px;
+
+    font-size: 15px;
+
+    border-radius: 14px;
+
+    transition: all 0.3s ease;
+}
+
+.navigator .category a:hover{
+    color: #fff;
+    background-color: #0f2182;
+}
+
+.navigator .stellar-list {
+    padding: 0 40px;
+
+    display: flex;
+    justify-content: space-between;
+
+    gap: 20px;
+}
+
