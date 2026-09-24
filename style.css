@@ -20,6 +20,7 @@ body {
     background-color: #f1f1f1;
 }
 
+
 /* ================= NAVBAR ================= */
 
 nav{
@@ -50,9 +51,10 @@ nav .login button{
 nav button.signup{
     background-color: black;
     color: #fff;
-    border-radius: 4px;
+    border-radius: 8px;
     margin-left: 14px;
 }
+
 
 /* ================= HEADER ================= */
 
@@ -67,6 +69,7 @@ header {
 
     overflow: hidden;
 }
+
 
 /* VIDEO */
 
@@ -84,16 +87,29 @@ header .background-video {
     z-index: 0;
 }
 
+/* ================= BACKGROUND IMAGE ================= */
+
+header .background-image {
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    z-index: 0;
+}
+
 /* DARK OVERLAY */
 
 header::after {
     content: "";
-
     position: absolute;
     inset: 0;
-
-    background: rgba(0, 0, 0, 0.4);
-
+    background: rgba(0, 0, 0, 0.15);
     z-index: 1;
 }
 
@@ -108,12 +124,12 @@ header .left{
 
 header .left h1{
     font-size: 80px;
-    color: white;
+    color: #fff;
 }
 
 header .left h1 span{
     font-size: 80px;
-    color: #0f2182;
+    color: blue;
 }
 
 header .left p{
@@ -242,3 +258,231 @@ h2.separator{
     gap: 20px;
 }
 
+
+/* =====================================================
+   RESPONSIVE
+   BAGIAN DI ATAS TIDAK DIUBAH
+   ===================================================== */
+
+
+/* ================= TABLET ================= */
+
+@media (max-width: 900px) {
+
+    nav {
+        padding: 0 40px;
+    }
+
+    header {
+        padding: 0 40px;
+    }
+
+    header .left {
+        width: 100%;
+    }
+
+    header .left h1 {
+        font-size: 65px;
+    }
+
+    header .left h1 span {
+        font-size: 65px;
+    }
+
+    h2.separator {
+        padding: 0 40px;
+        font-size: 35px;
+    }
+
+    .accountings {
+        padding: 0 40px;
+    }
+
+    .navigator {
+        padding: 0 40px;
+    }
+
+    .navigator .stellar-list {
+        padding: 0 20px;
+    }
+
+}
+
+
+/* ================= PHONE ================= */
+
+@media (max-width: 600px) {
+
+    /* NAVBAR */
+
+    nav {
+        height: auto;
+        min-height: 80px;
+
+        padding: 18px 20px;
+
+        flex-wrap: wrap;
+
+        gap: 15px;
+    }
+
+    nav a.logo {
+        font-size: 27px;
+    }
+
+    nav .links {
+        order: 3;
+
+        width: 100%;
+
+        display: flex;
+        justify-content: center;
+
+        gap: 16px;
+    }
+
+    nav .links a:not(:last-child) {
+        margin-right: 0;
+    }
+
+    nav .links a {
+        font-size: 13px;
+    }
+
+    nav .login {
+        margin-left: auto;
+    }
+
+    nav button {
+        padding: 7px 10px;
+        font-size: 12px;
+    }
+
+    nav button.signup {
+        margin-left: 0;
+    }
+
+
+    /* HEADER */
+
+    header {
+        height: auto;
+        min-height: calc(100vh - 130px);
+
+        padding: 60px 20px;
+    }
+
+    header .left {
+        width: 100%;
+    }
+
+    header .left h1 {
+        font-size: clamp(38px, 11vw, 55px);
+        line-height: 1.05;
+    }
+
+    header .left h1 span {
+        font-size: inherit;
+    }
+
+    header .left p {
+        margin: 25px 0;
+
+        font-size: 15px;
+        line-height: 1.5;
+
+        max-width: 300px;
+    }
+
+    header .left a {
+        width: 160px;
+        padding: 6px;
+    }
+
+    header .left a i {
+        font-size: 20px;
+        padding: 7px;
+    }
+
+    header .left a span {
+        font-size: 14px;
+    }
+
+
+    /* SECTION TITLE */
+
+    h2.separator {
+        padding: 0 20px;
+
+        margin-top: 40px;
+
+        font-size: 28px;
+
+        text-align: center;
+    }
+
+
+    /* ACCOUNTING CARDS */
+
+    .accountings {
+        padding: 0 20px;
+
+        margin: 30px 0 60px;
+
+        flex-direction: column;
+
+        gap: 20px;
+    }
+
+    .accountings .item {
+        width: 100%;
+    }
+
+    .accountings .item .header i {
+        font-size: 34px;
+    }
+
+    .accountings .item .header h5 {
+        font-size: 16px;
+    }
+
+    .accountings .item p {
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+
+    /* NAVIGATOR */
+
+    .navigator {
+        padding: 0 20px;
+        margin-top: 25px;
+    }
+
+    .navigator .category {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .navigator .category a {
+        padding: 7px 11px;
+        font-size: 12px;
+    }
+
+
+    /* STELLAR LIST */
+
+    .navigator .stellar-list {
+        padding: 0;
+
+        flex-direction: column;
+
+        gap: 15px;
+    }
+
+    .navigator .stellar-list .items {
+        width: 100%;
+    }
+
+}
