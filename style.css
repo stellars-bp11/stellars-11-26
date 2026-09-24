@@ -23,38 +23,117 @@ body {
 
 /* ================= NAVBAR ================= */
 
-nav{
+/* ================= NAVBAR ================= */
+
+nav {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+
+    height: 80px;
     padding: 0 80px;
+
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 80px;
+
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+
+    border-bottom: 1px solid rgba(15, 33, 130, 0.08);
 }
 
-nav a.logo{
+
+/* LOGO */
+
+nav a.logo {
     font-size: 33px;
     color: #0f2182;
     font-weight: 600;
+
+    transition: 0.3s ease;
 }
 
-nav .links a:not(:last-child){
-    margin-right: 20px;
+nav a.logo:hover {
+    transform: translateY(-1px);
 }
 
-nav .login button{
-    padding: 8px 14px;
+
+/* NAV LINKS */
+
+nav .links {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+nav .links a {
+    position: relative;
+
+    padding: 10px 14px;
+
+    border-radius: 10px;
+
+    color: #222;
+
+    font-size: 15px;
+    font-weight: 500;
+
+    transition:
+        background-color 0.25s ease,
+        color 0.25s ease,
+        transform 0.25s ease;
+}
+
+
+/* BLUE TRANSPARENT BLOCK */
+
+nav .links a:hover {
+    background-color: rgba(15, 33, 130, 0.12);
+    color: #0f2182;
+
+    transform: translateY(-1px);
+}
+
+
+/* GET TO KNOW US */
+
+nav button.signup {
     border: none;
-    cursor: pointer;
-    background-color: transparent;
-}
 
-nav button.signup{
-    background-color: black;
+    padding: 11px 20px;
+
+    background: #0f2182;
     color: #fff;
-    border-radius: 8px;
-    margin-left: 14px;
+
+    border-radius: 12px;
+
+    font-family: 'Ubuntu', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+
+    cursor: pointer;
+
+    box-shadow: 0 6px 16px rgba(15, 33, 130, 0.18);
+
+    transition:
+        background-color 0.25s ease,
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
 }
 
+nav button.signup:hover {
+    background: #1938c2;
+
+    transform: translateY(-2px);
+
+    box-shadow: 0 10px 22px rgba(15, 33, 130, 0.28);
+}
+
+nav button.signup:active {
+    transform: translateY(0);
+}
 
 /* ================= HEADER ================= */
 

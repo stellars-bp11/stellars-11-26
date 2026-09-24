@@ -1,0 +1,483 @@
+
+/* ==============================
+   GLOBAL
+================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #0b0d12;
+    color: #f5f5f5;
+    line-height: 1.6;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+img {
+    width: 100%;
+    display: block;
+}
+
+/* ==============================
+   FIXED VIDEO BACKGROUND
+================================= */
+
+.background-video {
+    position: fixed;
+
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    z-index: -2;
+
+    pointer-events: none;
+}
+
+.background-overlay {
+    position: fixed;
+
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    background: rgba(5, 7, 12, 0.65);
+
+    z-index: -1;
+
+    pointer-events: none;
+}
+
+/* ==============================
+   NAVBAR
+================================= */
+
+header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+
+    background: rgba(11, 13, 18, 0.85);
+    backdrop-filter: blur(12px);
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+nav {
+    max-width: 1200px;
+    margin: auto;
+
+    padding: 20px 30px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 3px;
+}
+
+.nav-links {
+    display: flex;
+    gap: 35px;
+    list-style: none;
+}
+
+.nav-links a {
+    color: #f8f9fe;
+    font-size: 14px;
+
+    transition: 0.3s;
+}
+
+.nav-links a:hover {
+    color: white;
+}
+
+
+/* ==============================
+   GENERAL
+================================= */
+
+main {
+    max-width: 1200px;
+    margin: auto;
+}
+
+.eyebrow {
+    color: #f9fafe;
+    font-size: 12px;
+    letter-spacing: 3px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+
+/* ==============================
+   HERO
+================================= */
+
+.lecturers-hero {
+    min-height: 55vh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+
+    padding: 100px 30px;
+}
+
+.hero-content {
+    max-width: 700px;
+}
+
+.hero-content h1 {
+    font-size: clamp(60px, 10vw, 120px);
+    line-height: 1;
+
+    margin: 20px 0;
+
+    letter-spacing: -5px;
+}
+
+.hero-content > p:last-child {
+    color: #f2f3f7;
+    font-size: 18px;
+}
+
+
+/* ==============================
+   FEATURED LECTURER
+================================= */
+
+.featured-lecturer {
+    margin: 50px 30px 150px;
+
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #11141b;
+}
+
+.featured-image {
+    width: 100%;
+    height: auto !important;
+    overflow: visible;
+}
+
+.featured-image img {
+    display: block;
+    width: 100%;
+    height: auto !important;
+
+    object-fit: unset;
+    object-position: center;
+
+    filter: grayscale(100%);
+}
+
+.featured-image:hover img {
+    filter: grayscale(0%);
+    transform: scale(1.03);
+}
+
+.featured-info {
+    padding: 60px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.featured-info h2 {
+    font-size: 42px;
+    line-height: 1.1;
+
+    margin: 15px 0 8px;
+}
+
+.lecturer-field {
+    color: #9da3b2;
+    margin-bottom: 25px;
+}
+
+.featured-info > p:not(.eyebrow):not(.lecturer-field) {
+    color: #aeb3c2;
+    max-width: 450px;
+
+    margin-bottom: 30px;
+}
+
+.profile-button {
+    width: fit-content;
+
+    padding: 12px 22px;
+
+    border: 1px solid rgba(255, 255, 255, 0.2);
+
+    font-size: 14px;
+
+    transition: 0.3s;
+}
+
+.profile-button:hover {
+    background: white;
+    color: #0b0d12;
+}
+
+
+/* ==============================
+   DIRECTORY
+================================= */
+
+.lecturer-directory {
+    padding: 0 30px 120px;
+}
+
+.section-heading {
+    margin-bottom: 50px;
+}
+
+.section-heading h2 {
+    font-size: 48px;
+    margin-top: 10px;
+}
+
+
+/* ==============================
+   LECTURER GRID
+================================= */
+
+.lecturer-grid {
+    display: grid;
+
+    grid-template-columns: repeat(2, 1fr);
+
+    gap: 25px;
+}
+
+
+/* ==============================
+   LECTURER CARD
+================================= */
+
+.lecturer-card {
+    background: #11141b;
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+
+    overflow: hidden;
+
+    transition: 0.35s;
+}
+
+.lecturer-card:hover {
+    transform: translateY(-6px);
+
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.lecturer-image {
+    height: 400px;
+
+    overflow: hidden;
+}
+
+.lecturer-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #171a22;
+
+    filter: grayscale(100%);
+
+    transition: 0.5s;
+}
+
+.lecturer-card:hover .lecturer-image img {
+    filter: grayscale(0%);
+    transform: scale(1.04);
+}
+
+.lecturer-info {
+    padding: 25px;
+}
+
+.lecturer-role {
+    color: #7f8799;
+
+    font-size: 11px;
+
+    letter-spacing: 2px;
+
+    text-transform: uppercase;
+}
+
+.lecturer-info h3 {
+    font-size: 25px;
+
+    margin: 6px 0;
+}
+
+.lecturer-info > p:not(.lecturer-role) {
+    color: #8f96a8;
+
+    font-size: 14px;
+
+    margin-bottom: 18px;
+}
+
+.lecturer-info a {
+    font-size: 13px;
+
+    color: #dfe2e8;
+
+    transition: 0.3s;
+}
+
+.lecturer-info a:hover {
+    color: white;
+    letter-spacing: 0.5px;
+}
+
+
+/* ==============================
+   FOOTER
+================================= */
+
+footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+
+    padding: 30px;
+
+    text-align: center;
+
+    color: #666d7c;
+
+    font-size: 13px;
+}
+
+
+/* ==============================
+   RESPONSIVE
+================================= */
+
+@media (max-width: 768px) {
+
+}
+
+    nav {
+        padding: 18px 20px;
+    }
+
+    .nav-links {
+        gap: 15px;
+    }
+
+    .nav-links a {
+        font-size: 12px;
+    }
+
+    .lecturers-hero {
+        min-height: 45vh;
+
+        padding: 80px 20px;
+    }
+
+    .hero-content h1 {
+        font-size: 65px;
+        letter-spacing: -3px;
+    }
+
+    .hero-content > p:last-child {
+        font-size: 15px;
+    }
+
+    .featured-lecturer {
+        margin: 30px 20px 100px;
+
+        grid-template-columns: 1fr;
+    }
+
+    .featured-image {
+        height: 400px;
+    }
+
+    .featured-info {
+        padding: 35px;
+    }
+
+    .featured-info h2 {
+        font-size: 32px;
+    }
+
+    .lecturer-directory {
+        padding: 0 20px 80px;
+    }
+
+    .section-heading h2 {
+        font-size: 36px;
+    }
+
+    .lecturer-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .lecturer-image {
+        height: 420px;
+    }
+
+
+
+/* ==============================
+   SMALL PHONE
+================================= */
+
+@media (max-width: 480px) {
+
+}
+
+    .nav-links {
+        gap: 10px;
+    }
+
+    .logo {
+        font-size: 18px;
+    }
+
+    .nav-links a {
+        font-size: 11px;
+    }
+
+    .hero-content h1 {
+        font-size: 52px;
+    }
+
+    .featured-info {
+        padding: 25px;
+    }
+
+    .lecturer-image {
+        height: 350px;
+    }
+
