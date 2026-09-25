@@ -96,10 +96,15 @@
                     Moments We've Shared
                 </h2>
 
+                <button class="add-memory-btn" type="button" id="addMemoryBtn">
+                    <i class='bx bx-plus'></i>
+                    Add Memory
+                </button>
+
             </div>
 
 
-            <div class="library-grid">
+            <div class="library-grid" id="libraryGrid">
 
 
                 <!-- CARD 1 -->
@@ -108,7 +113,7 @@
                     <div class="memory-image">
 
                         <img
-                            src="images/library1.jpg"
+                            src="images/jean villain.jpeg"
                             alt="First Gathering"
                         >
 
@@ -117,15 +122,15 @@
                     <div class="memory-info">
 
                         <p class="memory-category">
-                            CLASS EVENT
+                            Kelas
                         </p>
 
                         <h3>
-                            First Gathering
+                            Detik-detik jean jadi villain
                         </h3>
 
                         <p class="memory-description">
-                            The beginning of our journey together.
+                            aku marahhhh
                         </p>
 
                         <button class="memory-like" type="button">
@@ -324,6 +329,56 @@
             © 2026 Stellars — BP11
         </p>
     </footer>
+
+
+    <!-- ADD MEMORY MODAL -->
+    <div class="modal-overlay" id="modalOverlay">
+
+        <div class="modal">
+
+            <div class="modal-header">
+                <h3>Add a Memory</h3>
+                <button class="modal-close" type="button" id="modalCloseBtn">
+                    <i class='bx bx-x'></i>
+                </button>
+            </div>
+
+            <form id="memoryForm">
+
+                <label class="modal-field">
+                    <span>Photo</span>
+                    <input type="file" id="memoryPhoto" accept="image/*" required>
+                </label>
+
+                <div class="modal-preview" id="modalPreview"></div>
+
+                <label class="modal-field">
+                    <span>Category</span>
+                    <input type="text" id="memoryCategory" placeholder="e.g. CAMPUS LIFE" required>
+                </label>
+
+                <label class="modal-field">
+                    <span>Title</span>
+                    <input type="text" id="memoryTitle" placeholder="e.g. A Day Together" required>
+                </label>
+
+                <label class="modal-field">
+                    <span>Description</span>
+                    <textarea id="memoryDescription" placeholder="A short caption for this memory" rows="3" required></textarea>
+                </label>
+
+                <button type="submit" class="modal-submit">
+                    Save Memory
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <script src="library.js"></script>
 
 </body>
 </html>
