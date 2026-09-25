@@ -1,23 +1,60 @@
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+
+import {
+    getFirestore,
+    collection,
+    addDoc,
+    onSnapshot,
+    query,
+    orderBy,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
 // =========================================================
-// STELLARS LIBRARY — ADD MEMORY GALLERY
+// STELLARS LIBRARY — CLOUDINARY + FIREBASE FIRESTORE
 // =========================================================
 
-const STORAGE_KEY = "stellars-library-memories";
+// FIREBASE CONFIG
+const firebaseConfig = {
+    apiKey: "AIzaSyD3ptwKTkLqFCmvrTVJFooFiVLE63mh83c",
+    authDomain: "class-web-7241e.firebaseapp.com",
+    projectId: "class-web-7241e",
+    storageBucket: "class-web-7241e.firebasestorage.app",
+    messagingSenderId: "167560389153",
+    appId: "1:167560389153:web:f61f4f821275c48373f960",
+    measurementId: "G-DTHTZNT135"
+};
+
+// CLOUDINARY CONFIG
+const CLOUD_NAME = "b88nrr3l";
+const UPLOAD_PRESET = "stellar-library";
+
+// INITIALIZE FIREBASE
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const memoriesRef = collection(db, "memories");
+
+// LOCAL STORAGE
 const LIKES_KEY = "stellars-library-likes";
 const DELETED_STATIC_KEY = "stellars-library-deleted-static";
 
+// ELEMENTS
 const libraryGrid = document.getElementById("libraryGrid");
 const addMemoryBtn = document.getElementById("addMemoryBtn");
 const modalOverlay = document.getElementById("modalOverlay");
 const modalCloseBtn = document.getElementById("modalCloseBtn");
 const memoryForm = document.getElementById("memoryForm");
 const memoryPhotoInput = document.getElementById("memoryPhoto");
+const memoryCategoryInput = document.getElementById("memoryCategory");
+const memoryTitleInput = document.getElementById("memoryTitle");
+const memoryDescriptionInput = document.getElementById("memoryDescription");
 const modalPreview = document.getElementById("modalPreview");
+const submitBtn = memoryForm.querySelector(".modal-submit");
 
-
-// ---------------------------------------------------------
-// MODAL OPEN / CLOSE
-// ---------------------------------------------------------
+// =========================================================
+// MODAL
+// =========================================================
 
 function openModal() {
     modalOverlay.classList.add("open");
@@ -33,43 +70,53 @@ function closeModal() {
 addMemoryBtn.addEventListener("click", openModal);
 modalCloseBtn.addEventListener("click", closeModal);
 
-modalOverlay.addEventListener("click", (e) => {
-    if (e.target === modalOverlay) closeModal();
+modalOverlay.addEventListener("click", (event) => {
+    if (event.target === modalOverlay) closeModal();
 });
 
+document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeModal();
+});
 
-// ---------------------------------------------------------
-// PHOTO PREVIEW ON SELECT
-// ---------------------------------------------------------
+// =========================================================
+// PHOTO PREVIEW
+// =========================================================
 
 memoryPhotoInput.addEventListener("change", () => {
     const file = memoryPhotoInput.files[0];
-    if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-        modalPreview.innerHTML = `<img src="${reader.result}" alt="Preview">`;
-        modalPreview.classList.add("show");
-    };
-    reader.readAsDataURL(file);
+    modalPreview.innerHTML = "";
+
+    if (!file) {
+        modalPreview.classList.remove("show");
+        return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+        alert("Please select an image file.");
+        memoryPhotoInput.value = "";
+        modalPreview.classList.remove("show");
+        return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+        alert("Maximum photo size is 5 MB.");
+        memoryPhotoInput.value = "";
+        modalPreview.classList.remove("show");
+        return;
+    }
+
+    const img = document.createElement("img");
+    img.src = URL.createObjectURL(file);
+    img.alt = "Photo preview";
+
+    modalPreview.appendChild(img);
+    modalPreview.classList.add("show");
 });
 
-
-// ---------------------------------------------------------
-// STORAGE HELPERS
-// ---------------------------------------------------------
-
-function getSavedMemories() {
-    try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    } catch {
-        return [];
-    }
-}
-
-function saveMemories(memories) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(memories));
-}
+// =========================================================
+// LOCAL STORAGE HELPERS
+// =========================================================
 
 function getLikedIds() {
     try {
@@ -95,160 +142,263 @@ function saveDeletedStaticIds(ids) {
     localStorage.setItem(DELETED_STATIC_KEY, JSON.stringify(ids));
 }
 
-
-// ---------------------------------------------------------
-// CARD BUILDER (mirrors the existing static card markup)
-// ---------------------------------------------------------
+// =========================================================
+// CARD BUILDER
+// =========================================================
 
 function buildMemoryCard(memory) {
     const article = document.createElement("article");
     article.className = "memory-card";
     article.dataset.id = memory.id;
 
-    article.innerHTML = `
-        <div class="memory-image">
-            <img src="${memory.image}" alt="${memory.title}">
+    const imageWrapper = document.createElement("div");
+    imageWrapper.className = "memory-image";
 
-            <button class="memory-delete" type="button" aria-label="Delete memory">
-                <i class='bx bx-x'></i>
-            </button>
-        </div>
+    const img = document.createElement("img");
+    img.src = memory.imageUrl;
+    img.alt = memory.title;
+    img.loading = "lazy";
 
-        <div class="memory-info">
-            <p class="memory-category">${memory.category}</p>
-            <h3>${memory.title}</h3>
-            <p class="memory-description">${memory.description}</p>
+    imageWrapper.appendChild(img);
 
-            <button class="memory-like" type="button">
-                <i class='bx bx-heart'></i>
-            </button>
-        </div>
-    `;
+    const info = document.createElement("div");
+    info.className = "memory-info";
+
+    const category = document.createElement("p");
+    category.className = "memory-category";
+    category.textContent = memory.category;
+
+    const title = document.createElement("h3");
+    title.textContent = memory.title;
+
+    const description = document.createElement("p");
+    description.className = "memory-description";
+    description.textContent = memory.description;
+
+    const likeBtn = document.createElement("button");
+    likeBtn.className = "memory-like";
+    likeBtn.type = "button";
+    likeBtn.setAttribute("aria-label", "Like memory");
+
+    const heart = document.createElement("i");
+    heart.className = "bx bx-heart";
+    likeBtn.appendChild(heart);
+
+    info.append(category, title, description, likeBtn);
+    article.append(imageWrapper, info);
 
     return article;
 }
 
-function renderSavedMemories() {
-    const memories = getSavedMemories();
-    memories.forEach((memory) => {
-        libraryGrid.appendChild(buildMemoryCard(memory));
-    });
-}
+// =========================================================
+// STATIC CARD
+// =========================================================
 
 function hideDeletedStaticCards() {
-    const deletedStatic = getDeletedStaticIds();
-    deletedStatic.forEach((id) => {
-        const card = libraryGrid.querySelector(`.memory-card[data-id="${id}"]`);
+    const deletedIds = getDeletedStaticIds();
+
+    deletedIds.forEach((id) => {
+        const card = libraryGrid.querySelector(
+            `.memory-card[data-id="${id}"]`
+        );
+
         if (card) card.remove();
     });
 }
 
-
-// ---------------------------------------------------------
-// ADD MEMORY — FORM SUBMIT
-// ---------------------------------------------------------
-
-memoryForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-
-    const file = memoryPhotoInput.files[0];
-    const category = document.getElementById("memoryCategory").value.trim();
-    const title = document.getElementById("memoryTitle").value.trim();
-    const description = document.getElementById("memoryDescription").value.trim();
-
-    if (!file || !category || !title || !description) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-        const memory = {
-            id: "mem-" + Date.now(),
-            image: reader.result,
-            category,
-            title,
-            description,
-        };
-
-        const memories = getSavedMemories();
-        memories.push(memory);
-        saveMemories(memories);
-
-        libraryGrid.appendChild(buildMemoryCard(memory));
-
-        closeModal();
-    };
-    reader.readAsDataURL(file);
-});
-
-
-// ---------------------------------------------------------
-// LIKE + DELETE (event delegation, works for static + dynamic)
-// ---------------------------------------------------------
+// =========================================================
+// LIKE STATE
+// =========================================================
 
 function applyLikedState() {
     const likedIds = getLikedIds();
 
     document.querySelectorAll(".memory-card").forEach((card) => {
-        const cardId = card.dataset.id;
         const likeBtn = card.querySelector(".memory-like");
+        if (!likeBtn) return;
 
-        if (likedIds.includes(cardId)) {
-            likeBtn.classList.add("liked");
+        const liked = likedIds.includes(card.dataset.id);
+
+        likeBtn.classList.toggle("liked", liked);
+
+        const icon = likeBtn.querySelector("i");
+        if (icon) {
+            icon.className = liked ? "bx bxs-heart" : "bx bx-heart";
         }
     });
 }
 
-libraryGrid.addEventListener("click", (e) => {
+// =========================================================
+// CLOUDINARY UPLOAD
+// =========================================================
 
-    // DELETE
-    const deleteBtn = e.target.closest(".memory-delete");
+async function uploadToCloudinary(file) {
+    const endpoint =
+        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", UPLOAD_PRESET);
+
+    const response = await fetch(endpoint, {
+        method: "POST",
+        body: formData
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            result.error?.message || "Cloudinary upload failed."
+        );
+    }
+
+    return result.secure_url;
+}
+
+// =========================================================
+// ADD MEMORY
+// =========================================================
+
+memoryForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const file = memoryPhotoInput.files[0];
+    const category = memoryCategoryInput.value.trim();
+    const title = memoryTitleInput.value.trim();
+    const description = memoryDescriptionInput.value.trim();
+
+    if (!file || !category || !title || !description) {
+        alert("Please complete all fields.");
+        return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+        alert("Please select a valid image.");
+        return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+        alert("Maximum photo size is 5 MB.");
+        return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Uploading...";
+
+    try {
+        // 1. Upload photo to Cloudinary
+        const imageUrl = await uploadToCloudinary(file);
+
+        // 2. Save metadata to Firestore
+        await addDoc(memoriesRef, {
+            imageUrl,
+            category,
+            title,
+            description,
+            createdAt: serverTimestamp()
+        });
+
+        closeModal();
+        alert("Memory uploaded successfully!");
+    } catch (error) {
+        console.error("Upload error:", error);
+        alert(`Upload failed: ${error.message}`);
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Save Memory";
+    }
+});
+
+// =========================================================
+// LOAD SHARED MEMORIES
+// =========================================================
+
+const memoriesQuery = query(
+    memoriesRef,
+    orderBy("createdAt", "desc")
+);
+
+onSnapshot(
+    memoriesQuery,
+    (snapshot) => {
+        // Remove previously rendered Firestore cards
+        libraryGrid
+            .querySelectorAll(".cloud-memory")
+            .forEach((card) => card.remove());
+
+        snapshot.forEach((doc) => {
+            const memory = {
+                id: doc.id,
+                ...doc.data()
+            };
+
+            const card = buildMemoryCard(memory);
+            card.classList.add("cloud-memory");
+
+            libraryGrid.appendChild(card);
+        });
+
+        hideDeletedStaticCards();
+        applyLikedState();
+    },
+    (error) => {
+        console.error("Firestore error:", error);
+        alert("Could not load shared memories. Please check Firestore settings.");
+    }
+);
+
+// =========================================================
+// LIKE + DELETE
+// =========================================================
+
+libraryGrid.addEventListener("click", (event) => {
+    const deleteBtn = event.target.closest(".memory-delete");
+
     if (deleteBtn) {
         const card = deleteBtn.closest(".memory-card");
         const cardId = card.dataset.id;
 
-        const confirmed = window.confirm("Delete this memory?");
-        if (!confirmed) return;
-
-        if (cardId.startsWith("static-")) {
-            const deletedStatic = getDeletedStaticIds();
-            if (!deletedStatic.includes(cardId)) {
-                saveDeletedStaticIds([...deletedStatic, cardId]);
-            }
-        } else {
-            const memories = getSavedMemories().filter((m) => m.id !== cardId);
-            saveMemories(memories);
+        // Only the static card can be removed locally.
+        if (!cardId.startsWith("static-")) {
+            alert("Shared memories cannot be deleted from this page.");
+            return;
         }
 
-        const likedIds = getLikedIds().filter((id) => id !== cardId);
-        saveLikedIds(likedIds);
+        if (!confirm("Delete this memory from your view?")) return;
 
+        const deletedIds = getDeletedStaticIds();
+
+        if (!deletedIds.includes(cardId)) {
+            saveDeletedStaticIds([...deletedIds, cardId]);
+        }
+
+        saveLikedIds(getLikedIds().filter((id) => id !== cardId));
         card.remove();
         return;
     }
 
-    // LIKE
-    const likeBtn = e.target.closest(".memory-like");
-    if (likeBtn) {
-        const card = likeBtn.closest(".memory-card");
-        const cardId = card.dataset.id;
+    const likeBtn = event.target.closest(".memory-like");
+    if (!likeBtn) return;
 
-        const likedIds = getLikedIds();
-        const isLiked = likedIds.includes(cardId);
+    const card = likeBtn.closest(".memory-card");
+    const cardId = card.dataset.id;
 
-        if (isLiked) {
-            likeBtn.classList.remove("liked");
-            saveLikedIds(likedIds.filter((id) => id !== cardId));
-        } else {
-            likeBtn.classList.add("liked");
-            saveLikedIds([...likedIds, cardId]);
-        }
+    const likedIds = getLikedIds();
+    const isLiked = likedIds.includes(cardId);
+
+    if (isLiked) {
+        saveLikedIds(likedIds.filter((id) => id !== cardId));
+    } else {
+        saveLikedIds([...likedIds, cardId]);
     }
+
+    applyLikedState();
 });
 
-
-// ---------------------------------------------------------
+// =========================================================
 // INIT
-// ---------------------------------------------------------
+// =========================================================
 
 hideDeletedStaticCards();
-renderSavedMemories();
 applyLikedState();
