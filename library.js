@@ -4,6 +4,7 @@
 
 const STORAGE_KEY = "stellars-library-memories";
 const LIKES_KEY = "stellars-library-likes";
+const DELETED_STATIC_KEY = "stellars-library-deleted-static";
 
 const libraryGrid = document.getElementById("libraryGrid");
 const addMemoryBtn = document.getElementById("addMemoryBtn");
@@ -82,6 +83,18 @@ function saveLikedIds(ids) {
     localStorage.setItem(LIKES_KEY, JSON.stringify(ids));
 }
 
+function getDeletedStaticIds() {
+    try {
+        return JSON.parse(localStorage.getItem(DELETED_STATIC_KEY)) || [];
+    } catch {
+        return [];
+    }
+}
+
+function saveDeletedStaticIds(ids) {
+    localStorage.setItem(DELETED_STATIC_KEY, JSON.stringify(ids));
+}
+
 
 // ---------------------------------------------------------
 // CARD BUILDER (mirrors the existing static card markup)
@@ -95,6 +108,10 @@ function buildMemoryCard(memory) {
     article.innerHTML = `
         <div class="memory-image">
             <img src="${memory.image}" alt="${memory.title}">
+
+            <button class="memory-delete" type="button" aria-label="Delete memory">
+                <i class='bx bx-x'></i>
+            </button>
         </div>
 
         <div class="memory-info">
@@ -116,7 +133,14 @@ function renderSavedMemories() {
     memories.forEach((memory) => {
         libraryGrid.appendChild(buildMemoryCard(memory));
     });
-    applyLikedState();
+}
+
+function hideDeletedStaticCards() {
+    const deletedStatic = getDeletedStaticIds();
+    deletedStatic.forEach((id) => {
+        const card = libraryGrid.querySelector(`.memory-card[data-id="${id}"]`);
+        if (card) card.remove();
+    });
 }
 
 
@@ -157,17 +181,16 @@ memoryForm.addEventListener("submit", (e) => {
 
 
 // ---------------------------------------------------------
-// LIKE BUTTON (works for static + dynamic cards, persists)
+// LIKE + DELETE (event delegation, works for static + dynamic)
 // ---------------------------------------------------------
 
 function applyLikedState() {
     const likedIds = getLikedIds();
 
-    document.querySelectorAll(".memory-card").forEach((card, index) => {
-        const cardId = card.dataset.id || "static-" + index;
-        card.dataset.id = cardId;
-
+    document.querySelectorAll(".memory-card").forEach((card) => {
+        const cardId = card.dataset.id;
         const likeBtn = card.querySelector(".memory-like");
+
         if (likedIds.includes(cardId)) {
             likeBtn.classList.add("liked");
         }
@@ -175,21 +198,49 @@ function applyLikedState() {
 }
 
 libraryGrid.addEventListener("click", (e) => {
+
+    // DELETE
+    const deleteBtn = e.target.closest(".memory-delete");
+    if (deleteBtn) {
+        const card = deleteBtn.closest(".memory-card");
+        const cardId = card.dataset.id;
+
+        const confirmed = window.confirm("Delete this memory?");
+        if (!confirmed) return;
+
+        if (cardId.startsWith("static-")) {
+            const deletedStatic = getDeletedStaticIds();
+            if (!deletedStatic.includes(cardId)) {
+                saveDeletedStaticIds([...deletedStatic, cardId]);
+            }
+        } else {
+            const memories = getSavedMemories().filter((m) => m.id !== cardId);
+            saveMemories(memories);
+        }
+
+        const likedIds = getLikedIds().filter((id) => id !== cardId);
+        saveLikedIds(likedIds);
+
+        card.remove();
+        return;
+    }
+
+    // LIKE
     const likeBtn = e.target.closest(".memory-like");
-    if (!likeBtn) return;
+    if (likeBtn) {
+        const card = likeBtn.closest(".memory-card");
+        const cardId = card.dataset.id;
 
-    const card = likeBtn.closest(".memory-card");
-    const cardId = card.dataset.id;
+        const likedIds = getLikedIds();
+        const isLiked = likedIds.includes(cardId);
 
-    const likedIds = getLikedIds();
-    const isLiked = likedIds.includes(cardId);
-
-    if (isLiked) {
-        likeBtn.classList.remove("liked");
-        saveLikedIds(likedIds.filter((id) => id !== cardId));
-    } else {
-        likeBtn.classList.add("liked");
-        saveLikedIds([...likedIds, cardId]);
+        if (isLiked) {
+            likeBtn.classList.remove("liked");
+            saveLikedIds(likedIds.filter((id) => id !== cardId));
+        } else {
+            likeBtn.classList.add("liked");
+            saveLikedIds([...likedIds, cardId]);
+        }
     }
 });
 
@@ -198,4 +249,6 @@ libraryGrid.addEventListener("click", (e) => {
 // INIT
 // ---------------------------------------------------------
 
+hideDeletedStaticCards();
 renderSavedMemories();
+applyLikedState();
