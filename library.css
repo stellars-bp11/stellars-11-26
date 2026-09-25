@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap');
 
 /* =========================================
    GLOBAL
@@ -33,14 +33,12 @@ img {
 
 
 /* =========================================
-   FIXED VIDEO BACKGROUND
+   BACKGROUND VIDEO
 ========================================= */
 
 .background-video {
     position: fixed;
-
-    top: 0;
-    left: 0;
+    inset: 0;
 
     width: 100%;
     height: 100%;
@@ -54,14 +52,8 @@ img {
 
 .background-overlay {
     position: fixed;
+    inset: 0;
 
-    top: 0;
-    left: 0;
-
-    width: 100%;
-    height: 100%;
-
-    /* Dibuat lebih transparan supaya mountain tetap kelihatan */
     background: rgba(5, 7, 12, 0.25);
 
     z-index: -1;
@@ -181,18 +173,21 @@ nav {
 }
 
 
-
 /* =========================================
-   GENERAL
+   MAIN
 ========================================= */
 
 main {
     width: 100%;
-
     max-width: 1200px;
 
     margin: 0 auto;
 }
+
+
+/* =========================================
+   TEXT
+========================================= */
 
 .eyebrow {
     color: #f9fafe;
@@ -211,13 +206,11 @@ main {
    HERO
 ========================================= */
 
-.lecturers-hero {
+.library-hero {
     min-height: 55vh;
 
     display: flex;
-
     align-items: center;
-
     justify-content: center;
 
     text-align: center;
@@ -238,7 +231,8 @@ main {
 
     letter-spacing: -5px;
 
-    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+    text-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.45);
 }
 
 .hero-content > p:last-child {
@@ -246,112 +240,16 @@ main {
 
     font-size: 18px;
 
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+    text-shadow:
+        0 2px 10px rgba(0, 0, 0, 0.4);
 }
 
 
 /* =========================================
-   FEATURED LECTURER
+   LIBRARY SECTION
 ========================================= */
 
-.featured-lecturer {
-    margin: 50px 30px 150px;
-
-    display: grid;
-
-    grid-template-columns: 1fr 1fr;
-
-    border: 1px solid rgba(255, 255, 255, 0.1);
-
-    background: rgba(17, 20, 27, 0.88);
-}
-
-.featured-image {
-    width: 100%;
-
-    overflow: hidden;
-}
-
-.featured-image img {
-    display: block;
-
-    width: 100%;
-
-    height: auto;
-
-    object-fit: cover;
-
-    object-position: center;
-
-    filter: grayscale(100%);
-
-    transition:
-        filter 0.5s ease,
-        transform 0.5s ease;
-}
-
-.featured-image:hover img {
-    filter: grayscale(0%);
-
-    transform: scale(1.03);
-}
-
-.featured-info {
-    padding: 60px;
-
-    display: flex;
-
-    flex-direction: column;
-
-    justify-content: center;
-}
-
-.featured-info h2 {
-    font-size: 42px;
-
-    line-height: 1.1;
-
-    margin: 15px 0 8px;
-}
-
-.lecturer-field {
-    color: #9da3b2;
-
-    margin-bottom: 25px;
-}
-
-.featured-info > p:not(.eyebrow):not(.lecturer-field) {
-    color: #aeb3c2;
-
-    max-width: 450px;
-
-    margin-bottom: 30px;
-}
-
-.profile-button {
-    width: fit-content;
-
-    padding: 12px 22px;
-
-    border: 1px solid rgba(255, 255, 255, 0.2);
-
-    font-size: 14px;
-
-    transition: 0.3s ease;
-}
-
-.profile-button:hover {
-    background: white;
-
-    color: #0b0d12;
-}
-
-
-/* =========================================
-   DIRECTORY
-========================================= */
-
-.lecturer-directory {
+.library-section {
     padding: 0 30px 120px;
 }
 
@@ -360,115 +258,178 @@ main {
 }
 
 .section-heading h2 {
-    font-size: 48px;
-
     margin-top: 10px;
+
+    font-size: 48px;
 }
 
 
 /* =========================================
-   LECTURER GRID
+   LIBRARY GRID
 ========================================= */
 
-.lecturer-grid {
+.library-grid {
     display: grid;
 
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
 
     gap: 25px;
 }
 
 
 /* =========================================
-   LECTURER CARD
+   MEMORY CARD
 ========================================= */
 
-.lecturer-card {
-    background: rgba(17, 20, 27, 0.88);
-
-    border: 1px solid rgba(255, 255, 255, 0.08);
-
+.memory-card {
     overflow: hidden;
+
+    background: #ffffff;
+
+    border: 1px solid rgba(255, 255, 255, 0.8);
+
+    border-radius: 28px;
+
+    box-shadow:
+        0 15px 35px rgba(0, 0, 0, 0.18);
 
     transition:
         transform 0.35s ease,
-        border-color 0.35s ease;
+        box-shadow 0.35s ease;
 }
 
-.lecturer-card:hover {
+.memory-card:hover {
     transform: translateY(-6px);
 
-    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow:
+        0 20px 45px rgba(0, 0, 0, 0.25);
 }
 
-.lecturer-image {
-    height: 400px;
 
-    overflow: hidden;
-}
+/* =========================================
+   MEMORY IMAGE
+========================================= */
 
-.lecturer-image img {
+.memory-image {
     width: 100%;
 
-    height: 100%;
+    height: 300px;
 
-    object-fit: contain;
+    overflow: hidden;
 
-    background: #171a22;
+    padding: 10px 10px 0;
 
-    filter: grayscale(100%);
-
-    transition:
-        filter 0.5s ease,
-        transform 0.5s ease;
+    background: #ffffff;
 }
 
-.lecturer-card:hover .lecturer-image img {
-    filter: grayscale(0%);
+.memory-image img {
+    width: 100%;
+    height: 100%;
 
+    object-fit: cover;
+
+    border-radius: 22px 22px 0 0;
+
+    transition: transform 0.5s ease;
+}
+
+.memory-card:hover .memory-image img {
     transform: scale(1.04);
 }
 
-.lecturer-info {
-    padding: 25px;
+
+/* =========================================
+   MEMORY INFO
+========================================= */
+
+.memory-info {
+    position: relative;
+
+    padding: 22px 55px 24px 24px;
+
+    color: #222;
 }
 
-.lecturer-role {
-    color: #7f8799;
+.memory-category {
+    margin-bottom: 5px;
+
+    color: #aaa;
 
     font-size: 11px;
 
-    letter-spacing: 2px;
+    font-weight: 500;
+
+    letter-spacing: 1.5px;
 
     text-transform: uppercase;
 }
 
-.lecturer-info h3 {
+.memory-info h3 {
+    margin-bottom: 2px;
+
+    color: #222;
+
     font-size: 25px;
 
-    margin: 6px 0;
+    line-height: 1.15;
 }
 
-.lecturer-info > p:not(.lecturer-role) {
-    color: #8f96a8;
+.memory-description {
+    color: #9a9a9a;
 
     font-size: 14px;
 
-    margin-bottom: 18px;
+    line-height: 1.4;
 }
 
-.lecturer-info a {
-    font-size: 13px;
 
-    color: #dfe2e8;
+/* =========================================
+   HEART BUTTON
+========================================= */
 
-    transition: 0.3s ease;
+.memory-like {
+    position: absolute;
+
+    right: 18px;
+    bottom: 18px;
+
+    width: 48px;
+    height: 48px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #ffffff;
+
+    color: #777;
+
+    border: 2px solid #eeeeee;
+
+    border-radius: 50%;
+
+    cursor: pointer;
+
+    transition:
+        color 0.25s ease,
+        border-color 0.25s ease,
+        transform 0.25s ease,
+        background 0.25s ease;
 }
 
-.lecturer-info a:hover {
-    color: white;
+.memory-like i {
+    font-size: 23px;
+}
 
-    letter-spacing: 0.5px;
+.memory-like:hover {
+    color: #e45d6a;
+
+    border-color: #e7b5ba;
+
+    background: #fff8f9;
+
+    transform: scale(1.06);
 }
 
 
@@ -495,6 +456,19 @@ footer {
    TABLET
 ========================================= */
 
+@media (max-width: 900px) {
+
+    .library-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+
+/* =========================================
+   TABLET / MOBILE
+========================================= */
+
 @media (max-width: 768px) {
 
     nav {
@@ -506,16 +480,16 @@ footer {
     }
 
     .nav-links {
-        gap: 7px;
+        gap: 6px;
     }
 
     .nav-links a {
-        padding: 7px 10px;
+        padding: 7px 9px;
 
         font-size: 11px;
     }
 
-    .lecturers-hero {
+    .library-hero {
         min-height: 45vh;
 
         padding: 80px 20px;
@@ -531,21 +505,7 @@ footer {
         font-size: 15px;
     }
 
-    .featured-lecturer {
-        margin: 30px 20px 100px;
-
-        grid-template-columns: 1fr;
-    }
-
-    .featured-info {
-        padding: 35px;
-    }
-
-    .featured-info h2 {
-        font-size: 32px;
-    }
-
-    .lecturer-directory {
+    .library-section {
         padding: 0 20px 80px;
     }
 
@@ -553,12 +513,12 @@ footer {
         font-size: 36px;
     }
 
-    .lecturer-grid {
+    .library-grid {
         grid-template-columns: 1fr;
     }
 
-    .lecturer-image {
-        height: 420px;
+    .memory-image {
+        height: 360px;
     }
 }
 
@@ -586,16 +546,16 @@ footer {
     }
 
     .nav-links {
-        gap: 5px;
+        gap: 4px;
     }
 
     .nav-links a {
-        padding: 6px 8px;
+        padding: 6px 7px;
 
         font-size: 10px;
     }
 
-    .lecturers-hero {
+    .library-hero {
         padding: 70px 15px;
     }
 
@@ -605,15 +565,25 @@ footer {
         letter-spacing: -2px;
     }
 
-    .featured-info {
-        padding: 25px;
-    }
-
-    .lecturer-image {
-        height: 350px;
-    }
-
     .section-heading h2 {
         font-size: 30px;
+    }
+
+    .memory-image {
+        height: 320px;
+
+        padding: 8px 8px 0;
+    }
+
+    .memory-image img {
+        border-radius: 18px 18px 0 0;
+    }
+
+    .memory-info {
+        padding: 20px 55px 22px 20px;
+    }
+
+    .memory-info h3 {
+        font-size: 23px;
     }
 }
