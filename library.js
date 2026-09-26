@@ -26,30 +26,16 @@ import {
    FIREBASE CONFIG
 ========================================================= */
 
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-
-    apiKey:
-        "AIzaSyD3ptwKTlqFCmvrTVJFooFiVLE63mh83c",
-
-    authDomain:
-        "class-web-7241e.firebaseapp.com",
-
-    projectId:
-        "class-web-7241e",
-
-    storageBucket:
-        "class-web-7241e.firebasestorage.app",
-
-    messagingSenderId:
-        "167560389153",
-
-    appId:
-        "1:167560389153:web:f61f4f821275c48373f960",
-
-    measurementId:
-        "G-DTHTZNT135"
+  apiKey: "AIzaSyD3ptwKTkLqFCmvrTVJFooFiVLE63mh83c",
+  authDomain: "class-web-7241e.firebaseapp.com",
+  projectId: "class-web-7241e",
+  storageBucket: "class-web-7241e.firebasestorage.app",
+  messagingSenderId: "167560389153",
+  appId: "1:167560389153:web:f61f4f821275c48373f960",
+  measurementId: "G-DTHTZNT135"
 };
-
 
 /* =========================================================
    ADMIN UID
@@ -64,7 +50,7 @@ const firebaseConfig = {
 */
 
 const ADMIN_UID =
-    "GANTI_DENGAN_UID_KAMU";
+    "PKHSk7VpN4YJFW9URexjfDEZgjo2";
 
 
 /* =========================================================
@@ -671,16 +657,12 @@ adminLoginForm.addEventListener(
 
         } catch (error) {
 
-            console.error(
-                "Login error:",
-                error
-            );
+    console.error("LOGIN ERROR:", error);
 
+    adminStatus.textContent =
+        `${error.code || "Error"}: ${error.message}`;
 
-            adminStatus.textContent =
-                "Login failed. Check your email and password.";
-
-        }
+    }
 
     }
 );
