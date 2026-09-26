@@ -14,6 +14,13 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
+import {
+    getAuth,
+    signInWithEmailAndPassword,
+    signOut,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+
 
 /* =========================================================
    FIREBASE CONFIG
@@ -45,6 +52,22 @@ const firebaseConfig = {
 
 
 /* =========================================================
+   ADMIN UID
+========================================================= */
+
+/*
+    GANTI NILAI DI BAWAH INI DENGAN
+    UID AKUN ADMIN KAMU.
+
+    Contoh:
+    const ADMIN_UID = "abc123xyz456";
+*/
+
+const ADMIN_UID =
+    "GANTI_DENGAN_UID_KAMU";
+
+
+/* =========================================================
    CLOUDINARY
 ========================================================= */
 
@@ -68,6 +91,9 @@ const app =
 const db =
     getFirestore(app);
 
+const auth =
+    getAuth(app);
+
 const memoriesRef =
     collection(db, "memories");
 
@@ -78,6 +104,14 @@ const memoriesRef =
 
 const LIKES_KEY =
     "stellars-library-likes";
+
+
+/* =========================================================
+   ADMIN STATE
+========================================================= */
+
+let isAdmin =
+    false;
 
 
 /* =========================================================
@@ -119,7 +153,33 @@ const submitBtn =
 
 
 /* =========================================================
-   MODAL
+   ADMIN ELEMENTS
+========================================================= */
+
+const adminLoginBtn =
+    document.getElementById("adminLoginBtn");
+
+const adminModalOverlay =
+    document.getElementById("adminModalOverlay");
+
+const adminModalClose =
+    document.getElementById("adminModalClose");
+
+const adminLoginForm =
+    document.getElementById("adminLoginForm");
+
+const adminEmail =
+    document.getElementById("adminEmail");
+
+const adminPassword =
+    document.getElementById("adminPassword");
+
+const adminStatus =
+    document.getElementById("adminStatus");
+
+
+/* =========================================================
+   MODAL HELPERS
 ========================================================= */
 
 function openModal() {
@@ -134,6 +194,7 @@ function openModal() {
     document.body.classList.add(
         "modal-open"
     );
+
 }
 
 
@@ -158,12 +219,18 @@ function closeModal() {
 
     modalPreview.innerHTML = "";
 
-    submitBtn.disabled = false;
+    submitBtn.disabled =
+        false;
 
     submitBtn.textContent =
         "Save Memory";
+
 }
 
+
+/* =========================================================
+   ADD MEMORY MODAL EVENTS
+========================================================= */
 
 addMemoryBtn.addEventListener(
     "click",
@@ -185,24 +252,49 @@ modalOverlay.addEventListener(
             event.target ===
             modalOverlay
         ) {
+
             closeModal();
+
         }
 
     }
 );
 
 
+/* =========================================================
+   ESCAPE KEY
+========================================================= */
+
 document.addEventListener(
     "keydown",
     (event) => {
 
         if (
-            event.key === "Escape" &&
+            event.key !== "Escape"
+        ) {
+            return;
+        }
+
+
+        if (
             modalOverlay.classList.contains(
                 "open"
             )
         ) {
+
             closeModal();
+
+        }
+
+
+        if (
+            adminModalOverlay.classList.contains(
+                "open"
+            )
+        ) {
+
+            closeAdminModal();
+
         }
 
     }
@@ -220,11 +312,14 @@ memoryPhotoInput.addEventListener(
         const file =
             memoryPhotoInput.files[0];
 
-        modalPreview.innerHTML = "";
+
+        modalPreview.innerHTML =
+            "";
 
         modalPreview.classList.remove(
             "show"
         );
+
 
         if (!file) {
             return;
@@ -269,10 +364,12 @@ memoryPhotoInput.addEventListener(
                 "img"
             );
 
+
         const objectUrl =
             URL.createObjectURL(
                 file
             );
+
 
         image.src =
             objectUrl;
@@ -281,13 +378,14 @@ memoryPhotoInput.addEventListener(
             "Photo preview";
 
 
-        image.onload = () => {
+        image.onload =
+            () => {
 
-            URL.revokeObjectURL(
-                objectUrl
-            );
+                URL.revokeObjectURL(
+                    objectUrl
+                );
 
-        };
+            };
 
 
         modalPreview.appendChild(
@@ -303,7 +401,7 @@ memoryPhotoInput.addEventListener(
 
 
 /* =========================================================
-   LOCAL STORAGE HELPERS
+   LIKE STORAGE
 ========================================================= */
 
 function getLikedIds() {
@@ -316,6 +414,7 @@ function getLikedIds() {
                     LIKES_KEY
                 ) || "[]"
             );
+
 
         return Array.isArray(data)
             ? data
@@ -330,7 +429,9 @@ function getLikedIds() {
 }
 
 
-function saveLikedIds(ids) {
+function saveLikedIds(
+    ids
+) {
 
     localStorage.setItem(
         LIKES_KEY,
@@ -341,7 +442,278 @@ function saveLikedIds(ids) {
 
 
 /* =========================================================
-   CARD BUILDER
+   ADMIN UI
+========================================================= */
+
+function updateAdminButton() {
+
+    if (!adminLoginBtn) {
+        return;
+    }
+
+
+    if (isAdmin) {
+
+        adminLoginBtn.innerHTML =
+            `
+                <i class="bx bx-log-out"></i>
+                <span>Logout</span>
+            `;
+
+    } else {
+
+        adminLoginBtn.innerHTML =
+            `
+                <i class="bx bx-lock-alt"></i>
+                <span>Admin</span>
+            `;
+
+    }
+
+}
+
+
+function updateDeleteButtons() {
+
+    document
+        .querySelectorAll(
+            ".memory-delete"
+        )
+        .forEach(
+            (button) => {
+
+                button.style.display =
+                    isAdmin
+                        ? "flex"
+                        : "none";
+
+            }
+        );
+
+}
+
+
+/* =========================================================
+   ADMIN MODAL
+========================================================= */
+
+function openAdminModal() {
+
+    if (isAdmin) {
+        return;
+    }
+
+
+    adminStatus.textContent =
+        "";
+
+    adminModalOverlay.classList.add(
+        "open"
+    );
+
+}
+
+
+function closeAdminModal() {
+
+    adminModalOverlay.classList.remove(
+        "open"
+    );
+
+    adminStatus.textContent =
+        "";
+
+}
+
+
+adminLoginBtn.addEventListener(
+    "click",
+    async () => {
+
+        /*
+            Kalau sudah login sebagai admin,
+            tombol berubah menjadi Logout.
+        */
+
+        if (isAdmin) {
+
+            try {
+
+                await signOut(
+                    auth
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "Logout error:",
+                    error
+                );
+
+                alert(
+                    "Could not log out."
+                );
+
+            }
+
+            return;
+        }
+
+
+        openAdminModal();
+
+    }
+);
+
+
+adminModalClose.addEventListener(
+    "click",
+    closeAdminModal
+);
+
+
+adminModalOverlay.addEventListener(
+    "click",
+    (event) => {
+
+        if (
+            event.target ===
+            adminModalOverlay
+        ) {
+
+            closeAdminModal();
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   ADMIN LOGIN
+========================================================= */
+
+adminLoginForm.addEventListener(
+    "submit",
+    async (event) => {
+
+        event.preventDefault();
+
+
+        const email =
+            adminEmail.value.trim();
+
+        const password =
+            adminPassword.value;
+
+
+        if (
+            !email ||
+            !password
+        ) {
+
+            return;
+
+        }
+
+
+        adminStatus.textContent =
+            "Logging in...";
+
+
+        try {
+
+            const credentials =
+                await signInWithEmailAndPassword(
+                    auth,
+                    email,
+                    password
+                );
+
+
+            /*
+                Login berhasil secara Firebase,
+                tapi kita tetap cek apakah UID
+                adalah UID admin yang ditentukan.
+            */
+
+            if (
+                credentials.user.uid !==
+                ADMIN_UID
+            ) {
+
+                await signOut(
+                    auth
+                );
+
+                throw new Error(
+                    "This account is not the admin account."
+                );
+
+            }
+
+
+            adminStatus.textContent =
+                "Login successful.";
+
+            adminLoginForm.reset();
+
+
+            setTimeout(
+                () => {
+
+                    closeAdminModal();
+
+                },
+                400
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Login error:",
+                error
+            );
+
+
+            adminStatus.textContent =
+                "Login failed. Check your email and password.";
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   AUTH STATE
+========================================================= */
+
+onAuthStateChanged(
+    auth,
+    (user) => {
+
+        /*
+            Hanya UID yang sudah ditentukan
+            yang dianggap admin.
+        */
+
+        isAdmin =
+            !!user &&
+            user.uid === ADMIN_UID;
+
+
+        updateAdminButton();
+
+        updateDeleteButtons();
+
+    }
+);
+
+
+/* =========================================================
+   BUILD MEMORY CARD
 ========================================================= */
 
 function buildMemoryCard(
@@ -353,19 +725,24 @@ function buildMemoryCard(
             "article"
         );
 
+
     card.className =
         "memory-card cloud-memory";
+
 
     card.dataset.id =
         memory.id;
 
 
-    /* IMAGE */
+    /* =====================================
+       IMAGE
+    ====================================== */
 
     const imageWrapper =
         document.createElement(
             "div"
         );
+
 
     imageWrapper.className =
         "memory-image";
@@ -375,6 +752,7 @@ function buildMemoryCard(
         document.createElement(
             "img"
         );
+
 
     image.src =
         memory.imageUrl || "";
@@ -389,18 +767,19 @@ function buildMemoryCard(
         "async";
 
 
-    image.onerror = () => {
+    image.onerror =
+        () => {
 
-        image.style.objectFit =
-            "contain";
+            image.style.objectFit =
+                "contain";
 
-        image.style.padding =
-            "50px";
+            image.style.padding =
+                "50px";
 
-        image.alt =
-            "Image unavailable";
+            image.alt =
+                "Image unavailable";
 
-    };
+        };
 
 
     imageWrapper.appendChild(
@@ -408,12 +787,15 @@ function buildMemoryCard(
     );
 
 
-    /* DELETE BUTTON */
+    /* =====================================
+       DELETE
+    ====================================== */
 
     const deleteButton =
         document.createElement(
             "button"
         );
+
 
     deleteButton.type =
         "button";
@@ -433,10 +815,17 @@ function buildMemoryCard(
     );
 
 
+    deleteButton.style.display =
+        isAdmin
+            ? "flex"
+            : "none";
+
+
     const deleteIcon =
         document.createElement(
             "i"
         );
+
 
     deleteIcon.className =
         "bx bx-trash";
@@ -446,17 +835,21 @@ function buildMemoryCard(
         deleteIcon
     );
 
+
     imageWrapper.appendChild(
         deleteButton
     );
 
 
-    /* INFO */
+    /* =====================================
+       INFO
+    ====================================== */
 
     const info =
         document.createElement(
             "div"
         );
+
 
     info.className =
         "memory-info";
@@ -466,6 +859,7 @@ function buildMemoryCard(
         document.createElement(
             "p"
         );
+
 
     category.className =
         "memory-category";
@@ -480,6 +874,7 @@ function buildMemoryCard(
             "h3"
         );
 
+
     title.textContent =
         memory.title ||
         "Untitled Memory";
@@ -490,6 +885,7 @@ function buildMemoryCard(
             "p"
         );
 
+
     description.className =
         "memory-description";
 
@@ -498,12 +894,15 @@ function buildMemoryCard(
         "";
 
 
-    /* LIKE BUTTON */
+    /* =====================================
+       LIKE
+    ====================================== */
 
     const likeButton =
         document.createElement(
             "button"
         );
+
 
     likeButton.type =
         "button";
@@ -528,6 +927,7 @@ function buildMemoryCard(
             "i"
         );
 
+
     likeIcon.className =
         "bx bx-heart";
 
@@ -544,6 +944,7 @@ function buildMemoryCard(
         likeButton
     );
 
+
     card.append(
         imageWrapper,
         info
@@ -551,11 +952,12 @@ function buildMemoryCard(
 
 
     return card;
+
 }
 
 
 /* =========================================================
-   LIKE STATE
+   APPLY LIKE STATE
 ========================================================= */
 
 function applyLikedState() {
@@ -568,48 +970,51 @@ function applyLikedState() {
         .querySelectorAll(
             ".memory-card"
         )
-        .forEach((card) => {
+        .forEach(
+            (card) => {
 
-            const button =
-                card.querySelector(
-                    ".memory-like"
+                const button =
+                    card.querySelector(
+                        ".memory-like"
+                    );
+
+
+                if (!button) {
+                    return;
+                }
+
+
+                const icon =
+                    button.querySelector(
+                        "i"
+                    );
+
+
+                const liked =
+                    likedIds.includes(
+                        card.dataset.id
+                    );
+
+
+                button.classList.toggle(
+                    "liked",
+                    liked
                 );
 
-            if (!button) {
-                return;
+
+                button.setAttribute(
+                    "aria-pressed",
+                    String(liked)
+                );
+
+
+                icon.className =
+                    liked
+                        ? "bx bxs-heart"
+                        : "bx bx-heart";
+
             }
-
-
-            const icon =
-                button.querySelector(
-                    "i"
-                );
-
-
-            const liked =
-                likedIds.includes(
-                    card.dataset.id
-                );
-
-
-            button.classList.toggle(
-                "liked",
-                liked
-            );
-
-
-            button.setAttribute(
-                "aria-pressed",
-                String(liked)
-            );
-
-
-            icon.className =
-                liked
-                    ? "bx bxs-heart"
-                    : "bx bx-heart";
-
-        });
+        );
 
 }
 
@@ -634,6 +1039,7 @@ async function uploadToCloudinary(
         "file",
         file
     );
+
 
     formData.append(
         "upload_preset",
@@ -678,7 +1084,9 @@ async function uploadToCloudinary(
     }
 
 
-    if (!result?.secure_url) {
+    if (
+        !result?.secure_url
+    ) {
 
         throw new Error(
             "Cloudinary did not return an image URL."
@@ -738,6 +1146,7 @@ memoryForm.addEventListener(
             );
 
             return;
+
         }
 
 
@@ -752,6 +1161,7 @@ memoryForm.addEventListener(
             );
 
             return;
+
         }
 
 
@@ -765,10 +1175,11 @@ memoryForm.addEventListener(
             );
 
             return;
+
         }
 
 
-        /* BUTTON STATE */
+        /* BUTTON */
 
         submitBtn.disabled =
             true;
@@ -815,9 +1226,8 @@ memoryForm.addEventListener(
             );
 
 
-            /* SUCCESS */
-
             closeModal();
+
 
             alert(
                 "Memory uploaded successfully!"
@@ -850,7 +1260,7 @@ memoryForm.addEventListener(
 
 
 /* =========================================================
-   LOAD FIREBASE MEMORIES
+   FIRESTORE LISTENER
 ========================================================= */
 
 const memoriesQuery =
@@ -869,7 +1279,11 @@ onSnapshot(
 
     (snapshot) => {
 
-        /* CLEAR OLD FIREBASE CARDS */
+        /*
+            HANYA hapus card Firebase.
+            Card statis / card HTML lain
+            TIDAK disentuh.
+        */
 
         libraryGrid
             .querySelectorAll(
@@ -877,26 +1291,16 @@ onSnapshot(
             )
             .forEach(
                 (card) => {
+
                     card.remove();
+
                 }
             );
 
 
-        /* NO DATA */
-
-        if (
-            snapshot.empty
-        ) {
-
-            libraryGrid.innerHTML =
-                "";
-
-            return;
-
-        }
-
-
-        /* BUILD */
+        /*
+            Tambahkan memory Firebase.
+        */
 
         snapshot.forEach(
             (memoryDoc) => {
@@ -927,6 +1331,8 @@ onSnapshot(
 
         applyLikedState();
 
+        updateDeleteButtons();
+
     },
 
 
@@ -937,9 +1343,8 @@ onSnapshot(
             error
         );
 
-
         console.error(
-            "Make sure Firestore is enabled and rules allow read access."
+            "Check Firestore Rules and database configuration."
         );
 
     }
@@ -948,12 +1353,30 @@ onSnapshot(
 
 
 /* =========================================================
-   DELETE FIREBASE MEMORY
+   DELETE MEMORY
 ========================================================= */
 
 async function deleteCloudMemory(
     card
 ) {
+
+    /*
+        Double protection:
+        1. UI hanya menampilkan tombol
+           untuk admin.
+        2. Firestore Rules tetap memeriksa UID.
+    */
+
+    if (!isAdmin) {
+
+        alert(
+            "Only the admin can delete memories."
+        );
+
+        return;
+
+    }
+
 
     const cardId =
         card.dataset.id;
@@ -973,7 +1396,7 @@ async function deleteCloudMemory(
 
     const confirmed =
         confirm(
-            `Delete "${title}"?\n\nThe memory will be removed for everyone.`
+            `Delete "${title}"?\n\nThis memory will be removed for everyone.`
         );
 
 
@@ -994,8 +1417,6 @@ async function deleteCloudMemory(
 
     try {
 
-        /* DELETE FIRESTORE */
-
         await deleteDoc(
             doc(
                 db,
@@ -1005,22 +1426,20 @@ async function deleteCloudMemory(
         );
 
 
-        /* REMOVE LIKE */
+        /*
+            onSnapshot()
+            akan otomatis
+            menghapus card dari UI.
+        */
+
 
         saveLikedIds(
-            getLikedIds()
-                .filter(
-                    (id) =>
-                        id !== cardId
-                )
+            getLikedIds().filter(
+                (id) =>
+                    id !== cardId
+            )
         );
 
-
-        /*
-            Firebase onSnapshot()
-            akan otomatis menghapus
-            card dari halaman.
-        */
 
     } catch (error) {
 
@@ -1044,7 +1463,7 @@ async function deleteCloudMemory(
 
 
 /* =========================================================
-   CARD EVENTS
+   CARD CLICK EVENTS
 ========================================================= */
 
 libraryGrid.addEventListener(
@@ -1088,6 +1507,7 @@ libraryGrid.addEventListener(
             );
 
             return;
+
         }
 
 
@@ -1139,7 +1559,11 @@ libraryGrid.addEventListener(
 
 
 /* =========================================================
-   INIT
+   INITIAL UI
 ========================================================= */
+
+updateAdminButton();
+
+updateDeleteButtons();
 
 applyLikedState();
