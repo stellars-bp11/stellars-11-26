@@ -1,54 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Library | Stellars</title>
+    <title>Stellars — Library</title>
 
+    <!-- Ubuntu -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap"
+        rel="stylesheet"
+    >
+
+    <!-- Boxicons -->
     <link
         href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
         rel="stylesheet"
     >
 
+    <!-- CSS -->
     <link rel="stylesheet" href="library.css">
 </head>
 
 <body>
 
-    <!-- BACKGROUND -->
-    <video class="background-video" autoplay muted loop playsinline>
+    <!-- =========================================
+         BACKGROUND VIDEO
+    ========================================== -->
+
+    <video
+        class="background-video"
+        autoplay
+        muted
+        loop
+        playsinline
+    >
+        <!-- GANTI dengan path video kamu -->
         <source src="Videos/Bp1.mp4" type="video/mp4">
     </video>
 
     <div class="background-overlay"></div>
- 
 
-    <!-- NAVBAR -->
+
+    <!-- =========================================
+         NAVBAR
+    ========================================== -->
+
     <header>
         <nav>
 
-            <div class="logo">
+            <a href="index.html" class="logo">
                 STELLARS
-            </div>
+            </a>
 
             <ul class="nav-links">
 
                 <li>
-                    <a href="index.html">Home</a>
+                    <a href="index.html">
+                        Home
+                    </a>
                 </li>
 
                 <li>
-                    <a href="lecturers.html">Lecturers</a>
+                    <a href="class.html">
+                        Class
+                    </a>
                 </li>
 
                 <li>
-                    <a href="library.html" class="active">Library</a>
-                </li>
-
-                <li>
-                    <a href="crewmates.html">Crews</a>
+                    <a href="library.html" class="active">
+                        Library
+                    </a>
                 </li>
 
             </ul>
@@ -57,16 +81,20 @@
     </header>
 
 
-    <!-- MAIN -->
+    <!-- =========================================
+         MAIN
+    ========================================== -->
+
     <main>
 
         <!-- HERO -->
+
         <section class="library-hero">
 
             <div class="hero-content">
 
                 <p class="eyebrow">
-                    MEMORIES OF STELLARS
+                    STELLARS MEMORY LIBRARY
                 </p>
 
                 <h1>
@@ -74,8 +102,8 @@
                 </h1>
 
                 <p>
-                    A collection of moments, memories,
-                    and stories from our journey together.
+                    A place for the moments, memories,
+                    and stories we made together.
                 </p>
 
             </div>
@@ -83,7 +111,10 @@
         </section>
 
 
-        <!-- LIBRARY -->
+        <!-- =========================================
+             MEMORY SECTION
+        ========================================== -->
+
         <section class="library-section">
 
             <div class="section-heading">
@@ -93,58 +124,30 @@
                 </p>
 
                 <h2>
-                    Moments We've Shared
+                    Moments worth keeping.
                 </h2>
 
-                <button class="add-memory-btn" type="button" id="addMemoryBtn">
-                    <i class='bx bx-plus'></i>
+                <button
+                    class="add-memory-btn"
+                    id="addMemoryBtn"
+                    type="button"
+                >
+                    <i class="bx bx-plus"></i>
                     Add Memory
                 </button>
 
             </div>
 
 
-            <div class="library-grid" id="libraryGrid">
+            <!--
+                Firebase memory cards
+                akan otomatis dibuat di sini
+            -->
 
-
-                <!-- CARD 1 -->
-                <article class="memory-card" data-id="static-jean-villain">
-
-                    <div class="memory-image">
-
-                        <img
-                            src="images/jean villain.jpeg"
-                            alt="First Gathering"
-                        >
-
-                        <button class="memory-delete" type="button" aria-label="Delete memory">
-                            <i class='bx bx-x'></i>
-                        </button>
-
-                    </div>
-
-                    <div class="memory-info">
-
-                        <p class="memory-category">
-                            Kelas
-                        </p>
-
-                        <h3>
-                            Detik-detik jean jadi villain
-                        </h3>
-
-                        <p class="memory-description">
-                            aku marahhhh
-                        </p>
-
-                        <button class="memory-like" type="button">
-                            <i class='bx bx-heart'></i>
-                        </button>
-
-                    </div>
-
-                </article>
-
+            <div
+                class="library-grid"
+                id="libraryGrid"
+            >
             </div>
 
         </section>
@@ -152,51 +155,144 @@
     </main>
 
 
-    <!-- FOOTER -->
+    <!-- =========================================
+         FOOTER
+    ========================================== -->
+
     <footer>
+
         <p>
-            © 2026 Stellars — BP11
+            © 2026 Stellars. Made for the memories.
         </p>
+
     </footer>
 
 
-    <!-- ADD MEMORY MODAL -->
-    <div class="modal-overlay" id="modalOverlay">
+    <!-- =========================================
+         ADD MEMORY MODAL
+    ========================================== -->
 
-        <div class="modal">
+    <div
+        class="modal-overlay"
+        id="modalOverlay"
+        aria-hidden="true"
+    >
+
+        <div
+            class="modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modalTitle"
+        >
 
             <div class="modal-header">
-                <h3>Add a Memory</h3>
-                <button class="modal-close" type="button" id="modalCloseBtn">
-                    <i class='bx bx-x'></i>
+
+                <h3 id="modalTitle">
+                    Add a Memory
+                </h3>
+
+                <button
+                    class="modal-close"
+                    id="modalCloseBtn"
+                    type="button"
+                    aria-label="Close"
+                >
+                    <i class="bx bx-x"></i>
                 </button>
+
             </div>
+
 
             <form id="memoryForm">
 
-                <label class="modal-field">
-                    <span>Photo</span>
-                    <input type="file" id="memoryPhoto" accept="image/*" required>
-                </label>
-
-                <div class="modal-preview" id="modalPreview"></div>
+                <!-- PHOTO -->
 
                 <label class="modal-field">
-                    <span>Category</span>
-                    <input type="text" id="memoryCategory" placeholder="e.g. CAMPUS LIFE" required>
+
+                    <span>
+                        Photo
+                    </span>
+
+                    <input
+                        id="memoryPhoto"
+                        type="file"
+                        accept="image/*"
+                        required
+                    >
+
                 </label>
+
+
+                <!-- PREVIEW -->
+
+                <div
+                    class="modal-preview"
+                    id="modalPreview"
+                ></div>
+
+
+                <!-- CATEGORY -->
 
                 <label class="modal-field">
-                    <span>Title</span>
-                    <input type="text" id="memoryTitle" placeholder="e.g. A Day Together" required>
+
+                    <span>
+                        Category
+                    </span>
+
+                    <input
+                        id="memoryCategory"
+                        type="text"
+                        maxlength="40"
+                        placeholder="e.g. Event, Class, Trip"
+                        required
+                    >
+
                 </label>
+
+
+                <!-- TITLE -->
 
                 <label class="modal-field">
-                    <span>Description</span>
-                    <textarea id="memoryDescription" placeholder="A short caption for this memory" rows="3" required></textarea>
+
+                    <span>
+                        Title
+                    </span>
+
+                    <input
+                        id="memoryTitle"
+                        type="text"
+                        maxlength="80"
+                        placeholder="Give this memory a title"
+                        required
+                    >
+
                 </label>
 
-                <button type="submit" class="modal-submit">
+
+                <!-- DESCRIPTION -->
+
+                <label class="modal-field">
+
+                    <span>
+                        Description
+                    </span>
+
+                    <textarea
+                        id="memoryDescription"
+                        maxlength="300"
+                        placeholder="Tell us a little about this moment..."
+                        required
+                    ></textarea>
+
+                </label>
+
+
+                <!-- SUBMIT -->
+
+                <button
+                    class="modal-submit"
+                    type="submit"
+                >
                     Save Memory
                 </button>
 
@@ -207,7 +303,14 @@
     </div>
 
 
-    <script type="module" src="library.js"></script>
+    <!-- =========================================
+         JAVASCRIPT
+    ========================================== -->
+
+    <script
+        type="module"
+        src="library.js"
+    ></script>
 
 </body>
 </html>

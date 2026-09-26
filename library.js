@@ -1,404 +1,1145 @@
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 
 import {
     getFirestore,
     collection,
     addDoc,
+    deleteDoc,
+    doc,
     onSnapshot,
     query,
     orderBy,
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
-// =========================================================
-// STELLARS LIBRARY — CLOUDINARY + FIREBASE FIRESTORE
-// =========================================================
 
-// FIREBASE CONFIG
+/* =========================================================
+   FIREBASE CONFIG
+========================================================= */
+
 const firebaseConfig = {
-    apiKey: "AIzaSyD3ptwKTkLqFCmvrTVJFooFiVLE63mh83c",
-    authDomain: "class-web-7241e.firebaseapp.com",
-    projectId: "class-web-7241e",
-    storageBucket: "class-web-7241e.firebasestorage.app",
-    messagingSenderId: "167560389153",
-    appId: "1:167560389153:web:f61f4f821275c48373f960",
-    measurementId: "G-DTHTZNT135"
+
+    apiKey:
+        "AIzaSyD3ptwKTlqFCmvrTVJFooFiVLE63mh83c",
+
+    authDomain:
+        "class-web-7241e.firebaseapp.com",
+
+    projectId:
+        "class-web-7241e",
+
+    storageBucket:
+        "class-web-7241e.firebasestorage.app",
+
+    messagingSenderId:
+        "167560389153",
+
+    appId:
+        "1:167560389153:web:f61f4f821275c48373f960",
+
+    measurementId:
+        "G-DTHTZNT135"
 };
 
-// CLOUDINARY CONFIG
-const CLOUD_NAME = "b88nrr3l";
-const UPLOAD_PRESET = "stellar-library";
 
-// INITIALIZE FIREBASE
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const memoriesRef = collection(db, "memories");
+/* =========================================================
+   CLOUDINARY
+========================================================= */
 
-// LOCAL STORAGE
-const LIKES_KEY = "stellars-library-likes";
-const DELETED_STATIC_KEY = "stellars-library-deleted-static";
+const CLOUD_NAME =
+    "b88nrr3l";
 
-// ELEMENTS
-const libraryGrid = document.getElementById("libraryGrid");
-const addMemoryBtn = document.getElementById("addMemoryBtn");
-const modalOverlay = document.getElementById("modalOverlay");
-const modalCloseBtn = document.getElementById("modalCloseBtn");
-const memoryForm = document.getElementById("memoryForm");
-const memoryPhotoInput = document.getElementById("memoryPhoto");
-const memoryCategoryInput = document.getElementById("memoryCategory");
-const memoryTitleInput = document.getElementById("memoryTitle");
-const memoryDescriptionInput = document.getElementById("memoryDescription");
-const modalPreview = document.getElementById("modalPreview");
-const submitBtn = memoryForm.querySelector(".modal-submit");
+const UPLOAD_PRESET =
+    "stellar-library";
 
-// =========================================================
-// MODAL
-// =========================================================
+const MAX_FILE_SIZE =
+    5 * 1024 * 1024;
+
+
+/* =========================================================
+   INITIALIZE FIREBASE
+========================================================= */
+
+const app =
+    initializeApp(firebaseConfig);
+
+const db =
+    getFirestore(app);
+
+const memoriesRef =
+    collection(db, "memories");
+
+
+/* =========================================================
+   LOCAL STORAGE
+========================================================= */
+
+const LIKES_KEY =
+    "stellars-library-likes";
+
+
+/* =========================================================
+   ELEMENTS
+========================================================= */
+
+const libraryGrid =
+    document.getElementById("libraryGrid");
+
+const addMemoryBtn =
+    document.getElementById("addMemoryBtn");
+
+const modalOverlay =
+    document.getElementById("modalOverlay");
+
+const modalCloseBtn =
+    document.getElementById("modalCloseBtn");
+
+const memoryForm =
+    document.getElementById("memoryForm");
+
+const memoryPhotoInput =
+    document.getElementById("memoryPhoto");
+
+const memoryCategoryInput =
+    document.getElementById("memoryCategory");
+
+const memoryTitleInput =
+    document.getElementById("memoryTitle");
+
+const memoryDescriptionInput =
+    document.getElementById("memoryDescription");
+
+const modalPreview =
+    document.getElementById("modalPreview");
+
+const submitBtn =
+    document.querySelector(".modal-submit");
+
+
+/* =========================================================
+   MODAL
+========================================================= */
 
 function openModal() {
+
     modalOverlay.classList.add("open");
+
+    modalOverlay.setAttribute(
+        "aria-hidden",
+        "false"
+    );
+
+    document.body.classList.add(
+        "modal-open"
+    );
 }
+
 
 function closeModal() {
+
     modalOverlay.classList.remove("open");
+
+    modalOverlay.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+
+    document.body.classList.remove(
+        "modal-open"
+    );
+
     memoryForm.reset();
-    modalPreview.classList.remove("show");
-    modalPreview.innerHTML = "";
-}
 
-addMemoryBtn.addEventListener("click", openModal);
-modalCloseBtn.addEventListener("click", closeModal);
-
-modalOverlay.addEventListener("click", (event) => {
-    if (event.target === modalOverlay) closeModal();
-});
-
-document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") closeModal();
-});
-
-// =========================================================
-// PHOTO PREVIEW
-// =========================================================
-
-memoryPhotoInput.addEventListener("change", () => {
-    const file = memoryPhotoInput.files[0];
+    modalPreview.classList.remove(
+        "show"
+    );
 
     modalPreview.innerHTML = "";
 
-    if (!file) {
-        modalPreview.classList.remove("show");
-        return;
-    }
+    submitBtn.disabled = false;
 
-    if (!file.type.startsWith("image/")) {
-        alert("Please select an image file.");
-        memoryPhotoInput.value = "";
-        modalPreview.classList.remove("show");
-        return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-        alert("Maximum photo size is 5 MB.");
-        memoryPhotoInput.value = "";
-        modalPreview.classList.remove("show");
-        return;
-    }
-
-    const img = document.createElement("img");
-    img.src = URL.createObjectURL(file);
-    img.alt = "Photo preview";
-
-    modalPreview.appendChild(img);
-    modalPreview.classList.add("show");
-});
-
-// =========================================================
-// LOCAL STORAGE HELPERS
-// =========================================================
-
-function getLikedIds() {
-    try {
-        return JSON.parse(localStorage.getItem(LIKES_KEY)) || [];
-    } catch {
-        return [];
-    }
+    submitBtn.textContent =
+        "Save Memory";
 }
 
-function saveLikedIds(ids) {
-    localStorage.setItem(LIKES_KEY, JSON.stringify(ids));
-}
 
-function getDeletedStaticIds() {
-    try {
-        return JSON.parse(localStorage.getItem(DELETED_STATIC_KEY)) || [];
-    } catch {
-        return [];
-    }
-}
+addMemoryBtn.addEventListener(
+    "click",
+    openModal
+);
 
-function saveDeletedStaticIds(ids) {
-    localStorage.setItem(DELETED_STATIC_KEY, JSON.stringify(ids));
-}
 
-// =========================================================
-// CARD BUILDER
-// =========================================================
+modalCloseBtn.addEventListener(
+    "click",
+    closeModal
+);
 
-function buildMemoryCard(memory) {
-    const article = document.createElement("article");
-    article.className = "memory-card";
-    article.dataset.id = memory.id;
 
-    const imageWrapper = document.createElement("div");
-    imageWrapper.className = "memory-image";
+modalOverlay.addEventListener(
+    "click",
+    (event) => {
 
-    const img = document.createElement("img");
-    img.src = memory.imageUrl;
-    img.alt = memory.title;
-    img.loading = "lazy";
-
-    imageWrapper.appendChild(img);
-
-    const info = document.createElement("div");
-    info.className = "memory-info";
-
-    const category = document.createElement("p");
-    category.className = "memory-category";
-    category.textContent = memory.category;
-
-    const title = document.createElement("h3");
-    title.textContent = memory.title;
-
-    const description = document.createElement("p");
-    description.className = "memory-description";
-    description.textContent = memory.description;
-
-    const likeBtn = document.createElement("button");
-    likeBtn.className = "memory-like";
-    likeBtn.type = "button";
-    likeBtn.setAttribute("aria-label", "Like memory");
-
-    const heart = document.createElement("i");
-    heart.className = "bx bx-heart";
-    likeBtn.appendChild(heart);
-
-    info.append(category, title, description, likeBtn);
-    article.append(imageWrapper, info);
-
-    return article;
-}
-
-// =========================================================
-// STATIC CARD
-// =========================================================
-
-function hideDeletedStaticCards() {
-    const deletedIds = getDeletedStaticIds();
-
-    deletedIds.forEach((id) => {
-        const card = libraryGrid.querySelector(
-            `.memory-card[data-id="${id}"]`
-        );
-
-        if (card) card.remove();
-    });
-}
-
-// =========================================================
-// LIKE STATE
-// =========================================================
-
-function applyLikedState() {
-    const likedIds = getLikedIds();
-
-    document.querySelectorAll(".memory-card").forEach((card) => {
-        const likeBtn = card.querySelector(".memory-like");
-        if (!likeBtn) return;
-
-        const liked = likedIds.includes(card.dataset.id);
-
-        likeBtn.classList.toggle("liked", liked);
-
-        const icon = likeBtn.querySelector("i");
-        if (icon) {
-            icon.className = liked ? "bx bxs-heart" : "bx bx-heart";
+        if (
+            event.target ===
+            modalOverlay
+        ) {
+            closeModal();
         }
-    });
-}
 
-// =========================================================
-// CLOUDINARY UPLOAD
-// =========================================================
+    }
+);
 
-async function uploadToCloudinary(file) {
-    const endpoint =
-        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", UPLOAD_PRESET);
+document.addEventListener(
+    "keydown",
+    (event) => {
 
-    const response = await fetch(endpoint, {
-        method: "POST",
-        body: formData
-    });
+        if (
+            event.key === "Escape" &&
+            modalOverlay.classList.contains(
+                "open"
+            )
+        ) {
+            closeModal();
+        }
 
-    const result = await response.json();
+    }
+);
 
-    if (!response.ok) {
-        throw new Error(
-            result.error?.message || "Cloudinary upload failed."
+
+/* =========================================================
+   IMAGE PREVIEW
+========================================================= */
+
+memoryPhotoInput.addEventListener(
+    "change",
+    () => {
+
+        const file =
+            memoryPhotoInput.files[0];
+
+        modalPreview.innerHTML = "";
+
+        modalPreview.classList.remove(
+            "show"
         );
-    }
 
-    return result.secure_url;
-}
-
-// =========================================================
-// ADD MEMORY
-// =========================================================
-
-memoryForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const file = memoryPhotoInput.files[0];
-    const category = memoryCategoryInput.value.trim();
-    const title = memoryTitleInput.value.trim();
-    const description = memoryDescriptionInput.value.trim();
-
-    if (!file || !category || !title || !description) {
-        alert("Please complete all fields.");
-        return;
-    }
-
-    if (!file.type.startsWith("image/")) {
-        alert("Please select a valid image.");
-        return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-        alert("Maximum photo size is 5 MB.");
-        return;
-    }
-
-    submitBtn.disabled = true;
-    submitBtn.textContent = "Uploading...";
-
-    try {
-        // 1. Upload photo to Cloudinary
-        const imageUrl = await uploadToCloudinary(file);
-
-        // 2. Save metadata to Firestore
-        await addDoc(memoriesRef, {
-            imageUrl,
-            category,
-            title,
-            description,
-            createdAt: serverTimestamp()
-        });
-
-        closeModal();
-        alert("Memory uploaded successfully!");
-    } catch (error) {
-        console.error("Upload error:", error);
-        alert(`Upload failed: ${error.message}`);
-    } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Save Memory";
-    }
-});
-
-// =========================================================
-// LOAD SHARED MEMORIES
-// =========================================================
-
-const memoriesQuery = query(
-    memoriesRef,
-    orderBy("createdAt", "desc")
-);
-
-onSnapshot(
-    memoriesQuery,
-    (snapshot) => {
-        // Remove previously rendered Firestore cards
-        libraryGrid
-            .querySelectorAll(".cloud-memory")
-            .forEach((card) => card.remove());
-
-        snapshot.forEach((doc) => {
-            const memory = {
-                id: doc.id,
-                ...doc.data()
-            };
-
-            const card = buildMemoryCard(memory);
-            card.classList.add("cloud-memory");
-
-            libraryGrid.appendChild(card);
-        });
-
-        hideDeletedStaticCards();
-        applyLikedState();
-    },
-    (error) => {
-        console.error("Firestore error:", error);
-        alert("Could not load shared memories. Please check Firestore settings.");
-    }
-);
-
-// =========================================================
-// LIKE + DELETE
-// =========================================================
-
-libraryGrid.addEventListener("click", (event) => {
-    const deleteBtn = event.target.closest(".memory-delete");
-
-    if (deleteBtn) {
-        const card = deleteBtn.closest(".memory-card");
-        const cardId = card.dataset.id;
-
-        // Only the static card can be removed locally.
-        if (!cardId.startsWith("static-")) {
-            alert("Shared memories cannot be deleted from this page.");
+        if (!file) {
             return;
         }
 
-        if (!confirm("Delete this memory from your view?")) return;
 
-        const deletedIds = getDeletedStaticIds();
+        if (
+            !file.type.startsWith(
+                "image/"
+            )
+        ) {
 
-        if (!deletedIds.includes(cardId)) {
-            saveDeletedStaticIds([...deletedIds, cardId]);
+            alert(
+                "Please select an image file."
+            );
+
+            memoryPhotoInput.value =
+                "";
+
+            return;
         }
 
-        saveLikedIds(getLikedIds().filter((id) => id !== cardId));
-        card.remove();
+
+        if (
+            file.size >
+            MAX_FILE_SIZE
+        ) {
+
+            alert(
+                "Maximum photo size is 5 MB."
+            );
+
+            memoryPhotoInput.value =
+                "";
+
+            return;
+        }
+
+
+        const image =
+            document.createElement(
+                "img"
+            );
+
+        const objectUrl =
+            URL.createObjectURL(
+                file
+            );
+
+        image.src =
+            objectUrl;
+
+        image.alt =
+            "Photo preview";
+
+
+        image.onload = () => {
+
+            URL.revokeObjectURL(
+                objectUrl
+            );
+
+        };
+
+
+        modalPreview.appendChild(
+            image
+        );
+
+        modalPreview.classList.add(
+            "show"
+        );
+
+    }
+);
+
+
+/* =========================================================
+   LOCAL STORAGE HELPERS
+========================================================= */
+
+function getLikedIds() {
+
+    try {
+
+        const data =
+            JSON.parse(
+                localStorage.getItem(
+                    LIKES_KEY
+                ) || "[]"
+            );
+
+        return Array.isArray(data)
+            ? data
+            : [];
+
+    } catch {
+
+        return [];
+
+    }
+
+}
+
+
+function saveLikedIds(ids) {
+
+    localStorage.setItem(
+        LIKES_KEY,
+        JSON.stringify(ids)
+    );
+
+}
+
+
+/* =========================================================
+   CARD BUILDER
+========================================================= */
+
+function buildMemoryCard(
+    memory
+) {
+
+    const card =
+        document.createElement(
+            "article"
+        );
+
+    card.className =
+        "memory-card cloud-memory";
+
+    card.dataset.id =
+        memory.id;
+
+
+    /* IMAGE */
+
+    const imageWrapper =
+        document.createElement(
+            "div"
+        );
+
+    imageWrapper.className =
+        "memory-image";
+
+
+    const image =
+        document.createElement(
+            "img"
+        );
+
+    image.src =
+        memory.imageUrl || "";
+
+    image.alt =
+        memory.title || "Memory";
+
+    image.loading =
+        "lazy";
+
+    image.decoding =
+        "async";
+
+
+    image.onerror = () => {
+
+        image.style.objectFit =
+            "contain";
+
+        image.style.padding =
+            "50px";
+
+        image.alt =
+            "Image unavailable";
+
+    };
+
+
+    imageWrapper.appendChild(
+        image
+    );
+
+
+    /* DELETE BUTTON */
+
+    const deleteButton =
+        document.createElement(
+            "button"
+        );
+
+    deleteButton.type =
+        "button";
+
+    deleteButton.className =
+        "memory-delete";
+
+    deleteButton.dataset.action =
+        "delete";
+
+    deleteButton.title =
+        "Delete memory";
+
+    deleteButton.setAttribute(
+        "aria-label",
+        "Delete memory"
+    );
+
+
+    const deleteIcon =
+        document.createElement(
+            "i"
+        );
+
+    deleteIcon.className =
+        "bx bx-trash";
+
+
+    deleteButton.appendChild(
+        deleteIcon
+    );
+
+    imageWrapper.appendChild(
+        deleteButton
+    );
+
+
+    /* INFO */
+
+    const info =
+        document.createElement(
+            "div"
+        );
+
+    info.className =
+        "memory-info";
+
+
+    const category =
+        document.createElement(
+            "p"
+        );
+
+    category.className =
+        "memory-category";
+
+    category.textContent =
+        memory.category ||
+        "MEMORY";
+
+
+    const title =
+        document.createElement(
+            "h3"
+        );
+
+    title.textContent =
+        memory.title ||
+        "Untitled Memory";
+
+
+    const description =
+        document.createElement(
+            "p"
+        );
+
+    description.className =
+        "memory-description";
+
+    description.textContent =
+        memory.description ||
+        "";
+
+
+    /* LIKE BUTTON */
+
+    const likeButton =
+        document.createElement(
+            "button"
+        );
+
+    likeButton.type =
+        "button";
+
+    likeButton.className =
+        "memory-like";
+
+    likeButton.dataset.action =
+        "like";
+
+    likeButton.title =
+        "Like memory";
+
+    likeButton.setAttribute(
+        "aria-label",
+        "Like memory"
+    );
+
+
+    const likeIcon =
+        document.createElement(
+            "i"
+        );
+
+    likeIcon.className =
+        "bx bx-heart";
+
+
+    likeButton.appendChild(
+        likeIcon
+    );
+
+
+    info.append(
+        category,
+        title,
+        description,
+        likeButton
+    );
+
+    card.append(
+        imageWrapper,
+        info
+    );
+
+
+    return card;
+}
+
+
+/* =========================================================
+   LIKE STATE
+========================================================= */
+
+function applyLikedState() {
+
+    const likedIds =
+        getLikedIds();
+
+
+    document
+        .querySelectorAll(
+            ".memory-card"
+        )
+        .forEach((card) => {
+
+            const button =
+                card.querySelector(
+                    ".memory-like"
+                );
+
+            if (!button) {
+                return;
+            }
+
+
+            const icon =
+                button.querySelector(
+                    "i"
+                );
+
+
+            const liked =
+                likedIds.includes(
+                    card.dataset.id
+                );
+
+
+            button.classList.toggle(
+                "liked",
+                liked
+            );
+
+
+            button.setAttribute(
+                "aria-pressed",
+                String(liked)
+            );
+
+
+            icon.className =
+                liked
+                    ? "bx bxs-heart"
+                    : "bx bx-heart";
+
+        });
+
+}
+
+
+/* =========================================================
+   CLOUDINARY UPLOAD
+========================================================= */
+
+async function uploadToCloudinary(
+    file
+) {
+
+    const endpoint =
+        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
+
+
+    const formData =
+        new FormData();
+
+
+    formData.append(
+        "file",
+        file
+    );
+
+    formData.append(
+        "upload_preset",
+        UPLOAD_PRESET
+    );
+
+
+    const response =
+        await fetch(
+            endpoint,
+            {
+                method: "POST",
+                body: formData
+            }
+        );
+
+
+    let result;
+
+
+    try {
+
+        result =
+            await response.json();
+
+    } catch {
+
+        throw new Error(
+            "Cloudinary returned an invalid response."
+        );
+
+    }
+
+
+    if (!response.ok) {
+
+        throw new Error(
+            result?.error?.message ||
+            "Cloudinary upload failed."
+        );
+
+    }
+
+
+    if (!result?.secure_url) {
+
+        throw new Error(
+            "Cloudinary did not return an image URL."
+        );
+
+    }
+
+
+    return {
+
+        imageUrl:
+            result.secure_url,
+
+        publicId:
+            result.public_id || null
+
+    };
+
+}
+
+
+/* =========================================================
+   ADD MEMORY
+========================================================= */
+
+memoryForm.addEventListener(
+    "submit",
+    async (event) => {
+
+        event.preventDefault();
+
+
+        const file =
+            memoryPhotoInput.files[0];
+
+        const category =
+            memoryCategoryInput.value.trim();
+
+        const title =
+            memoryTitleInput.value.trim();
+
+        const description =
+            memoryDescriptionInput.value.trim();
+
+
+        /* VALIDATION */
+
+        if (
+            !file ||
+            !category ||
+            !title ||
+            !description
+        ) {
+
+            alert(
+                "Please complete all fields."
+            );
+
+            return;
+        }
+
+
+        if (
+            !file.type.startsWith(
+                "image/"
+            )
+        ) {
+
+            alert(
+                "Please select a valid image."
+            );
+
+            return;
+        }
+
+
+        if (
+            file.size >
+            MAX_FILE_SIZE
+        ) {
+
+            alert(
+                "Maximum photo size is 5 MB."
+            );
+
+            return;
+        }
+
+
+        /* BUTTON STATE */
+
+        submitBtn.disabled =
+            true;
+
+        submitBtn.textContent =
+            "Uploading...";
+
+
+        try {
+
+            /* 1. CLOUDINARY */
+
+            const upload =
+                await uploadToCloudinary(
+                    file
+                );
+
+
+            /* 2. FIRESTORE */
+
+            await addDoc(
+                memoriesRef,
+                {
+
+                    imageUrl:
+                        upload.imageUrl,
+
+                    cloudinaryPublicId:
+                        upload.publicId,
+
+                    category:
+                        category,
+
+                    title:
+                        title,
+
+                    description:
+                        description,
+
+                    createdAt:
+                        serverTimestamp()
+
+                }
+            );
+
+
+            /* SUCCESS */
+
+            closeModal();
+
+            alert(
+                "Memory uploaded successfully!"
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Upload error:",
+                error
+            );
+
+
+            alert(
+                `Upload failed: ${error.message}`
+            );
+
+
+            submitBtn.disabled =
+                false;
+
+            submitBtn.textContent =
+                "Save Memory";
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   LOAD FIREBASE MEMORIES
+========================================================= */
+
+const memoriesQuery =
+    query(
+        memoriesRef,
+        orderBy(
+            "createdAt",
+            "desc"
+        )
+    );
+
+
+onSnapshot(
+
+    memoriesQuery,
+
+    (snapshot) => {
+
+        /* CLEAR OLD FIREBASE CARDS */
+
+        libraryGrid
+            .querySelectorAll(
+                ".cloud-memory"
+            )
+            .forEach(
+                (card) => {
+                    card.remove();
+                }
+            );
+
+
+        /* NO DATA */
+
+        if (
+            snapshot.empty
+        ) {
+
+            libraryGrid.innerHTML =
+                "";
+
+            return;
+
+        }
+
+
+        /* BUILD */
+
+        snapshot.forEach(
+            (memoryDoc) => {
+
+                const memory = {
+
+                    id:
+                        memoryDoc.id,
+
+                    ...memoryDoc.data()
+
+                };
+
+
+                const card =
+                    buildMemoryCard(
+                        memory
+                    );
+
+
+                libraryGrid.appendChild(
+                    card
+                );
+
+            }
+        );
+
+
+        applyLikedState();
+
+    },
+
+
+    (error) => {
+
+        console.error(
+            "Firestore error:",
+            error
+        );
+
+
+        console.error(
+            "Make sure Firestore is enabled and rules allow read access."
+        );
+
+    }
+
+);
+
+
+/* =========================================================
+   DELETE FIREBASE MEMORY
+========================================================= */
+
+async function deleteCloudMemory(
+    card
+) {
+
+    const cardId =
+        card.dataset.id;
+
+
+    if (!cardId) {
         return;
     }
 
-    const likeBtn = event.target.closest(".memory-like");
-    if (!likeBtn) return;
 
-    const card = likeBtn.closest(".memory-card");
-    const cardId = card.dataset.id;
+    const title =
+        card.querySelector(
+            "h3"
+        )?.textContent ||
+        "this memory";
 
-    const likedIds = getLikedIds();
-    const isLiked = likedIds.includes(cardId);
 
-    if (isLiked) {
-        saveLikedIds(likedIds.filter((id) => id !== cardId));
-    } else {
-        saveLikedIds([...likedIds, cardId]);
+    const confirmed =
+        confirm(
+            `Delete "${title}"?\n\nThe memory will be removed for everyone.`
+        );
+
+
+    if (!confirmed) {
+        return;
     }
 
-    applyLikedState();
-});
 
-// =========================================================
-// INIT
-// =========================================================
+    const deleteButton =
+        card.querySelector(
+            ".memory-delete"
+        );
 
-hideDeletedStaticCards();
+
+    deleteButton.disabled =
+        true;
+
+
+    try {
+
+        /* DELETE FIRESTORE */
+
+        await deleteDoc(
+            doc(
+                db,
+                "memories",
+                cardId
+            )
+        );
+
+
+        /* REMOVE LIKE */
+
+        saveLikedIds(
+            getLikedIds()
+                .filter(
+                    (id) =>
+                        id !== cardId
+                )
+        );
+
+
+        /*
+            Firebase onSnapshot()
+            akan otomatis menghapus
+            card dari halaman.
+        */
+
+    } catch (error) {
+
+        console.error(
+            "Delete error:",
+            error
+        );
+
+
+        alert(
+            `Could not delete memory: ${error.message}`
+        );
+
+
+        deleteButton.disabled =
+            false;
+
+    }
+
+}
+
+
+/* =========================================================
+   CARD EVENTS
+========================================================= */
+
+libraryGrid.addEventListener(
+    "click",
+    async (event) => {
+
+        const button =
+            event.target.closest(
+                "button"
+            );
+
+
+        if (!button) {
+            return;
+        }
+
+
+        const card =
+            button.closest(
+                ".memory-card"
+            );
+
+
+        if (!card) {
+            return;
+        }
+
+
+        const action =
+            button.dataset.action;
+
+
+        /* DELETE */
+
+        if (
+            action === "delete"
+        ) {
+
+            await deleteCloudMemory(
+                card
+            );
+
+            return;
+        }
+
+
+        /* LIKE */
+
+        if (
+            action === "like"
+        ) {
+
+            const cardId =
+                card.dataset.id;
+
+
+            const likedIds =
+                getLikedIds();
+
+
+            const liked =
+                likedIds.includes(
+                    cardId
+                );
+
+
+            if (liked) {
+
+                saveLikedIds(
+                    likedIds.filter(
+                        (id) =>
+                            id !== cardId
+                    )
+                );
+
+            } else {
+
+                saveLikedIds([
+                    ...likedIds,
+                    cardId
+                ]);
+
+            }
+
+
+            applyLikedState();
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   INIT
+========================================================= */
+
 applyLikedState();
