@@ -1,0 +1,660 @@
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap');
+
+/* =========================================
+   GLOBAL
+========================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #0b0d12;
+    color: #f5f5f5;
+    line-height: 1.6;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+img {
+    width: 100%;
+    display: block;
+}
+
+
+/* =========================================
+   BACKGROUND VIDEO
+========================================= */
+
+.background-video {
+    position: fixed;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    z-index: -2;
+
+    pointer-events: none;
+}
+
+.background-overlay {
+    position: fixed;
+    inset: 0;
+
+    background: rgba(5, 7, 12, 0.25);
+
+    z-index: -1;
+
+    pointer-events: none;
+}
+
+
+/* =========================================
+   NAVBAR
+========================================= */
+
+header {
+    position: sticky;
+    top: 0;
+
+    z-index: 1000;
+
+    width: 100%;
+    height: 64px;
+
+    background: rgba(8, 12, 22, 0.30);
+
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+nav {
+    width: 100%;
+    max-width: 1200px;
+
+    height: 64px;
+
+    margin: 0 auto;
+    padding: 0 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+
+/* =========================================
+   LOGO
+========================================= */
+
+.logo {
+    font-family: 'Ubuntu', sans-serif;
+
+    font-size: 20px;
+    font-weight: 700;
+
+    letter-spacing: 3px;
+
+    color: #ffffff;
+
+    text-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+
+/* =========================================
+   NAV LINKS
+========================================= */
+
+.nav-links {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    list-style: none;
+}
+
+.nav-links li {
+    display: block;
+}
+
+.nav-links a {
+    display: block;
+
+    padding: 6px 11px;
+
+    font-family: 'Ubuntu', sans-serif;
+
+    font-size: 12px;
+    font-weight: 500;
+
+    color: #ffffff;
+
+    background: rgba(24, 43, 87, 0.62);
+
+    border: 1px solid rgba(120, 150, 210, 0.35);
+
+    border-radius: 6px;
+
+    transition:
+        background 0.25s ease,
+        border-color 0.25s ease,
+        transform 0.25s ease;
+}
+
+.nav-links a:hover {
+    background: rgba(40, 70, 129, 0.82);
+
+    border-color: rgba(160, 185, 235, 0.45);
+
+    transform: translateY(-1px);
+}
+
+.nav-links a.active {
+    background: rgba(42, 72, 135, 0.88);
+
+    border-color: rgba(160, 185, 235, 0.45);
+}
+
+
+/* =========================================
+   MAIN
+========================================= */
+
+main {
+    width: 100%;
+    max-width: 1200px;
+
+    margin: 0 auto;
+}
+
+
+/* =========================================
+   TEXT
+========================================= */
+
+.eyebrow {
+    color: #f9fafe;
+
+    font-size: 12px;
+
+    letter-spacing: 3px;
+
+    font-weight: 600;
+
+    text-transform: uppercase;
+}
+
+
+/* =========================================
+   HERO
+========================================= */
+
+.library-hero {
+    min-height: 55vh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+
+    padding: 100px 30px;
+}
+
+.hero-content {
+    max-width: 700px;
+}
+
+.hero-content h1 {
+    font-size: clamp(60px, 10vw, 120px);
+
+    line-height: 1;
+
+    margin: 20px 0;
+
+    letter-spacing: -5px;
+
+    text-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.45);
+}
+
+.hero-content > p:last-child {
+    color: #f2f3f7;
+
+    font-size: 18px;
+
+    text-shadow:
+        0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+
+/* =========================================
+   SECTION HEADING
+========================================= */
+
+.crew-role-section,
+.library-section {
+    padding: 0 30px 90px;
+}
+
+.section-heading {
+    margin-bottom: 40px;
+}
+
+.section-heading h2 {
+    margin-top: 10px;
+
+    font-size: 44px;
+}
+
+
+/* =========================================
+   CREW GRID (Navigators / Thinkers /
+   Connectors / Engineers / Storytellers)
+========================================= */
+
+.crew-grid-2 {
+    display: grid;
+
+    gap: 25px;
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Flex, bukan grid — supaya baris terakhir yang
+   tidak genap (misal Connectors: 3 lalu 2) otomatis
+   center, simetris dengan baris di atasnya. */
+.crew-grid-3 {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    justify-content: center;
+
+    gap: 25px;
+}
+
+.crew-grid-3 > .crew-card {
+    flex: 0 1 calc((100% - 50px) / 3);
+
+    max-width: calc((100% - 50px) / 3);
+}
+
+
+/* =========================================
+   CREW CARD (role sections)
+========================================= */
+
+.crew-card {
+    overflow: hidden;
+
+    background: #ffffff;
+
+    border: 1px solid rgba(255, 255, 255, 0.8);
+
+    border-radius: 24px;
+
+    box-shadow:
+        0 15px 35px rgba(0, 0, 0, 0.18);
+
+    transition:
+        transform 0.35s ease,
+        box-shadow 0.35s ease;
+}
+
+.crew-card:hover {
+    transform: translateY(-6px);
+
+    box-shadow:
+        0 20px 45px rgba(0, 0, 0, 0.25);
+}
+
+.crew-photo {
+    width: 100%;
+
+    height: 240px;
+
+    overflow: hidden;
+
+    padding: 10px 10px 0;
+
+    background: #ffffff;
+}
+
+.crew-photo img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    border-radius: 18px 18px 0 0;
+
+    transition: transform 0.5s ease;
+}
+
+.crew-card:hover .crew-photo img {
+    transform: scale(1.04);
+}
+
+.crew-info {
+    padding: 18px 20px 20px;
+
+    color: #222;
+}
+
+.crew-role {
+    margin-bottom: 4px;
+
+    color: #aaa;
+
+    font-size: 11px;
+
+    font-weight: 500;
+
+    letter-spacing: 1.5px;
+
+    text-transform: uppercase;
+}
+
+.crew-info h3 {
+    margin-bottom: 8px;
+
+    color: #222;
+
+    font-size: 21px;
+
+    line-height: 1.2;
+}
+
+
+/* =========================================
+   CREWMATES GRID (35 cards, 5x7, dengan foto)
+========================================= */
+
+.crewmates-grid {
+    display: grid;
+
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+
+    gap: 20px;
+}
+
+
+/* =========================================
+   CREWMATE CARD
+========================================= */
+
+.crewmate-card {
+    overflow: hidden;
+
+    background: #ffffff;
+
+    color: #222;
+
+    border: 1px solid rgba(255, 255, 255, 0.8);
+
+    border-radius: 20px;
+
+    box-shadow:
+        0 12px 28px rgba(0, 0, 0, 0.16);
+
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.crewmate-card:hover {
+    transform: translateY(-4px);
+
+    box-shadow:
+        0 18px 36px rgba(0, 0, 0, 0.22);
+}
+
+.crewmate-photo {
+    width: 100%;
+
+    height: 150px;
+
+    overflow: hidden;
+
+    padding: 8px 8px 0;
+
+    background: #ffffff;
+}
+
+.crewmate-photo img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    border-radius: 14px 14px 0 0;
+
+    transition: transform 0.5s ease;
+}
+
+.crewmate-card:hover .crewmate-photo img {
+    transform: scale(1.04);
+}
+
+.crewmate-info {
+    padding: 16px 16px 18px;
+}
+
+.crewmate-card h3 {
+    margin-bottom: 8px;
+
+    font-size: 16px;
+
+    line-height: 1.2;
+}
+
+
+/* =========================================
+   SHARED — DOB & QUOTE
+   (used by both crew-card and crewmate-card)
+========================================= */
+
+.crew-dob,
+.crewmate-dob {
+    display: flex;
+    align-items: center;
+
+    gap: 6px;
+
+    margin-bottom: 8px;
+
+    color: #999;
+
+    font-size: 12px;
+}
+
+.crew-dob i,
+.crewmate-dob i {
+    font-size: 14px;
+}
+
+.crew-quote,
+.crewmate-quote {
+    color: #777;
+
+    font-size: 13px;
+
+    font-style: italic;
+
+    line-height: 1.4;
+}
+
+
+/* =========================================
+   FOOTER
+========================================= */
+
+footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+
+    padding: 30px;
+
+    text-align: center;
+
+    color: #666d7c;
+
+    font-size: 13px;
+
+    background: rgba(5, 7, 12, 0.35);
+}
+
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media (max-width: 900px) {
+
+    .crew-grid-3 > .crew-card {
+        flex: 0 1 calc((100% - 25px) / 2);
+
+        max-width: calc((100% - 25px) / 2);
+    }
+
+    .crewmates-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+}
+
+
+/* =========================================
+   TABLET / MOBILE
+========================================= */
+
+@media (max-width: 768px) {
+
+    nav {
+        padding: 0 20px;
+    }
+
+    .logo {
+        font-size: 18px;
+    }
+
+    .nav-links {
+        gap: 6px;
+    }
+
+    .nav-links a {
+        padding: 7px 9px;
+
+        font-size: 11px;
+    }
+
+    .library-hero {
+        min-height: 45vh;
+
+        padding: 80px 20px;
+    }
+
+    .hero-content h1 {
+        font-size: 65px;
+
+        letter-spacing: -3px;
+    }
+
+    .hero-content > p:last-child {
+        font-size: 15px;
+    }
+
+    .crew-role-section,
+    .library-section {
+        padding: 0 20px 70px;
+    }
+
+    .section-heading h2 {
+        font-size: 32px;
+    }
+
+    .crew-grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .crew-grid-3 > .crew-card {
+        flex: 0 1 100%;
+
+        max-width: 100%;
+    }
+
+    .crewmates-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+
+/* =========================================
+   SMALL PHONE
+========================================= */
+
+@media (max-width: 480px) {
+
+    header {
+        height: 58px;
+    }
+
+    nav {
+        height: 58px;
+
+        padding: 0 12px;
+    }
+
+    .logo {
+        font-size: 15px;
+
+        letter-spacing: 2px;
+    }
+
+    .nav-links {
+        gap: 4px;
+    }
+
+    .nav-links a {
+        padding: 6px 7px;
+
+        font-size: 10px;
+    }
+
+    .library-hero {
+        padding: 70px 15px;
+    }
+
+    .hero-content h1 {
+        font-size: 52px;
+
+        letter-spacing: -2px;
+    }
+
+    .section-heading h2 {
+        font-size: 28px;
+    }
+
+    .crewmates-grid {
+        grid-template-columns: 1fr;
+    }
+
+}
