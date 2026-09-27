@@ -58,12 +58,14 @@ nav {
     align-items: center;
     justify-content: space-between;
 
-    background: rgba(255, 255, 255, 0.88);
+    background: linear-gradient(120deg, rgba(15, 33, 130, 0.92), rgba(75, 42, 173, 0.92));
 
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
 
-    border-bottom: 1px solid rgba(15, 33, 130, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+    box-shadow: 0 6px 20px rgba(15, 20, 60, 0.15);
 }
 
 
@@ -77,7 +79,7 @@ nav a.logo {
     font-size: 33px;
     font-weight: 600;
 
-    color: #0f2182;
+    color: #fff;
 
     transition: transform 0.3s ease;
 }
@@ -105,7 +107,7 @@ nav .links a {
 
     border-radius: 10px;
 
-    color: #222;
+    color: rgba(255, 255, 255, 0.85);
 
     font-size: 15px;
     font-weight: 500;
@@ -117,9 +119,9 @@ nav .links a {
 }
 
 nav .links a:hover {
-    background-color: rgba(15, 33, 130, 0.12);
+    background-color: rgba(255, 255, 255, 0.14);
 
-    color: #0f2182;
+    color: #fff;
 
     transform: translateY(-1px);
 }
@@ -134,8 +136,8 @@ nav a.profile-button {
 
     padding: 11px 20px;
 
-    background: #0f2182;
-    color: #fff;
+    background: #fff;
+    color: #0f2182;
 
     border-radius: 12px;
 
@@ -145,7 +147,7 @@ nav a.profile-button {
     font-weight: 500;
 
     box-shadow:
-        0 6px 16px rgba(15, 33, 130, 0.18);
+        0 6px 16px rgba(15, 33, 130, 0.25);
 
     transition:
         background-color 0.25s ease,
@@ -155,12 +157,12 @@ nav a.profile-button {
 }
 
 nav a.profile-button:hover {
-    background: rgba(15, 33, 130, 0.15);
+    background: rgba(255, 255, 255, 0.85);
 
     color: #0f2182;
 
     box-shadow:
-        0 6px 18px rgba(15, 33, 130, 0.12);
+        0 6px 18px rgba(15, 33, 130, 0.18);
 
     transform: translateY(-1px);
 }
@@ -249,6 +251,25 @@ header::after {
     pointer-events: none;
 }
 
+/* GRADIENT FADE KE BAWAH */
+
+header::before {
+    content: "";
+
+    position: absolute;
+
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    height: 220px;
+
+    background: linear-gradient(to bottom, rgba(242, 240, 251, 0), rgba(242, 240, 251, 1));
+
+    z-index: 1;
+
+    pointer-events: none;
+}
 
 /* =========================================
    HERO CONTENT
@@ -287,59 +308,31 @@ header .left p {
     line-height: 1.6;
 }
 
+/* RADIAL GLOW DI BELAKANG SECTION PERTAMA */
 
-/* =========================================
-   HERO BUTTON
-========================================= */
-
-header .left a {
-    width: 200px;
-
-    padding: 8px;
-
-    display: flex;
-    align-items: center;
-
-    background: #000;
-
-    border-radius: 60px;
-
-    transition:
-        transform 0.25s ease,
-        background-color 0.25s ease;
+main {
+    position: relative;
 }
 
-header .left a:hover {
-    transform: translateY(-2px);
+main::before {
+    content: "";
 
-    background: #111;
+    position: absolute;
+
+    top: -40px;
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    width: 900px;
+    height: 500px;
+
+    background: radial-gradient(circle, rgba(75, 42, 173, 0.18), rgba(75, 42, 173, 0) 70%);
+
+    z-index: -1;
+
+    pointer-events: none;
 }
-
-header .left a i {
-    width: 40px;
-    height: 40px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    background: #fff;
-
-    color: #000;
-
-    font-size: 24px;
-
-    border-radius: 50%;
-}
-
-header .left a span {
-    margin-left: 10px;
-
-    color: #fff;
-
-    font-size: 14px;
-}
-
 
 /* =========================================
    SECTION TITLE
@@ -419,56 +412,144 @@ h2.separator {
 
 
 /* =========================================
-   NAVIGATOR
+   HISTORY (SEJARAH)
 ========================================= */
 
-.navigator {
+.history {
     padding: 0 80px;
 
-    margin-top: 30px;
-}
+    margin: 40px 0 80px;
 
-.navigator .category {
     display: flex;
+    flex-direction: column;
 
-    flex-wrap: wrap;
-
-    gap: 14px;
+    gap: 24px;
 }
 
-.navigator .category a {
-    padding: 8px 14px;
+.history .entry {
+    display: flex;
+    align-items: stretch;
 
-    background-color: #dfdcdc;
+    gap: 24px;
+
+    padding: 16px;
+
+    background: #f2f0fb;
+
+    border-left: 4px solid #4b2aad;
+
+    border-radius: 16px;
+}
+
+
+/* PHOTO CARD */
+
+.history .photo {
+    position: relative;
+
+    flex-shrink: 0;
+
+    width: 260px;
+    height: 170px;
 
     border-radius: 14px;
 
-    font-size: 15px;
+    overflow: hidden;
 
-    transition:
-        background-color 0.3s ease,
-        color 0.3s ease;
+    background: linear-gradient(145deg, #0f2182, #4b2aad);
 }
 
-.navigator .category a:hover {
+.history .photo img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    transition: transform 0.4s ease;
+}
+
+.history .photo:hover img {
+    transform: scale(1.08);
+}
+
+.history .photo::after {
+    content: "";
+
+    position: absolute;
+
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    height: 65%;
+
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0));
+}
+
+.history .photo span {
+    position: absolute;
+
+    left: 14px;
+    bottom: 12px;
+
+    z-index: 2;
+
     color: #fff;
 
-    background-color: #0f2182;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+
+/* TEXT */
+
+.history .text {
+    flex: 1;
+
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.history .text h5 {
+    font-size: 18px;
+
+    color: #0f2182;
+}
+
+.history .text p {
+    margin-top: 8px;
+
+    color: #333;
+
+    line-height: 1.6;
 }
 
 
 /* =========================================
-   STELLAR LIST
+   TENTANG KITA
 ========================================= */
 
-.navigator .stellar-list {
-    padding: 0 40px;
+.about {
+    padding: 0 80px;
 
-    display: flex;
+    margin: 30px 0 80px;
+}
 
-    gap: 20px;
+.about p {
+    padding: 24px;
 
-    justify-content: space-between;
+    background: #f2f0fb;
+
+    border-left: 4px solid #4b2aad;
+
+    border-radius: 16px;
+
+    color: #333;
+
+    line-height: 1.7;
 }
 
 
@@ -511,12 +592,17 @@ h2.separator {
         flex: 1 1 calc(50% - 30px);
     }
 
-    .navigator {
+    .history {
         padding: 0 40px;
     }
 
-    .navigator .stellar-list {
-        padding: 0 20px;
+    .history .photo {
+        width: 220px;
+        height: 150px;
+    }
+
+    .about {
+        padding: 0 40px;
     }
 }
 
@@ -607,23 +693,6 @@ h2.separator {
         line-height: 1.5;
     }
 
-    header .left a {
-        width: 160px;
-
-        padding: 6px;
-    }
-
-    header .left a i {
-        width: 36px;
-        height: 36px;
-
-        font-size: 20px;
-    }
-
-    header .left a span {
-        font-size: 14px;
-    }
-
 
     /* SECTION TITLE */
 
@@ -671,38 +740,52 @@ h2.separator {
     }
 
 
-    /* NAVIGATOR */
+    /* HISTORY */
 
-    .navigator {
+    .history {
         padding: 0 20px;
 
-        margin-top: 25px;
+        margin: 30px 0 60px;
+
+        gap: 16px;
     }
 
-    .navigator .category {
-        justify-content: center;
-
-        gap: 8px;
-    }
-
-    .navigator .category a {
-        padding: 7px 11px;
-
-        font-size: 12px;
-    }
-
-
-    /* STELLAR LIST */
-
-    .navigator .stellar-list {
-        padding: 0;
-
+    .history .entry {
         flex-direction: column;
 
-        gap: 15px;
+        padding: 12px;
     }
 
-    .navigator .stellar-list .items {
+    .history .photo {
         width: 100%;
+        height: 160px;
     }
+
+    .history .text h5 {
+        font-size: 16px;
+    }
+
+    .history .text p {
+        font-size: 14px;
+
+        line-height: 1.5;
+    }
+
+
+    /* TENTANG KITA */
+
+    .about {
+        padding: 0 20px;
+
+        margin: 0 0 60px;
+    }
+
+    .about p {
+        padding: 18px;
+
+        font-size: 14px;
+
+        line-height: 1.6;
+    }
+
 }

@@ -133,10 +133,18 @@ nav {
 
 
 /* =========================================================
-   LOGO
+   LOGO — CENTER
 ========================================================= */
 
 .logo {
+    position: absolute;
+
+    left: 50%;
+
+    top: 50%;
+
+    transform: translate(-50%, -50%);
+
     flex-shrink: 0;
 
     font-family: 'Ubuntu', sans-serif;
@@ -159,6 +167,8 @@ nav {
 ========================================================= */
 
 .nav-links {
+    margin-left: auto;
+
     display: flex;
 
     align-items: center;
@@ -220,18 +230,17 @@ nav {
 
 
 /* =========================================================
-   ADMIN BUTTON — CENTER
+   ADMIN BUTTON — LEFT
 ========================================================= */
 
 .admin-login-btn {
     position: absolute;
 
-    left: 50%;
+    left: 30px;
 
     top: 50%;
 
-    transform:
-        translate(-50%, -50%);
+    transform: translateY(-50%);
 
     display: inline-flex;
 
@@ -276,8 +285,7 @@ nav {
     border-color:
         rgba(160, 185, 235, 0.45);
 
-    transform:
-        translate(-50%, calc(-50% - 1px));
+    transform: translateY(calc(-50% - 1px));
 }
 
 .admin-login-btn i {
@@ -1246,6 +1254,8 @@ footer {
     }
 
     .admin-login-btn {
+        left: 20px;
+
         padding:
             7px 10px;
 
@@ -1337,6 +1347,8 @@ footer {
     }
 
     .admin-login-btn {
+        left: 12px;
+
         padding:
             6px 8px;
 
