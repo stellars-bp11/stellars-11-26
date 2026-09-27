@@ -306,6 +306,21 @@ header .left p {
     color: #ddd;
 
     line-height: 1.6;
+
+    cursor: default;
+
+    transition:
+        color 0.3s ease,
+        text-shadow 0.3s ease;
+}
+
+header .left p:hover {
+    color: #fff;
+
+    text-shadow:
+        0 0 10px rgba(139, 92, 246, 0.85),
+        0 0 24px rgba(75, 42, 173, 0.7),
+        0 0 40px rgba(15, 33, 130, 0.5);
 }
 
 /* RADIAL GLOW DI BELAKANG SECTION PERTAMA */
