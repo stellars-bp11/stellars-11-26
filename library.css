@@ -46,7 +46,8 @@ button {
     -webkit-tap-highlight-color: transparent;
 }
 
-img {
+img,
+video {
     width: 100%;
     display: block;
 }
@@ -105,8 +106,7 @@ header {
 
     -webkit-backdrop-filter: blur(8px);
 
-    border-bottom:
-        1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 nav {
@@ -157,8 +157,7 @@ nav {
 
     color: #fff;
 
-    text-shadow:
-        0 2px 8px rgba(0, 0, 0, 0.4);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 
@@ -195,11 +194,9 @@ nav {
 
     color: #fff;
 
-    background:
-        rgba(24, 43, 87, 0.62);
+    background: rgba(24, 43, 87, 0.62);
 
-    border:
-        1px solid rgba(120, 150, 210, 0.35);
+    border: 1px solid rgba(120, 150, 210, 0.35);
 
     border-radius: 6px;
 
@@ -210,22 +207,17 @@ nav {
 }
 
 .nav-links a:hover {
-    background:
-        rgba(40, 70, 129, 0.82);
+    background: rgba(40, 70, 129, 0.82);
 
-    border-color:
-        rgba(160, 185, 235, 0.45);
+    border-color: rgba(160, 185, 235, 0.45);
 
-    transform:
-        translateY(-1px);
+    transform: translateY(-1px);
 }
 
 .nav-links a.active {
-    background:
-        rgba(42, 72, 135, 0.88);
+    background: rgba(42, 72, 135, 0.88);
 
-    border-color:
-        rgba(160, 185, 235, 0.45);
+    border-color: rgba(160, 185, 235, 0.45);
 }
 
 
@@ -260,11 +252,9 @@ nav {
 
     color: #fff;
 
-    background:
-        rgba(24, 43, 87, 0.62);
+    background: rgba(24, 43, 87, 0.62);
 
-    border:
-        1px solid rgba(120, 150, 210, 0.35);
+    border: 1px solid rgba(120, 150, 210, 0.35);
 
     border-radius: 7px;
 
@@ -279,11 +269,9 @@ nav {
 }
 
 .admin-login-btn:hover {
-    background:
-        rgba(40, 70, 129, 0.82);
+    background: rgba(40, 70, 129, 0.82);
 
-    border-color:
-        rgba(160, 185, 235, 0.45);
+    border-color: rgba(160, 185, 235, 0.45);
 
     transform: translateY(calc(-50% - 1px));
 }
@@ -350,8 +338,7 @@ main {
 
     font-family: 'Ubuntu', sans-serif;
 
-    font-size:
-        clamp(60px, 10vw, 120px);
+    font-size: clamp(60px, 10vw, 120px);
 
     font-weight: 700;
 
@@ -359,9 +346,7 @@ main {
 
     letter-spacing: -5px;
 
-    text-shadow:
-        0 4px 20px
-        rgba(0, 0, 0, 0.45);
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
 }
 
 .hero-content > p:last-child {
@@ -369,9 +354,7 @@ main {
 
     font-size: 18px;
 
-    text-shadow:
-        0 2px 10px
-        rgba(0, 0, 0, 0.4);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
 }
 
 
@@ -380,8 +363,7 @@ main {
 ========================================================= */
 
 .library-section {
-    padding:
-        0 30px 120px;
+    padding: 0 30px 120px;
 }
 
 .section-heading {
@@ -422,11 +404,9 @@ main {
 
     color: #fff;
 
-    background:
-        rgba(24, 43, 87, 0.62);
+    background: rgba(24, 43, 87, 0.62);
 
-    border:
-        1px solid rgba(120, 150, 210, 0.35);
+    border: 1px solid rgba(120, 150, 210, 0.35);
 
     border-radius: 8px;
 
@@ -439,19 +419,15 @@ main {
 }
 
 .add-memory-btn:hover {
-    background:
-        rgba(40, 70, 129, 0.82);
+    background: rgba(40, 70, 129, 0.82);
 
-    border-color:
-        rgba(160, 185, 235, 0.45);
+    border-color: rgba(160, 185, 235, 0.45);
 
-    transform:
-        translateY(-1px);
+    transform: translateY(-1px);
 }
 
 .add-memory-btn:active {
-    transform:
-        translateY(0);
+    transform: translateY(0);
 }
 
 .add-memory-btn i {
@@ -466,8 +442,7 @@ main {
 .library-grid {
     display: grid;
 
-    grid-template-columns:
-        repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
 
     gap: 25px;
 }
@@ -482,14 +457,11 @@ main {
 
     background: #fff;
 
-    border:
-        1px solid rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.8);
 
     border-radius: 28px;
 
-    box-shadow:
-        0 15px 35px
-        rgba(0, 0, 0, 0.18);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.18);
 
     transition:
         transform 0.35s ease,
@@ -497,17 +469,14 @@ main {
 }
 
 .memory-card:hover {
-    transform:
-        translateY(-6px);
+    transform: translateY(-6px);
 
-    box-shadow:
-        0 20px 45px
-        rgba(0, 0, 0, 0.25);
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
 }
 
 
 /* =========================================================
-   MEMORY IMAGE
+   MEMORY MEDIA (PHOTO / VIDEO)
 ========================================================= */
 
 .memory-image {
@@ -519,30 +488,33 @@ main {
 
     overflow: hidden;
 
-    padding:
-        10px 10px 0;
+    padding: 10px 10px 0;
 
     background: #fff;
 }
 
-.memory-image img {
+.memory-image img,
+.memory-image video {
     width: 100%;
 
     height: 100%;
 
     object-fit: cover;
 
-    border-radius:
-        22px 22px 0 0;
-
-    transition:
-        transform 0.5s ease;
+    border-radius: 22px 22px 0 0;
 }
 
-.memory-card:hover
 .memory-image img {
-    transform:
-        scale(1.04);
+    transition: transform 0.5s ease;
+}
+
+/* zoom hanya untuk foto, supaya kontrol video tidak ikut bergeser */
+.memory-card:hover .memory-image img {
+    transform: scale(1.04);
+}
+
+.memory-image video {
+    background: #0b0d12;
 }
 
 
@@ -571,12 +543,9 @@ main {
 
     color: #fff;
 
-    background:
-        rgba(11, 13, 18, 0.58);
+    background: rgba(11, 13, 18, 0.58);
 
-    border:
-        1px solid
-        rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.18);
 
     border-radius: 50%;
 
@@ -594,8 +563,7 @@ main {
         transform 0.25s ease;
 }
 
-.memory-card:hover
-.memory-delete {
+.memory-card:hover .memory-delete {
     opacity: 1;
 }
 
@@ -608,11 +576,9 @@ main {
 }
 
 .memory-delete:hover {
-    background:
-        rgba(210, 60, 75, 0.92);
+    background: rgba(210, 60, 75, 0.92);
 
-    transform:
-        scale(1.08);
+    transform: scale(1.08);
 }
 
 .memory-delete:disabled {
@@ -631,8 +597,7 @@ main {
 
     min-height: 142px;
 
-    padding:
-        22px 70px 24px 24px;
+    padding: 22px 70px 24px 24px;
 
     color: #222;
 }
@@ -701,8 +666,7 @@ main {
 
     background: #fff;
 
-    border:
-        2px solid #eee;
+    border: 2px solid #eee;
 
     border-radius: 50%;
 
@@ -726,8 +690,7 @@ main {
 
     background: #fff8f9;
 
-    transform:
-        scale(1.06);
+    transform: scale(1.06);
 }
 
 .memory-like.liked {
@@ -758,14 +721,11 @@ main {
 
     padding: 20px;
 
-    background:
-        rgba(5, 7, 12, 0.72);
+    background: rgba(5, 7, 12, 0.72);
 
-    backdrop-filter:
-        blur(5px);
+    backdrop-filter: blur(5px);
 
-    -webkit-backdrop-filter:
-        blur(5px);
+    -webkit-backdrop-filter: blur(5px);
 }
 
 .modal-overlay.open {
@@ -789,9 +749,7 @@ main {
 
     border-radius: 20px;
 
-    box-shadow:
-        0 20px 60px
-        rgba(0, 0, 0, 0.35);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
 }
 
 .modal-header {
@@ -872,15 +830,13 @@ main {
 
     background: #f7f7f7;
 
-    border:
-        1px solid #e2e2e2;
+    border: 1px solid #e2e2e2;
 
     border-radius: 10px;
 
     outline: none;
 
-    font-family:
-        Arial, Helvetica, sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
 
     font-size: 14px;
 }
@@ -893,17 +849,24 @@ main {
 
 .modal-field input:focus,
 .modal-field textarea:focus {
-    border-color:
-        rgba(40, 70, 129, 0.55);
+    border-color: rgba(40, 70, 129, 0.55);
 
-    box-shadow:
-        0 0 0 2px
-        rgba(40, 70, 129, 0.12);
+    box-shadow: 0 0 0 2px rgba(40, 70, 129, 0.12);
+}
+
+.modal-hint {
+    display: block;
+
+    margin-top: 6px;
+
+    color: #999;
+
+    font-size: 12px;
 }
 
 
 /* =========================================================
-   IMAGE PREVIEW
+   MEDIA PREVIEW (PHOTO / VIDEO)
 ========================================================= */
 
 .modal-preview {
@@ -926,12 +889,17 @@ main {
     display: block;
 }
 
-.modal-preview img {
+.modal-preview img,
+.modal-preview video {
     width: 100%;
 
     height: 100%;
 
     object-fit: cover;
+}
+
+.modal-preview video {
+    background: #0b0d12;
 }
 
 
@@ -995,14 +963,11 @@ main {
 
     padding: 20px;
 
-    background:
-        rgba(5, 7, 12, 0.72);
+    background: rgba(5, 7, 12, 0.72);
 
-    backdrop-filter:
-        blur(6px);
+    backdrop-filter: blur(6px);
 
-    -webkit-backdrop-filter:
-        blur(6px);
+    -webkit-backdrop-filter: blur(6px);
 }
 
 .admin-modal-overlay.open {
@@ -1022,13 +987,9 @@ main {
 
     border-radius: 20px;
 
-    box-shadow:
-        0 20px 60px
-        rgba(0, 0, 0, 0.35);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
 
-    animation:
-        adminModalIn
-        0.2s ease;
+    animation: adminModalIn 0.2s ease;
 }
 
 @keyframes adminModalIn {
@@ -1036,17 +997,13 @@ main {
     from {
         opacity: 0;
 
-        transform:
-            translateY(10px)
-            scale(0.98);
+        transform: translateY(10px) scale(0.98);
     }
 
     to {
         opacity: 1;
 
-        transform:
-            translateY(0)
-            scale(1);
+        transform: translateY(0) scale(1);
     }
 
 }
@@ -1126,26 +1083,21 @@ main {
 
     background: #f7f7f7;
 
-    border:
-        1px solid #e2e2e2;
+    border: 1px solid #e2e2e2;
 
     border-radius: 10px;
 
     outline: none;
 
-    font-family:
-        Arial, Helvetica, sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
 
     font-size: 14px;
 }
 
 .admin-modal input:focus {
-    border-color:
-        rgba(40, 70, 129, 0.55);
+    border-color: rgba(40, 70, 129, 0.55);
 
-    box-shadow:
-        0 0 0 2px
-        rgba(40, 70, 129, 0.12);
+    box-shadow: 0 0 0 2px rgba(40, 70, 129, 0.12);
 }
 
 .admin-submit {
@@ -1171,8 +1123,7 @@ main {
 
     font-weight: 500;
 
-    transition:
-        background 0.25s ease;
+    transition: background 0.25s ease;
 }
 
 .admin-submit:hover {
@@ -1197,8 +1148,7 @@ main {
 ========================================================= */
 
 footer {
-    border-top:
-        1px solid rgba(255, 255, 255, 0.08);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
 
     padding: 30px;
 
@@ -1208,8 +1158,7 @@ footer {
 
     font-size: 13px;
 
-    background:
-        rgba(5, 7, 12, 0.35);
+    background: rgba(5, 7, 12, 0.35);
 }
 
 
@@ -1220,8 +1169,7 @@ footer {
 @media (max-width: 900px) {
 
     .library-grid {
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
 }
@@ -1234,8 +1182,7 @@ footer {
 @media (max-width: 768px) {
 
     nav {
-        padding:
-            0 20px;
+        padding: 0 20px;
     }
 
     .logo {
@@ -1247,8 +1194,7 @@ footer {
     }
 
     .nav-links a {
-        padding:
-            7px 9px;
+        padding: 7px 9px;
 
         font-size: 11px;
     }
@@ -1256,8 +1202,7 @@ footer {
     .admin-login-btn {
         left: 20px;
 
-        padding:
-            7px 10px;
+        padding: 7px 10px;
 
         font-size: 11px;
     }
@@ -1265,8 +1210,7 @@ footer {
     .library-hero {
         min-height: 45vh;
 
-        padding:
-            80px 20px;
+        padding: 80px 20px;
     }
 
     .hero-content h1 {
@@ -1280,8 +1224,7 @@ footer {
     }
 
     .library-section {
-        padding:
-            0 20px 80px;
+        padding: 0 20px 80px;
     }
 
     .section-heading h2 {
@@ -1315,8 +1258,7 @@ footer {
     }
 
     nav {
-        padding:
-            0 12px;
+        padding: 0 12px;
     }
 
     .logo {
@@ -1338,8 +1280,7 @@ footer {
     }
 
     .nav-links a {
-        padding:
-            6px 7px;
+        padding: 6px 7px;
 
         font-size: 10px;
 
@@ -1349,8 +1290,7 @@ footer {
     .admin-login-btn {
         left: 12px;
 
-        padding:
-            6px 8px;
+        padding: 6px 8px;
 
         font-size: 10px;
 
@@ -1362,8 +1302,7 @@ footer {
     }
 
     .library-hero {
-        padding:
-            70px 15px;
+        padding: 70px 15px;
     }
 
     .hero-content h1 {
@@ -1379,13 +1318,12 @@ footer {
     .memory-image {
         height: 320px;
 
-        padding:
-            8px 8px 0;
+        padding: 8px 8px 0;
     }
 
-    .memory-image img {
-        border-radius:
-            18px 18px 0 0;
+    .memory-image img,
+    .memory-image video {
+        border-radius: 18px 18px 0 0;
     }
 
     .memory-delete {
@@ -1397,8 +1335,7 @@ footer {
     .memory-info {
         min-height: 138px;
 
-        padding:
-            20px 60px 22px 20px;
+        padding: 20px 60px 22px 20px;
     }
 
     .memory-info h3 {

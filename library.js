@@ -26,160 +26,164 @@ import {
    FIREBASE CONFIG
 ========================================================= */
 
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyD3ptwKTkLqFCmvrTVJFooFiVLE63mh83c",
-  authDomain: "class-web-7241e.firebaseapp.com",
-  projectId: "class-web-7241e",
-  storageBucket: "class-web-7241e.firebasestorage.app",
-  messagingSenderId: "167560389153",
-  appId: "1:167560389153:web:f61f4f821275c48373f960",
-  measurementId: "G-DTHTZNT135"
+    apiKey: "AIzaSyD3ptwKTkLqFCmvrTVJFooFiVLE63mh83c",
+    authDomain: "class-web-7241e.firebaseapp.com",
+    projectId: "class-web-7241e",
+    storageBucket: "class-web-7241e.firebasestorage.app",
+    messagingSenderId: "167560389153",
+    appId: "1:167560389153:web:f61f4f821275c48373f960",
+    measurementId: "G-DTHTZNT135"
 };
+
 
 /* =========================================================
    ADMIN UID
 ========================================================= */
 
-/*
-    GANTI NILAI DI BAWAH INI DENGAN
-    UID AKUN ADMIN KAMU.
-
-    Contoh:
-    const ADMIN_UID = "abc123xyz456";
-*/
-
-const ADMIN_UID =
-    "PKHSk7VpN4YJFW9URexjfDEZgjo2";
+const ADMIN_UID = "PKHSk7VpN4YJFW9URexjfDEZgjo2";
 
 
 /* =========================================================
    CLOUDINARY
 ========================================================= */
 
-const CLOUD_NAME =
-    "b88nrr3l";
+const CLOUD_NAME = "b88nrr3l";
+const UPLOAD_PRESET = "stellar-library";
 
-const UPLOAD_PRESET =
-    "stellar-library";
-
-const MAX_FILE_SIZE =
-    5 * 1024 * 1024;
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;     // 5 MB
+const MAX_VIDEO_SIZE = 50 * 1024 * 1024;    // 50 MB
 
 
 /* =========================================================
    INITIALIZE FIREBASE
 ========================================================= */
 
-const app =
-    initializeApp(firebaseConfig);
-
-const db =
-    getFirestore(app);
-
-const auth =
-    getAuth(app);
-
-const memoriesRef =
-    collection(db, "memories");
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+const memoriesRef = collection(db, "memories");
 
 
 /* =========================================================
    LOCAL STORAGE
 ========================================================= */
 
-const LIKES_KEY =
-    "stellars-library-likes";
+const LIKES_KEY = "stellars-library-likes";
 
 
 /* =========================================================
    ADMIN STATE
 ========================================================= */
 
-let isAdmin =
-    false;
+let isAdmin = false;
 
 
 /* =========================================================
    ELEMENTS
 ========================================================= */
 
-const libraryGrid =
-    document.getElementById("libraryGrid");
+const libraryGrid = document.getElementById("libraryGrid");
+const addMemoryBtn = document.getElementById("addMemoryBtn");
+const modalOverlay = document.getElementById("modalOverlay");
+const modalCloseBtn = document.getElementById("modalCloseBtn");
+const memoryForm = document.getElementById("memoryForm");
+const memoryPhotoInput = document.getElementById("memoryPhoto");
+const memoryCategoryInput = document.getElementById("memoryCategory");
+const memoryTitleInput = document.getElementById("memoryTitle");
+const memoryDescriptionInput = document.getElementById("memoryDescription");
+const modalPreview = document.getElementById("modalPreview");
+const submitBtn = document.querySelector(".modal-submit");
 
-const addMemoryBtn =
-    document.getElementById("addMemoryBtn");
-
-const modalOverlay =
-    document.getElementById("modalOverlay");
-
-const modalCloseBtn =
-    document.getElementById("modalCloseBtn");
-
-const memoryForm =
-    document.getElementById("memoryForm");
-
-const memoryPhotoInput =
-    document.getElementById("memoryPhoto");
-
-const memoryCategoryInput =
-    document.getElementById("memoryCategory");
-
-const memoryTitleInput =
-    document.getElementById("memoryTitle");
-
-const memoryDescriptionInput =
-    document.getElementById("memoryDescription");
-
-const modalPreview =
-    document.getElementById("modalPreview");
-
-const submitBtn =
-    document.querySelector(".modal-submit");
+const adminLoginBtn = document.getElementById("adminLoginBtn");
+const adminModalOverlay = document.getElementById("adminModalOverlay");
+const adminModalClose = document.getElementById("adminModalClose");
+const adminLoginForm = document.getElementById("adminLoginForm");
+const adminEmail = document.getElementById("adminEmail");
+const adminPassword = document.getElementById("adminPassword");
+const adminStatus = document.getElementById("adminStatus");
 
 
 /* =========================================================
-   ADMIN ELEMENTS
+   MEDIA HELPERS
 ========================================================= */
 
-const adminLoginBtn =
-    document.getElementById("adminLoginBtn");
+function getMediaType(file) {
 
-const adminModalOverlay =
-    document.getElementById("adminModalOverlay");
+    if (file.type.startsWith("image/")) return "image";
+    if (file.type.startsWith("video/")) return "video";
 
-const adminModalClose =
-    document.getElementById("adminModalClose");
+    return null;
 
-const adminLoginForm =
-    document.getElementById("adminLoginForm");
+}
 
-const adminEmail =
-    document.getElementById("adminEmail");
 
-const adminPassword =
-    document.getElementById("adminPassword");
+function validateFile(file) {
 
-const adminStatus =
-    document.getElementById("adminStatus");
+    const type = getMediaType(file);
+
+    if (!type) {
+        return "Please select an image or video file.";
+    }
+
+    if (type === "image" && file.size > MAX_IMAGE_SIZE) {
+        return "Maximum photo size is 5 MB.";
+    }
+
+    if (type === "video" && file.size > MAX_VIDEO_SIZE) {
+        return "Maximum video size is 50 MB.";
+    }
+
+    return null;
+
+}
+
+
+/*
+    Memory lama (foto) tidak punya field mediaType.
+    Kalau kosong, anggap image. Sebagai pengaman,
+    URL Cloudinary video juga dikenali dari "/video/upload/".
+*/
+function resolveMediaType(memory) {
+
+    if (memory.mediaType === "video") return "video";
+    if (memory.mediaType === "image") return "image";
+
+    if ((memory.imageUrl || "").includes("/video/upload/")) {
+        return "video";
+    }
+
+    return "image";
+
+}
 
 
 /* =========================================================
    MODAL HELPERS
 ========================================================= */
 
+function clearPreview() {
+
+    // hentikan video preview sebelum dibuang
+    modalPreview
+        .querySelectorAll("video")
+        .forEach((video) => {
+            video.pause();
+            video.removeAttribute("src");
+            video.load();
+        });
+
+    modalPreview.innerHTML = "";
+    modalPreview.classList.remove("show");
+
+}
+
+
 function openModal() {
 
     modalOverlay.classList.add("open");
-
-    modalOverlay.setAttribute(
-        "aria-hidden",
-        "false"
-    );
-
-    document.body.classList.add(
-        "modal-open"
-    );
+    modalOverlay.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
 
 }
 
@@ -187,29 +191,14 @@ function openModal() {
 function closeModal() {
 
     modalOverlay.classList.remove("open");
-
-    modalOverlay.setAttribute(
-        "aria-hidden",
-        "true"
-    );
-
-    document.body.classList.remove(
-        "modal-open"
-    );
+    modalOverlay.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("modal-open");
 
     memoryForm.reset();
+    clearPreview();
 
-    modalPreview.classList.remove(
-        "show"
-    );
-
-    modalPreview.innerHTML = "";
-
-    submitBtn.disabled =
-        false;
-
-    submitBtn.textContent =
-        "Save Memory";
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Save Memory";
 
 }
 
@@ -218,172 +207,90 @@ function closeModal() {
    ADD MEMORY MODAL EVENTS
 ========================================================= */
 
-addMemoryBtn.addEventListener(
-    "click",
-    openModal
-);
+addMemoryBtn.addEventListener("click", openModal);
 
+modalCloseBtn.addEventListener("click", closeModal);
 
-modalCloseBtn.addEventListener(
-    "click",
-    closeModal
-);
+modalOverlay.addEventListener("click", (event) => {
 
-
-modalOverlay.addEventListener(
-    "click",
-    (event) => {
-
-        if (
-            event.target ===
-            modalOverlay
-        ) {
-
-            closeModal();
-
-        }
-
+    if (event.target === modalOverlay) {
+        closeModal();
     }
-);
+
+});
 
 
 /* =========================================================
    ESCAPE KEY
 ========================================================= */
 
-document.addEventListener(
-    "keydown",
-    (event) => {
+document.addEventListener("keydown", (event) => {
 
-        if (
-            event.key !== "Escape"
-        ) {
-            return;
-        }
+    if (event.key !== "Escape") return;
 
-
-        if (
-            modalOverlay.classList.contains(
-                "open"
-            )
-        ) {
-
-            closeModal();
-
-        }
-
-
-        if (
-            adminModalOverlay.classList.contains(
-                "open"
-            )
-        ) {
-
-            closeAdminModal();
-
-        }
-
+    if (modalOverlay.classList.contains("open")) {
+        closeModal();
     }
-);
+
+    if (adminModalOverlay.classList.contains("open")) {
+        closeAdminModal();
+    }
+
+});
 
 
 /* =========================================================
-   IMAGE PREVIEW
+   FILE PREVIEW (PHOTO / VIDEO)
 ========================================================= */
 
-memoryPhotoInput.addEventListener(
-    "change",
-    () => {
+memoryPhotoInput.addEventListener("change", () => {
 
-        const file =
-            memoryPhotoInput.files[0];
+    const file = memoryPhotoInput.files[0];
 
+    clearPreview();
 
-        modalPreview.innerHTML =
-            "";
+    if (!file) return;
 
-        modalPreview.classList.remove(
-            "show"
-        );
+    const error = validateFile(file);
 
+    if (error) {
+        alert(error);
+        memoryPhotoInput.value = "";
+        return;
+    }
 
-        if (!file) {
-            return;
-        }
+    const objectUrl = URL.createObjectURL(file);
+    let element;
 
+    if (getMediaType(file) === "video") {
 
-        if (
-            !file.type.startsWith(
-                "image/"
-            )
-        ) {
+        element = document.createElement("video");
+        element.src = objectUrl;
+        element.controls = true;
+        element.muted = true;
+        element.playsInline = true;
+        element.preload = "metadata";
 
-            alert(
-                "Please select an image file."
-            );
+        element.onloadeddata = () => {
+            URL.revokeObjectURL(objectUrl);
+        };
 
-            memoryPhotoInput.value =
-                "";
+    } else {
 
-            return;
-        }
+        element = document.createElement("img");
+        element.src = objectUrl;
+        element.alt = "Photo preview";
 
-
-        if (
-            file.size >
-            MAX_FILE_SIZE
-        ) {
-
-            alert(
-                "Maximum photo size is 5 MB."
-            );
-
-            memoryPhotoInput.value =
-                "";
-
-            return;
-        }
-
-
-        const image =
-            document.createElement(
-                "img"
-            );
-
-
-        const objectUrl =
-            URL.createObjectURL(
-                file
-            );
-
-
-        image.src =
-            objectUrl;
-
-        image.alt =
-            "Photo preview";
-
-
-        image.onload =
-            () => {
-
-                URL.revokeObjectURL(
-                    objectUrl
-                );
-
-            };
-
-
-        modalPreview.appendChild(
-            image
-        );
-
-        modalPreview.classList.add(
-            "show"
-        );
+        element.onload = () => {
+            URL.revokeObjectURL(objectUrl);
+        };
 
     }
-);
+
+    modalPreview.appendChild(element);
+    modalPreview.classList.add("show");
+
+});
 
 
 /* =========================================================
@@ -394,17 +301,11 @@ function getLikedIds() {
 
     try {
 
-        const data =
-            JSON.parse(
-                localStorage.getItem(
-                    LIKES_KEY
-                ) || "[]"
-            );
+        const data = JSON.parse(
+            localStorage.getItem(LIKES_KEY) || "[]"
+        );
 
-
-        return Array.isArray(data)
-            ? data
-            : [];
+        return Array.isArray(data) ? data : [];
 
     } catch {
 
@@ -415,14 +316,13 @@ function getLikedIds() {
 }
 
 
-function saveLikedIds(
-    ids
-) {
+function saveLikedIds(ids) {
 
-    localStorage.setItem(
-        LIKES_KEY,
-        JSON.stringify(ids)
-    );
+    try {
+        localStorage.setItem(LIKES_KEY, JSON.stringify(ids));
+    } catch (error) {
+        console.error("Could not save likes:", error);
+    }
 
 }
 
@@ -433,26 +333,21 @@ function saveLikedIds(
 
 function updateAdminButton() {
 
-    if (!adminLoginBtn) {
-        return;
-    }
-
+    if (!adminLoginBtn) return;
 
     if (isAdmin) {
 
-        adminLoginBtn.innerHTML =
-            `
-                <i class="bx bx-log-out"></i>
-                <span>Logout</span>
-            `;
+        adminLoginBtn.innerHTML = `
+            <i class="bx bx-log-out"></i>
+            <span>Logout</span>
+        `;
 
     } else {
 
-        adminLoginBtn.innerHTML =
-            `
-                <i class="bx bx-lock-alt"></i>
-                <span>Admin</span>
-            `;
+        adminLoginBtn.innerHTML = `
+            <i class="bx bx-lock-alt"></i>
+            <span>Admin</span>
+        `;
 
     }
 
@@ -462,19 +357,12 @@ function updateAdminButton() {
 function updateDeleteButtons() {
 
     document
-        .querySelectorAll(
-            ".memory-delete"
-        )
-        .forEach(
-            (button) => {
+        .querySelectorAll(".memory-delete")
+        .forEach((button) => {
 
-                button.style.display =
-                    isAdmin
-                        ? "flex"
-                        : "none";
+            button.style.display = isAdmin ? "flex" : "none";
 
-            }
-        );
+        });
 
 }
 
@@ -485,453 +373,227 @@ function updateDeleteButtons() {
 
 function openAdminModal() {
 
-    if (isAdmin) {
-        return;
-    }
+    if (isAdmin) return;
 
-
-    adminStatus.textContent =
-        "";
-
-    adminModalOverlay.classList.add(
-        "open"
-    );
+    adminStatus.textContent = "";
+    adminModalOverlay.classList.add("open");
 
 }
 
 
 function closeAdminModal() {
 
-    adminModalOverlay.classList.remove(
-        "open"
-    );
-
-    adminStatus.textContent =
-        "";
+    adminModalOverlay.classList.remove("open");
+    adminStatus.textContent = "";
 
 }
 
 
-adminLoginBtn.addEventListener(
-    "click",
-    async () => {
+adminLoginBtn.addEventListener("click", async () => {
 
-        /*
-            Kalau sudah login sebagai admin,
-            tombol berubah menjadi Logout.
-        */
+    // Kalau sudah login sebagai admin, tombol jadi Logout.
+    if (isAdmin) {
 
-        if (isAdmin) {
+        try {
 
-            try {
+            await signOut(auth);
 
-                await signOut(
-                    auth
-                );
+        } catch (error) {
 
-            } catch (error) {
-
-                console.error(
-                    "Logout error:",
-                    error
-                );
-
-                alert(
-                    "Could not log out."
-                );
-
-            }
-
-            return;
-        }
-
-
-        openAdminModal();
-
-    }
-);
-
-
-adminModalClose.addEventListener(
-    "click",
-    closeAdminModal
-);
-
-
-adminModalOverlay.addEventListener(
-    "click",
-    (event) => {
-
-        if (
-            event.target ===
-            adminModalOverlay
-        ) {
-
-            closeAdminModal();
+            console.error("Logout error:", error);
+            alert("Could not log out.");
 
         }
 
+        return;
+
     }
-);
+
+    openAdminModal();
+
+});
+
+
+adminModalClose.addEventListener("click", closeAdminModal);
+
+adminModalOverlay.addEventListener("click", (event) => {
+
+    if (event.target === adminModalOverlay) {
+        closeAdminModal();
+    }
+
+});
 
 
 /* =========================================================
    ADMIN LOGIN
 ========================================================= */
 
-adminLoginForm.addEventListener(
-    "submit",
-    async (event) => {
+adminLoginForm.addEventListener("submit", async (event) => {
 
-        event.preventDefault();
+    event.preventDefault();
 
+    const email = adminEmail.value.trim();
+    const password = adminPassword.value;
 
-        const email =
-            adminEmail.value.trim();
+    if (!email || !password) return;
 
-        const password =
-            adminPassword.value;
+    adminStatus.textContent = "Logging in...";
 
+    try {
 
-        if (
-            !email ||
-            !password
-        ) {
+        const credentials = await signInWithEmailAndPassword(
+            auth,
+            email,
+            password
+        );
 
-            return;
+        // Login Firebase berhasil, tapi UID harus cocok dengan admin.
+        if (credentials.user.uid !== ADMIN_UID) {
+
+            await signOut(auth);
+
+            throw new Error("This account is not the admin account.");
 
         }
 
+        adminStatus.textContent = "Login successful.";
+        adminLoginForm.reset();
+
+        setTimeout(closeAdminModal, 400);
+
+    } catch (error) {
+
+        console.error("LOGIN ERROR:", error);
 
         adminStatus.textContent =
-            "Logging in...";
-
-
-        try {
-
-            const credentials =
-                await signInWithEmailAndPassword(
-                    auth,
-                    email,
-                    password
-                );
-
-
-            /*
-                Login berhasil secara Firebase,
-                tapi kita tetap cek apakah UID
-                adalah UID admin yang ditentukan.
-            */
-
-            if (
-                credentials.user.uid !==
-                ADMIN_UID
-            ) {
-
-                await signOut(
-                    auth
-                );
-
-                throw new Error(
-                    "This account is not the admin account."
-                );
-
-            }
-
-
-            adminStatus.textContent =
-                "Login successful.";
-
-            adminLoginForm.reset();
-
-
-            setTimeout(
-                () => {
-
-                    closeAdminModal();
-
-                },
-                400
-            );
-
-
-        } catch (error) {
-
-    console.error("LOGIN ERROR:", error);
-
-    adminStatus.textContent =
-        `${error.code || "Error"}: ${error.message}`;
+            `${error.code || "Error"}: ${error.message}`;
 
     }
 
-    }
-);
+});
 
 
 /* =========================================================
    AUTH STATE
 ========================================================= */
 
-onAuthStateChanged(
-    auth,
-    (user) => {
+onAuthStateChanged(auth, (user) => {
 
-        /*
-            Hanya UID yang sudah ditentukan
-            yang dianggap admin.
-        */
+    isAdmin = !!user && user.uid === ADMIN_UID;
 
-        isAdmin =
-            !!user &&
-            user.uid === ADMIN_UID;
+    updateAdminButton();
+    updateDeleteButtons();
 
-
-        updateAdminButton();
-
-        updateDeleteButtons();
-
-    }
-);
+});
 
 
 /* =========================================================
    BUILD MEMORY CARD
 ========================================================= */
 
-function buildMemoryCard(
-    memory
-) {
+function buildMemoryCard(memory) {
 
-    const card =
-        document.createElement(
-            "article"
-        );
+    const card = document.createElement("article");
+
+    card.className = "memory-card cloud-memory";
+    card.dataset.id = memory.id;
 
 
-    card.className =
-        "memory-card cloud-memory";
+    /* ---------- MEDIA (PHOTO / VIDEO) ---------- */
 
+    const imageWrapper = document.createElement("div");
+    imageWrapper.className = "memory-image";
 
-    card.dataset.id =
-        memory.id;
+    const mediaType = resolveMediaType(memory);
+    let media;
 
+    if (mediaType === "video") {
 
-    /* =====================================
-       IMAGE
-    ====================================== */
+        media = document.createElement("video");
+        media.src = memory.imageUrl || "";
+        media.controls = true;
+        media.preload = "metadata";
+        media.playsInline = true;
+        media.setAttribute("aria-label", memory.title || "Memory video");
 
-    const imageWrapper =
-        document.createElement(
-            "div"
-        );
-
-
-    imageWrapper.className =
-        "memory-image";
-
-
-    const image =
-        document.createElement(
-            "img"
-        );
-
-
-    image.src =
-        memory.imageUrl || "";
-
-    image.alt =
-        memory.title || "Memory";
-
-    image.loading =
-        "lazy";
-
-    image.decoding =
-        "async";
-
-
-    image.onerror =
-        () => {
-
-            image.style.objectFit =
-                "contain";
-
-            image.style.padding =
-                "50px";
-
-            image.alt =
-                "Image unavailable";
-
+        media.onerror = () => {
+            media.style.objectFit = "contain";
         };
 
+        card.classList.add("is-video");
 
-    imageWrapper.appendChild(
-        image
-    );
+    } else {
 
+        media = document.createElement("img");
+        media.src = memory.imageUrl || "";
+        media.alt = memory.title || "Memory";
+        media.loading = "lazy";
+        media.decoding = "async";
 
-    /* =====================================
-       DELETE
-    ====================================== */
+        media.onerror = () => {
+            media.style.objectFit = "contain";
+            media.style.padding = "50px";
+            media.alt = "Image unavailable";
+        };
 
-    const deleteButton =
-        document.createElement(
-            "button"
-        );
+    }
 
-
-    deleteButton.type =
-        "button";
-
-    deleteButton.className =
-        "memory-delete";
-
-    deleteButton.dataset.action =
-        "delete";
-
-    deleteButton.title =
-        "Delete memory";
-
-    deleteButton.setAttribute(
-        "aria-label",
-        "Delete memory"
-    );
+    imageWrapper.appendChild(media);
 
 
-    deleteButton.style.display =
-        isAdmin
-            ? "flex"
-            : "none";
+    /* ---------- DELETE ---------- */
+
+    const deleteButton = document.createElement("button");
+
+    deleteButton.type = "button";
+    deleteButton.className = "memory-delete";
+    deleteButton.dataset.action = "delete";
+    deleteButton.title = "Delete memory";
+    deleteButton.setAttribute("aria-label", "Delete memory");
+    deleteButton.style.display = isAdmin ? "flex" : "none";
+
+    const deleteIcon = document.createElement("i");
+    deleteIcon.className = "bx bx-trash";
+
+    deleteButton.appendChild(deleteIcon);
+    imageWrapper.appendChild(deleteButton);
 
 
-    const deleteIcon =
-        document.createElement(
-            "i"
-        );
+    /* ---------- INFO ---------- */
+
+    const info = document.createElement("div");
+    info.className = "memory-info";
+
+    const category = document.createElement("p");
+    category.className = "memory-category";
+    category.textContent = memory.category || "MEMORY";
+
+    const title = document.createElement("h3");
+    title.textContent = memory.title || "Untitled Memory";
+
+    const description = document.createElement("p");
+    description.className = "memory-description";
+    description.textContent = memory.description || "";
 
 
-    deleteIcon.className =
-        "bx bx-trash";
+    /* ---------- LIKE ---------- */
 
+    const likeButton = document.createElement("button");
 
-    deleteButton.appendChild(
-        deleteIcon
-    );
+    likeButton.type = "button";
+    likeButton.className = "memory-like";
+    likeButton.dataset.action = "like";
+    likeButton.title = "Like memory";
+    likeButton.setAttribute("aria-label", "Like memory");
 
+    const likeIcon = document.createElement("i");
+    likeIcon.className = "bx bx-heart";
 
-    imageWrapper.appendChild(
-        deleteButton
-    );
+    likeButton.appendChild(likeIcon);
 
-
-    /* =====================================
-       INFO
-    ====================================== */
-
-    const info =
-        document.createElement(
-            "div"
-        );
-
-
-    info.className =
-        "memory-info";
-
-
-    const category =
-        document.createElement(
-            "p"
-        );
-
-
-    category.className =
-        "memory-category";
-
-    category.textContent =
-        memory.category ||
-        "MEMORY";
-
-
-    const title =
-        document.createElement(
-            "h3"
-        );
-
-
-    title.textContent =
-        memory.title ||
-        "Untitled Memory";
-
-
-    const description =
-        document.createElement(
-            "p"
-        );
-
-
-    description.className =
-        "memory-description";
-
-    description.textContent =
-        memory.description ||
-        "";
-
-
-    /* =====================================
-       LIKE
-    ====================================== */
-
-    const likeButton =
-        document.createElement(
-            "button"
-        );
-
-
-    likeButton.type =
-        "button";
-
-    likeButton.className =
-        "memory-like";
-
-    likeButton.dataset.action =
-        "like";
-
-    likeButton.title =
-        "Like memory";
-
-    likeButton.setAttribute(
-        "aria-label",
-        "Like memory"
-    );
-
-
-    const likeIcon =
-        document.createElement(
-            "i"
-        );
-
-
-    likeIcon.className =
-        "bx bx-heart";
-
-
-    likeButton.appendChild(
-        likeIcon
-    );
-
-
-    info.append(
-        category,
-        title,
-        description,
-        likeButton
-    );
-
-
-    card.append(
-        imageWrapper,
-        info
-    );
-
+    info.append(category, title, description, likeButton);
+    card.append(imageWrapper, info);
 
     return card;
 
@@ -944,148 +606,105 @@ function buildMemoryCard(
 
 function applyLikedState() {
 
-    const likedIds =
-        getLikedIds();
-
+    const likedIds = getLikedIds();
 
     document
-        .querySelectorAll(
-            ".memory-card"
-        )
-        .forEach(
-            (card) => {
+        .querySelectorAll(".memory-card")
+        .forEach((card) => {
 
-                const button =
-                    card.querySelector(
-                        ".memory-like"
-                    );
+            const button = card.querySelector(".memory-like");
 
+            if (!button) return;
 
-                if (!button) {
-                    return;
-                }
+            const icon = button.querySelector("i");
+            const liked = likedIds.includes(card.dataset.id);
 
+            button.classList.toggle("liked", liked);
+            button.setAttribute("aria-pressed", String(liked));
 
-                const icon =
-                    button.querySelector(
-                        "i"
-                    );
+            icon.className = liked ? "bx bxs-heart" : "bx bx-heart";
 
-
-                const liked =
-                    likedIds.includes(
-                        card.dataset.id
-                    );
-
-
-                button.classList.toggle(
-                    "liked",
-                    liked
-                );
-
-
-                button.setAttribute(
-                    "aria-pressed",
-                    String(liked)
-                );
-
-
-                icon.className =
-                    liked
-                        ? "bx bxs-heart"
-                        : "bx bx-heart";
-
-            }
-        );
+        });
 
 }
 
 
 /* =========================================================
-   CLOUDINARY UPLOAD
+   CLOUDINARY UPLOAD (IMAGE / VIDEO, WITH PROGRESS)
 ========================================================= */
 
-async function uploadToCloudinary(
-    file
-) {
+function uploadToCloudinary(file, mediaType, onProgress) {
 
-    const endpoint =
-        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
+    return new Promise((resolve, reject) => {
 
+        // endpoint beda: /image/upload atau /video/upload
+        const endpoint =
+            `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${mediaType}/upload`;
 
-    const formData =
-        new FormData();
+        const formData = new FormData();
 
+        formData.append("file", file);
+        formData.append("upload_preset", UPLOAD_PRESET);
 
-    formData.append(
-        "file",
-        file
-    );
+        const xhr = new XMLHttpRequest();
 
+        xhr.open("POST", endpoint);
 
-    formData.append(
-        "upload_preset",
-        UPLOAD_PRESET
-    );
+        xhr.upload.onprogress = (event) => {
 
-
-    const response =
-        await fetch(
-            endpoint,
-            {
-                method: "POST",
-                body: formData
+            if (event.lengthComputable && onProgress) {
+                onProgress(
+                    Math.round((event.loaded / event.total) * 100)
+                );
             }
-        );
 
+        };
 
-    let result;
+        xhr.onerror = () => {
+            reject(new Error("Network error while uploading."));
+        };
 
+        xhr.onload = () => {
 
-    try {
+            let result;
 
-        result =
-            await response.json();
+            try {
 
-    } catch {
+                result = JSON.parse(xhr.responseText);
 
-        throw new Error(
-            "Cloudinary returned an invalid response."
-        );
+            } catch {
 
-    }
+                reject(new Error("Cloudinary returned an invalid response."));
+                return;
 
+            }
 
-    if (!response.ok) {
+            if (xhr.status < 200 || xhr.status >= 300) {
 
-        throw new Error(
-            result?.error?.message ||
-            "Cloudinary upload failed."
-        );
+                reject(new Error(
+                    result?.error?.message || "Cloudinary upload failed."
+                ));
+                return;
 
-    }
+            }
 
+            if (!result?.secure_url) {
 
-    if (
-        !result?.secure_url
-    ) {
+                reject(new Error("Cloudinary did not return a media URL."));
+                return;
 
-        throw new Error(
-            "Cloudinary did not return an image URL."
-        );
+            }
 
-    }
+            resolve({
+                imageUrl: result.secure_url,
+                publicId: result.public_id || null
+            });
 
+        };
 
-    return {
+        xhr.send(formData);
 
-        imageUrl:
-            result.secure_url,
-
-        publicId:
-            result.public_id || null
-
-    };
+    });
 
 }
 
@@ -1094,165 +713,94 @@ async function uploadToCloudinary(
    ADD MEMORY
 ========================================================= */
 
-memoryForm.addEventListener(
-    "submit",
-    async (event) => {
+memoryForm.addEventListener("submit", async (event) => {
 
-        event.preventDefault();
+    event.preventDefault();
 
-
-        const file =
-            memoryPhotoInput.files[0];
-
-        const category =
-            memoryCategoryInput.value.trim();
-
-        const title =
-            memoryTitleInput.value.trim();
-
-        const description =
-            memoryDescriptionInput.value.trim();
+    const file = memoryPhotoInput.files[0];
+    const category = memoryCategoryInput.value.trim();
+    const title = memoryTitleInput.value.trim();
+    const description = memoryDescriptionInput.value.trim();
 
 
-        /* VALIDATION */
+    /* VALIDATION */
 
-        if (
-            !file ||
-            !category ||
-            !title ||
-            !description
-        ) {
+    if (!file || !category || !title || !description) {
+        alert("Please complete all fields.");
+        return;
+    }
 
-            alert(
-                "Please complete all fields."
-            );
+    const fileError = validateFile(file);
 
-            return;
+    if (fileError) {
+        alert(fileError);
+        return;
+    }
 
-        }
-
-
-        if (
-            !file.type.startsWith(
-                "image/"
-            )
-        ) {
-
-            alert(
-                "Please select a valid image."
-            );
-
-            return;
-
-        }
+    const mediaType = getMediaType(file);
 
 
-        if (
-            file.size >
-            MAX_FILE_SIZE
-        ) {
+    /* BUTTON */
 
-            alert(
-                "Maximum photo size is 5 MB."
-            );
-
-            return;
-
-        }
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Uploading...";
 
 
-        /* BUTTON */
+    try {
 
-        submitBtn.disabled =
-            true;
+        /* 1. CLOUDINARY */
 
-        submitBtn.textContent =
-            "Uploading...";
+        const upload = await uploadToCloudinary(
+            file,
+            mediaType,
+            (percent) => {
+                submitBtn.textContent = `Uploading... ${percent}%`;
+            }
+        );
 
-
-        try {
-
-            /* 1. CLOUDINARY */
-
-            const upload =
-                await uploadToCloudinary(
-                    file
-                );
+        submitBtn.textContent = "Saving...";
 
 
-            /* 2. FIRESTORE */
+        /* 2. FIRESTORE */
 
-            await addDoc(
-                memoriesRef,
-                {
+        await addDoc(memoriesRef, {
 
-                    imageUrl:
-                        upload.imageUrl,
+            imageUrl: upload.imageUrl,   // tetap dipakai sebagai URL media
+            mediaType: mediaType,        // "image" atau "video"
+            cloudinaryPublicId: upload.publicId,
+            category: category,
+            title: title,
+            description: description,
+            createdAt: serverTimestamp()
 
-                    cloudinaryPublicId:
-                        upload.publicId,
+        });
 
-                    category:
-                        category,
+        closeModal();
 
-                    title:
-                        title,
+        alert("Memory uploaded successfully!");
 
-                    description:
-                        description,
+    } catch (error) {
 
-                    createdAt:
-                        serverTimestamp()
+        console.error("Upload error:", error);
 
-                }
-            );
+        alert(`Upload failed: ${error.message}`);
 
-
-            closeModal();
-
-
-            alert(
-                "Memory uploaded successfully!"
-            );
-
-
-        } catch (error) {
-
-            console.error(
-                "Upload error:",
-                error
-            );
-
-
-            alert(
-                `Upload failed: ${error.message}`
-            );
-
-
-            submitBtn.disabled =
-                false;
-
-            submitBtn.textContent =
-                "Save Memory";
-
-        }
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Save Memory";
 
     }
-);
+
+});
 
 
 /* =========================================================
    FIRESTORE LISTENER
 ========================================================= */
 
-const memoriesQuery =
-    query(
-        memoriesRef,
-        orderBy(
-            "createdAt",
-            "desc"
-        )
-    );
+const memoriesQuery = query(
+    memoriesRef,
+    orderBy("createdAt", "desc")
+);
 
 
 onSnapshot(
@@ -1261,73 +809,40 @@ onSnapshot(
 
     (snapshot) => {
 
-        /*
-            HANYA hapus card Firebase.
-            Card statis / card HTML lain
-            TIDAK disentuh.
-        */
-
+        // Hapus hanya card Firebase, card HTML statis tidak disentuh.
         libraryGrid
-            .querySelectorAll(
-                ".cloud-memory"
-            )
-            .forEach(
-                (card) => {
+            .querySelectorAll(".cloud-memory")
+            .forEach((card) => {
 
-                    card.remove();
+                // hentikan video sebelum card dibuang
+                card.querySelectorAll("video").forEach((video) => {
+                    video.pause();
+                });
 
-                }
-            );
+                card.remove();
 
+            });
 
-        /*
-            Tambahkan memory Firebase.
-        */
+        snapshot.forEach((memoryDoc) => {
 
-        snapshot.forEach(
-            (memoryDoc) => {
+            const memory = {
+                id: memoryDoc.id,
+                ...memoryDoc.data()
+            };
 
-                const memory = {
+            libraryGrid.appendChild(buildMemoryCard(memory));
 
-                    id:
-                        memoryDoc.id,
-
-                    ...memoryDoc.data()
-
-                };
-
-
-                const card =
-                    buildMemoryCard(
-                        memory
-                    );
-
-
-                libraryGrid.appendChild(
-                    card
-                );
-
-            }
-        );
-
+        });
 
         applyLikedState();
-
         updateDeleteButtons();
 
     },
 
-
     (error) => {
 
-        console.error(
-            "Firestore error:",
-            error
-        );
-
-        console.error(
-            "Check Firestore Rules and database configuration."
-        );
+        console.error("Firestore error:", error);
+        console.error("Check Firestore Rules and database configuration.");
 
     }
 
@@ -1338,106 +853,53 @@ onSnapshot(
    DELETE MEMORY
 ========================================================= */
 
-async function deleteCloudMemory(
-    card
-) {
+async function deleteCloudMemory(card) {
 
     /*
         Double protection:
-        1. UI hanya menampilkan tombol
-           untuk admin.
+        1. UI hanya menampilkan tombol untuk admin.
         2. Firestore Rules tetap memeriksa UID.
     */
 
     if (!isAdmin) {
-
-        alert(
-            "Only the admin can delete memories."
-        );
-
-        return;
-
-    }
-
-
-    const cardId =
-        card.dataset.id;
-
-
-    if (!cardId) {
+        alert("Only the admin can delete memories.");
         return;
     }
 
+    const cardId = card.dataset.id;
+
+    if (!cardId) return;
 
     const title =
-        card.querySelector(
-            "h3"
-        )?.textContent ||
-        "this memory";
+        card.querySelector("h3")?.textContent || "this memory";
 
+    const confirmed = confirm(
+        `Delete "${title}"?\n\nThis memory will be removed for everyone.`
+    );
 
-    const confirmed =
-        confirm(
-            `Delete "${title}"?\n\nThis memory will be removed for everyone.`
-        );
+    if (!confirmed) return;
 
+    const deleteButton = card.querySelector(".memory-delete");
 
-    if (!confirmed) {
-        return;
-    }
-
-
-    const deleteButton =
-        card.querySelector(
-            ".memory-delete"
-        );
-
-
-    deleteButton.disabled =
-        true;
-
+    deleteButton.disabled = true;
 
     try {
 
-        await deleteDoc(
-            doc(
-                db,
-                "memories",
-                cardId
-            )
-        );
+        await deleteDoc(doc(db, "memories", cardId));
 
-
-        /*
-            onSnapshot()
-            akan otomatis
-            menghapus card dari UI.
-        */
-
+        // onSnapshot() otomatis menghapus card dari UI.
 
         saveLikedIds(
-            getLikedIds().filter(
-                (id) =>
-                    id !== cardId
-            )
+            getLikedIds().filter((id) => id !== cardId)
         );
-
 
     } catch (error) {
 
-        console.error(
-            "Delete error:",
-            error
-        );
+        console.error("Delete error:", error);
 
+        alert(`Could not delete memory: ${error.message}`);
 
-        alert(
-            `Could not delete memory: ${error.message}`
-        );
-
-
-        deleteButton.disabled =
-            false;
+        deleteButton.disabled = false;
 
     }
 
@@ -1448,96 +910,52 @@ async function deleteCloudMemory(
    CARD CLICK EVENTS
 ========================================================= */
 
-libraryGrid.addEventListener(
-    "click",
-    async (event) => {
+libraryGrid.addEventListener("click", async (event) => {
 
-        const button =
-            event.target.closest(
-                "button"
-            );
+    const button = event.target.closest("button");
 
+    if (!button) return;
 
-        if (!button) {
-            return;
-        }
+    const card = button.closest(".memory-card");
+
+    if (!card) return;
+
+    const action = button.dataset.action;
 
 
-        const card =
-            button.closest(
-                ".memory-card"
-            );
+    /* DELETE */
 
+    if (action === "delete") {
 
-        if (!card) {
-            return;
-        }
+        await deleteCloudMemory(card);
 
-
-        const action =
-            button.dataset.action;
-
-
-        /* DELETE */
-
-        if (
-            action === "delete"
-        ) {
-
-            await deleteCloudMemory(
-                card
-            );
-
-            return;
-
-        }
-
-
-        /* LIKE */
-
-        if (
-            action === "like"
-        ) {
-
-            const cardId =
-                card.dataset.id;
-
-
-            const likedIds =
-                getLikedIds();
-
-
-            const liked =
-                likedIds.includes(
-                    cardId
-                );
-
-
-            if (liked) {
-
-                saveLikedIds(
-                    likedIds.filter(
-                        (id) =>
-                            id !== cardId
-                    )
-                );
-
-            } else {
-
-                saveLikedIds([
-                    ...likedIds,
-                    cardId
-                ]);
-
-            }
-
-
-            applyLikedState();
-
-        }
+        return;
 
     }
-);
+
+
+    /* LIKE */
+
+    if (action === "like") {
+
+        const cardId = card.dataset.id;
+        const likedIds = getLikedIds();
+
+        if (likedIds.includes(cardId)) {
+
+            saveLikedIds(likedIds.filter((id) => id !== cardId));
+
+        } else {
+
+            saveLikedIds([...likedIds, cardId]);
+
+        }
+
+        applyLikedState();
+
+    }
+
+});
 
 
 /* =========================================================
@@ -1545,7 +963,5 @@ libraryGrid.addEventListener(
 ========================================================= */
 
 updateAdminButton();
-
 updateDeleteButtons();
-
 applyLikedState();

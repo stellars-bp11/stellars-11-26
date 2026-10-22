@@ -48,55 +48,47 @@
          NAVBAR
     ========================================== -->
 
-        <header>
-            <nav>
+    <header>
+        <nav>
 
-                <!-- LOGO -->
-                <a href="index.html" class="logo">
-                    STELLARS
-                </a>
+            <!-- LOGO -->
+            <a href="index.html" class="logo">
+                STELLARS
+            </a>
 
-                <!-- ADMIN -->
-                <button
-                    class="admin-login-btn"
-                    id="adminLoginBtn"
-                    type="button"
-                >
-                    <i class="bx bx-lock-alt"></i>
-                    <span>Admin</span>
-                </button>
+            <!-- ADMIN -->
+            <button
+                class="admin-login-btn"
+                id="adminLoginBtn"
+                type="button"
+            >
+                <i class="bx bx-lock-alt"></i>
+                <span>Admin</span>
+            </button>
 
-                <!-- NAVIGATION -->
-                <ul class="nav-links">
+            <!-- NAVIGATION -->
+            <ul class="nav-links">
 
-                    <li>
-                        <a href="index.html">
-                            Home
-                        </a>
-                    </li>
+                <li>
+                    <a href="index.html">Home</a>
+                </li>
 
-                    <li>
-                        <a href="lecturers.html">
-                            Lecturers
-                        </a>
-                    </li>
+                <li>
+                    <a href="lecturers.html">Lecturers</a>
+                </li>
 
-                    <li>
-                        <a href="crewmates.html">
-                            Crewmates
-                        </a>
-                    </li>
+                <li>
+                    <a href="crewmates.html">Crewmates</a>
+                </li>
 
-                    <li>
-                        <a href="library.html" class="active">
-                            Library
-                        </a>
-                    </li>
+                <li>
+                    <a href="library.html" class="active">Library</a>
+                </li>
 
-                </ul>
+            </ul>
 
-            </nav>
-        </header>
+        </nav>
+    </header>
 
 
     <!-- =========================================
@@ -105,10 +97,7 @@
 
     <main>
 
-
-        <!-- =====================================
-             HERO
-        ====================================== -->
+        <!-- HERO -->
 
         <section class="library-hero">
 
@@ -118,9 +107,7 @@
                     STELLARS MEMORY LIBRARY
                 </p>
 
-                <h1>
-                    Library
-                </h1>
+                <h1>Library</h1>
 
                 <p>
                     A place for the moments,
@@ -133,9 +120,7 @@
         </section>
 
 
-        <!-- =====================================
-             LIBRARY
-        ====================================== -->
+        <!-- LIBRARY -->
 
         <section class="library-section">
 
@@ -161,20 +146,16 @@
             </div>
 
 
-            <!-- =================================
-                 MEMORY GRID
-            ================================== -->
+            <!-- MEMORY GRID -->
 
             <div
                 class="library-grid"
                 id="libraryGrid"
             >
-
                 <!--
                     Firebase memory cards
                     akan otomatis muncul di sini.
                 -->
-
             </div>
 
         </section>
@@ -237,21 +218,24 @@
 
             <form id="memoryForm">
 
-
-                <!-- PHOTO -->
+                <!-- PHOTO / VIDEO -->
 
                 <label class="modal-field">
 
                     <span>
-                        Photo
+                        Photo or Video
                     </span>
 
                     <input
                         id="memoryPhoto"
                         type="file"
-                        accept="image/*"
+                        accept="image/*,video/*"
                         required
                     >
+
+                    <small class="modal-hint">
+                        Photo up to 5 MB, video up to 50 MB.
+                    </small>
 
                 </label>
 
@@ -376,15 +360,8 @@
 
             <form id="adminLoginForm">
 
-
-                <!-- EMAIL -->
-
                 <label>
-
-                    <span>
-                        Email
-                    </span>
-
+                    <span>Email</span>
                     <input
                         type="email"
                         id="adminEmail"
@@ -392,18 +369,10 @@
                         autocomplete="email"
                         required
                     >
-
                 </label>
 
-
-                <!-- PASSWORD -->
-
                 <label>
-
-                    <span>
-                        Password
-                    </span>
-
+                    <span>Password</span>
                     <input
                         type="password"
                         id="adminPassword"
@@ -411,11 +380,7 @@
                         autocomplete="current-password"
                         required
                     >
-
                 </label>
-
-
-                <!-- SUBMIT -->
 
                 <button
                     type="submit"
@@ -423,9 +388,6 @@
                 >
                     Login
                 </button>
-
-
-                <!-- STATUS -->
 
                 <p
                     class="admin-status"
