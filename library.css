@@ -2,6 +2,18 @@
 
 
 /* =========================================================
+   VARIABEL TEMA STELLARS
+========================================================= */
+
+:root {
+    --st-blue: #0f2182;
+    --st-violet: #4b2aad;
+    --st-glow: 139, 92, 246;      /* ungu terang (rgb) */
+    --st-star: 214, 208, 255;     /* lavender bintang (rgb) */
+}
+
+
+/* =========================================================
    RESET
 ========================================================= */
 
@@ -25,6 +37,8 @@ body {
     color: #f5f5f5;
 
     line-height: 1.6;
+
+    overflow-x: hidden;
 }
 
 body.modal-open {
@@ -54,7 +68,7 @@ video {
 
 
 /* =========================================================
-   BACKGROUND VIDEO
+   BACKGROUND VIDEO + LANGIT BERBINTANG
 ========================================================= */
 
 .background-video {
@@ -72,21 +86,73 @@ video {
     pointer-events: none;
 }
 
+/* nebula + bintang statis + tint gelap, semua di satu layer */
 .background-overlay {
     position: fixed;
 
     inset: 0;
 
-    background: rgba(5, 7, 12, 0.30);
-
     z-index: -1;
 
     pointer-events: none;
+
+    background:
+        radial-gradient(ellipse 60% 45% at 15% 10%, rgba(75, 42, 173, 0.35), transparent 70%),
+        radial-gradient(ellipse 55% 50% at 90% 35%, rgba(15, 33, 130, 0.38), transparent 70%),
+        radial-gradient(ellipse 50% 40% at 40% 100%, rgba(var(--st-glow), 0.20), transparent 70%),
+
+        radial-gradient(1.5px 1.5px at 12% 22%, rgba(var(--st-star), 0.9), transparent 100%),
+        radial-gradient(1px 1px at 28% 68%, rgba(255, 255, 255, 0.8), transparent 100%),
+        radial-gradient(1.5px 1.5px at 47% 14%, rgba(255, 255, 255, 0.85), transparent 100%),
+        radial-gradient(1px 1px at 63% 82%, rgba(var(--st-star), 0.8), transparent 100%),
+        radial-gradient(2px 2px at 78% 28%, rgba(255, 255, 255, 0.9), transparent 100%),
+        radial-gradient(1px 1px at 90% 70%, rgba(255, 255, 255, 0.7), transparent 100%),
+        radial-gradient(1.5px 1.5px at 6% 88%, rgba(var(--st-star), 0.8), transparent 100%),
+
+        rgba(5, 7, 12, 0.30);
+}
+
+/* bintang yang berkedip (dua layer, tempo beda) */
+.background-overlay::before,
+.background-overlay::after {
+    content: "";
+
+    position: absolute;
+
+    inset: 0;
+
+    animation: stTwinkle 5s ease-in-out infinite alternate;
+}
+
+.background-overlay::before {
+    background:
+        radial-gradient(2px 2px at 20% 40%, #fff, transparent 100%),
+        radial-gradient(1.5px 1.5px at 35% 12%, rgb(var(--st-star)), transparent 100%),
+        radial-gradient(2px 2px at 70% 58%, #fff, transparent 100%),
+        radial-gradient(1.5px 1.5px at 85% 90%, rgb(var(--st-star)), transparent 100%),
+        radial-gradient(2px 2px at 52% 75%, #fff, transparent 100%);
+}
+
+.background-overlay::after {
+    background:
+        radial-gradient(2px 2px at 8% 55%, #fff, transparent 100%),
+        radial-gradient(1.5px 1.5px at 42% 92%, rgb(var(--st-star)), transparent 100%),
+        radial-gradient(2px 2px at 60% 8%, #fff, transparent 100%),
+        radial-gradient(1.5px 1.5px at 82% 48%, rgb(var(--st-star)), transparent 100%);
+
+    animation-duration: 7s;
+    animation-delay: 1.5s;
+}
+
+@keyframes stTwinkle {
+    from { opacity: 0.15; }
+    to   { opacity: 1; }
 }
 
 
 /* =========================================================
    NAVBAR
+   Layout: [Admin kiri]   [LOGO tengah]   [Nav links kanan]
 ========================================================= */
 
 header {
@@ -100,85 +166,69 @@ header {
 
     height: 64px;
 
-    background: rgba(8, 12, 22, 0.30);
+    background: linear-gradient(120deg, rgba(15, 33, 130, 0.38), rgba(75, 42, 173, 0.32));
 
     backdrop-filter: blur(8px);
-
     -webkit-backdrop-filter: blur(8px);
 
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(var(--st-glow), 0.25);
+
+    box-shadow: 0 6px 24px rgba(15, 20, 60, 0.25);
 }
 
 nav {
     position: relative;
 
     width: 100%;
-
     max-width: 1200px;
 
     height: 64px;
 
     margin: 0 auto;
-
     padding: 0 30px;
 
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
 
     gap: 20px;
 }
 
 
-/* =========================================================
-   LOGO — CENTER
-========================================================= */
+/* LOGO — TENGAH */
 
 .logo {
     position: absolute;
 
     left: 50%;
-
     top: 50%;
 
     transform: translate(-50%, -50%);
 
-    flex-shrink: 0;
-
     font-family: 'Ubuntu', sans-serif;
-
     font-size: 20px;
-
     font-weight: 700;
-
     letter-spacing: 3px;
 
     color: #fff;
 
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    text-shadow:
+        0 0 12px rgba(var(--st-glow), 0.8),
+        0 0 28px rgba(75, 42, 173, 0.6);
 }
 
 
-/* =========================================================
-   NAV LINKS
-========================================================= */
+/* NAV LINKS — KANAN */
 
 .nav-links {
     margin-left: auto;
 
     display: flex;
-
     align-items: center;
 
     gap: 8px;
 
     list-style: none;
-}
-
-.nav-links li {
-    display: block;
 }
 
 .nav-links a {
@@ -187,57 +237,27 @@ nav {
     padding: 6px 11px;
 
     font-family: 'Ubuntu', sans-serif;
-
     font-size: 12px;
-
     font-weight: 500;
 
     color: #fff;
 
-    background: rgba(24, 43, 87, 0.62);
-
-    border: 1px solid rgba(120, 150, 210, 0.35);
-
     border-radius: 6px;
-
-    transition:
-        background 0.25s ease,
-        border-color 0.25s ease,
-        transform 0.25s ease;
-}
-
-.nav-links a:hover {
-    background: rgba(40, 70, 129, 0.82);
-
-    border-color: rgba(160, 185, 235, 0.45);
-
-    transform: translateY(-1px);
-}
-
-.nav-links a.active {
-    background: rgba(42, 72, 135, 0.88);
-
-    border-color: rgba(160, 185, 235, 0.45);
 }
 
 
-/* =========================================================
-   ADMIN BUTTON — LEFT
-========================================================= */
+/* ADMIN — KIRI */
 
 .admin-login-btn {
     position: absolute;
 
     left: 30px;
-
     top: 50%;
 
     transform: translateY(-50%);
 
     display: inline-flex;
-
     align-items: center;
-
     justify-content: center;
 
     gap: 6px;
@@ -245,39 +265,63 @@ nav {
     padding: 7px 13px;
 
     font-family: 'Ubuntu', sans-serif;
-
     font-size: 12px;
-
     font-weight: 500;
 
     color: #fff;
-
-    background: rgba(24, 43, 87, 0.62);
-
-    border: 1px solid rgba(120, 150, 210, 0.35);
 
     border-radius: 7px;
 
     cursor: pointer;
 
     white-space: nowrap;
-
-    transition:
-        background 0.25s ease,
-        border-color 0.25s ease,
-        transform 0.25s ease;
-}
-
-.admin-login-btn:hover {
-    background: rgba(40, 70, 129, 0.82);
-
-    border-color: rgba(160, 185, 235, 0.45);
-
-    transform: translateY(calc(-50% - 1px));
 }
 
 .admin-login-btn i {
     font-size: 15px;
+}
+
+.admin-login-btn:hover {
+    transform: translateY(calc(-50% - 1px));
+}
+
+
+/* GAYA TOMBOL NAV (dipakai bersama) */
+
+.nav-links a,
+.admin-login-btn,
+.add-memory-btn {
+    background: rgba(15, 33, 130, 0.45);
+
+    border: 1px solid rgba(var(--st-glow), 0.35);
+
+    transition:
+        background 0.25s ease,
+        border-color 0.25s ease,
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.nav-links a:hover,
+.admin-login-btn:hover,
+.add-memory-btn:hover {
+    background: rgba(75, 42, 173, 0.65);
+
+    border-color: rgba(var(--st-glow), 0.65);
+
+    box-shadow: 0 0 16px rgba(var(--st-glow), 0.35);
+}
+
+.nav-links a:hover {
+    transform: translateY(-1px);
+}
+
+.nav-links a.active {
+    background: linear-gradient(120deg, #0f2182, #4b2aad);
+
+    border-color: rgba(var(--st-glow), 0.7);
+
+    box-shadow: 0 0 14px rgba(var(--st-glow), 0.4);
 }
 
 
@@ -287,7 +331,6 @@ nav {
 
 main {
     width: 100%;
-
     max-width: 1200px;
 
     margin: 0 auto;
@@ -299,15 +342,36 @@ main {
 ========================================================= */
 
 .eyebrow {
-    color: #f9fafe;
+    color: #d6d0ff;
 
     font-size: 12px;
-
     font-weight: 600;
 
     letter-spacing: 3px;
 
     text-transform: uppercase;
+}
+
+/* hiasan bintang kecil ✦ */
+.hero-content .eyebrow::before,
+.hero-content .eyebrow::after,
+.section-heading .eyebrow::before {
+    content: "\2726";
+
+    color: rgb(var(--st-glow));
+
+    font-size: 10px;
+
+    vertical-align: 1px;
+}
+
+.hero-content .eyebrow::before,
+.hero-content .eyebrow::after {
+    margin: 0 10px;
+}
+
+.section-heading .eyebrow::before {
+    margin-right: 10px;
 }
 
 
@@ -319,9 +383,7 @@ main {
     min-height: 55vh;
 
     display: flex;
-
     align-items: center;
-
     justify-content: center;
 
     padding: 100px 30px;
@@ -330,23 +392,34 @@ main {
 }
 
 .hero-content {
+    position: relative;
+
+    z-index: 1;
+
     max-width: 700px;
 }
 
 .hero-content h1 {
     margin: 20px 0;
 
+    /* padding bawah supaya huruf "y" tidak terpotong gradient */
+    padding-bottom: 0.1em;
+
     font-family: 'Ubuntu', sans-serif;
-
     font-size: clamp(60px, 10vw, 120px);
-
     font-weight: 700;
-
     line-height: 1;
-
     letter-spacing: -5px;
 
-    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+    background: linear-gradient(180deg, #ffffff 25%, #c9bcff 100%);
+
+    -webkit-background-clip: text;
+    background-clip: text;
+
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+
+    filter: drop-shadow(0 4px 24px rgba(var(--st-glow), 0.55));
 }
 
 .hero-content > p:last-child {
@@ -355,6 +428,57 @@ main {
     font-size: 18px;
 
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+
+/* CINCIN ORBIT DI BELAKANG HERO */
+
+.hero-content::before,
+.hero-content::after {
+    content: "";
+
+    position: absolute;
+
+    top: 50%;
+    left: 50%;
+
+    border-radius: 50%;
+
+    pointer-events: none;
+
+    z-index: -1;
+}
+
+.hero-content::before {
+    --ring: min(560px, 92vw);
+
+    width: var(--ring);
+    height: var(--ring);
+
+    margin: calc(var(--ring) / -2) 0 0 calc(var(--ring) / -2);
+
+    border: 1px solid rgba(var(--st-glow), 0.22);
+
+    box-shadow:
+        0 0 60px rgba(var(--st-glow), 0.10),
+        inset 0 0 60px rgba(var(--st-glow), 0.08);
+}
+
+.hero-content::after {
+    --ring: min(820px, 130vw);
+
+    width: var(--ring);
+    height: var(--ring);
+
+    margin: calc(var(--ring) / -2) 0 0 calc(var(--ring) / -2);
+
+    border: 1px dashed rgba(var(--st-star), 0.14);
+
+    animation: stOrbit 90s linear infinite;
+}
+
+@keyframes stOrbit {
+    to { transform: rotate(360deg); }
 }
 
 
@@ -371,11 +495,32 @@ main {
 }
 
 .section-heading h2 {
+    position: relative;
+
     margin-top: 10px;
+    padding-bottom: 16px;
 
     font-family: 'Ubuntu', sans-serif;
-
     font-size: 48px;
+}
+
+/* garis gradient di bawah judul */
+.section-heading h2::after {
+    content: "";
+
+    position: absolute;
+
+    left: 0;
+    bottom: 0;
+
+    width: 90px;
+    height: 3px;
+
+    border-radius: 3px;
+
+    background: linear-gradient(90deg, #4b2aad, rgba(var(--st-glow), 0.9), transparent);
+
+    box-shadow: 0 0 12px rgba(var(--st-glow), 0.6);
 }
 
 
@@ -385,9 +530,7 @@ main {
 
 .add-memory-btn {
     display: inline-flex;
-
     align-items: center;
-
     justify-content: center;
 
     gap: 7px;
@@ -397,32 +540,17 @@ main {
     padding: 10px 18px;
 
     font-family: 'Ubuntu', sans-serif;
-
     font-size: 13px;
-
     font-weight: 500;
 
     color: #fff;
 
-    background: rgba(24, 43, 87, 0.62);
-
-    border: 1px solid rgba(120, 150, 210, 0.35);
-
     border-radius: 8px;
 
     cursor: pointer;
-
-    transition:
-        background 0.25s ease,
-        border-color 0.25s ease,
-        transform 0.25s ease;
 }
 
 .add-memory-btn:hover {
-    background: rgba(40, 70, 129, 0.82);
-
-    border-color: rgba(160, 185, 235, 0.45);
-
     transform: translateY(-1px);
 }
 
@@ -471,19 +599,19 @@ main {
 .memory-card:hover {
     transform: translateY(-6px);
 
-    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
+    box-shadow:
+        0 20px 45px rgba(0, 0, 0, 0.25),
+        0 0 0 1px rgba(var(--st-glow), 0.45),
+        0 0 32px rgba(var(--st-glow), 0.35);
 }
 
 
-/* =========================================================
-   MEMORY MEDIA (PHOTO / VIDEO)
-========================================================= */
+/* MEDIA (FOTO / VIDEO) */
 
 .memory-image {
     position: relative;
 
     width: 100%;
-
     height: 300px;
 
     overflow: hidden;
@@ -496,7 +624,6 @@ main {
 .memory-image img,
 .memory-image video {
     width: 100%;
-
     height: 100%;
 
     object-fit: cover;
@@ -508,7 +635,7 @@ main {
     transition: transform 0.5s ease;
 }
 
-/* zoom hanya untuk foto, supaya kontrol video tidak ikut bergeser */
+/* zoom hanya untuk foto, supaya kontrol video tidak bergeser */
 .memory-card:hover .memory-image img {
     transform: scale(1.04);
 }
@@ -518,27 +645,21 @@ main {
 }
 
 
-/* =========================================================
-   DELETE BUTTON
-========================================================= */
+/* DELETE BUTTON (ditampilkan JS hanya untuk admin) */
 
 .memory-delete {
     position: absolute;
 
     top: 18px;
-
     right: 18px;
 
     z-index: 5;
 
     width: 34px;
-
     height: 34px;
 
     display: flex;
-
     align-items: center;
-
     justify-content: center;
 
     color: #fff;
@@ -554,7 +675,6 @@ main {
     opacity: 0;
 
     backdrop-filter: blur(4px);
-
     -webkit-backdrop-filter: blur(4px);
 
     transition:
@@ -563,10 +683,7 @@ main {
         transform 0.25s ease;
 }
 
-.memory-card:hover .memory-delete {
-    opacity: 1;
-}
-
+.memory-card:hover .memory-delete,
 .memory-delete:focus-visible {
     opacity: 1;
 }
@@ -588,9 +705,7 @@ main {
 }
 
 
-/* =========================================================
-   MEMORY INFO
-========================================================= */
+/* INFO */
 
 .memory-info {
     position: relative;
@@ -608,7 +723,6 @@ main {
     color: #aaa;
 
     font-size: 11px;
-
     font-weight: 500;
 
     letter-spacing: 1.5px;
@@ -622,9 +736,7 @@ main {
     color: #222;
 
     font-family: 'Ubuntu', sans-serif;
-
     font-size: 25px;
-
     line-height: 1.15;
 
     overflow-wrap: anywhere;
@@ -634,32 +746,25 @@ main {
     color: #9a9a9a;
 
     font-size: 14px;
-
     line-height: 1.4;
 
     overflow-wrap: anywhere;
 }
 
 
-/* =========================================================
-   LIKE BUTTON
-========================================================= */
+/* LIKE BUTTON */
 
 .memory-like {
     position: absolute;
 
     right: 18px;
-
     bottom: 18px;
 
     width: 48px;
-
     height: 48px;
 
     display: flex;
-
     align-items: center;
-
     justify-content: center;
 
     color: #777;
@@ -683,22 +788,17 @@ main {
     font-size: 23px;
 }
 
-.memory-like:hover {
-    color: #e45d6a;
-
-    border-color: #e7b5ba;
-
-    background: #fff8f9;
-
-    transform: scale(1.06);
-}
-
+.memory-like:hover,
 .memory-like.liked {
     color: #e45d6a;
 
     border-color: #e7b5ba;
 
     background: #fff8f9;
+}
+
+.memory-like:hover {
+    transform: scale(1.06);
 }
 
 
@@ -716,7 +816,6 @@ main {
     display: none;
 
     align-items: center;
-
     justify-content: center;
 
     padding: 20px;
@@ -724,7 +823,6 @@ main {
     background: rgba(5, 7, 12, 0.72);
 
     backdrop-filter: blur(5px);
-
     -webkit-backdrop-filter: blur(5px);
 }
 
@@ -734,9 +832,7 @@ main {
 
 .modal {
     width: 100%;
-
     max-width: 440px;
-
     max-height: 90vh;
 
     overflow-y: auto;
@@ -749,14 +845,14 @@ main {
 
     border-radius: 20px;
 
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.35),
+        0 0 0 1px rgba(var(--st-glow), 0.25);
 }
 
 .modal-header {
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
 
     gap: 15px;
@@ -766,19 +862,15 @@ main {
 
 .modal-header h3 {
     font-family: 'Ubuntu', sans-serif;
-
     font-size: 20px;
 }
 
 .modal-close {
     width: 32px;
-
     height: 32px;
 
     display: flex;
-
     align-items: center;
-
     justify-content: center;
 
     flex-shrink: 0;
@@ -812,7 +904,6 @@ main {
     color: #888;
 
     font-size: 12px;
-
     font-weight: 600;
 
     letter-spacing: 0.5px;
@@ -837,7 +928,6 @@ main {
     outline: none;
 
     font-family: Arial, Helvetica, sans-serif;
-
     font-size: 14px;
 }
 
@@ -849,9 +939,9 @@ main {
 
 .modal-field input:focus,
 .modal-field textarea:focus {
-    border-color: rgba(40, 70, 129, 0.55);
+    border-color: rgba(var(--st-glow), 0.6);
 
-    box-shadow: 0 0 0 2px rgba(40, 70, 129, 0.12);
+    box-shadow: 0 0 0 2px rgba(var(--st-glow), 0.15);
 }
 
 .modal-hint {
@@ -865,13 +955,10 @@ main {
 }
 
 
-/* =========================================================
-   MEDIA PREVIEW (PHOTO / VIDEO)
-========================================================= */
+/* PREVIEW FOTO / VIDEO */
 
 .modal-preview {
     width: 100%;
-
     height: 140px;
 
     margin-bottom: 14px;
@@ -892,7 +979,6 @@ main {
 .modal-preview img,
 .modal-preview video {
     width: 100%;
-
     height: 100%;
 
     object-fit: cover;
@@ -903,18 +989,17 @@ main {
 }
 
 
-/* =========================================================
-   MODAL SUBMIT
-========================================================= */
+/* TOMBOL SUBMIT (dipakai bersama) */
 
-.modal-submit {
+.modal-submit,
+.admin-submit {
     width: 100%;
 
     padding: 12px;
 
     color: #fff;
 
-    background: #1f345f;
+    background: linear-gradient(120deg, #0f2182, #4b2aad);
 
     border: none;
 
@@ -923,24 +1008,27 @@ main {
     cursor: pointer;
 
     font-family: 'Ubuntu', sans-serif;
-
     font-size: 14px;
-
     font-weight: 500;
 
     transition:
-        background 0.25s ease,
+        filter 0.25s ease,
         opacity 0.25s ease;
 }
 
-.modal-submit:hover:not(:disabled) {
-    background: #16274a;
+.modal-submit:hover:not(:disabled),
+.admin-submit:hover {
+    filter: brightness(1.15);
 }
 
 .modal-submit:disabled {
     opacity: 0.65;
 
     cursor: wait;
+}
+
+.admin-submit {
+    margin-top: 4px;
 }
 
 
@@ -958,7 +1046,6 @@ main {
     display: none;
 
     align-items: center;
-
     justify-content: center;
 
     padding: 20px;
@@ -966,7 +1053,6 @@ main {
     background: rgba(5, 7, 12, 0.72);
 
     backdrop-filter: blur(6px);
-
     -webkit-backdrop-filter: blur(6px);
 }
 
@@ -976,7 +1062,6 @@ main {
 
 .admin-modal {
     width: 100%;
-
     max-width: 380px;
 
     padding: 26px;
@@ -987,32 +1072,28 @@ main {
 
     border-radius: 20px;
 
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.35),
+        0 0 0 1px rgba(var(--st-glow), 0.25);
 
     animation: adminModalIn 0.2s ease;
 }
 
 @keyframes adminModalIn {
-
     from {
         opacity: 0;
-
         transform: translateY(10px) scale(0.98);
     }
 
     to {
         opacity: 1;
-
         transform: translateY(0) scale(1);
     }
-
 }
 
 .admin-modal-header {
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
 
     gap: 15px;
@@ -1022,19 +1103,15 @@ main {
 
 .admin-modal-header h3 {
     font-family: 'Ubuntu', sans-serif;
-
     font-size: 21px;
 }
 
 .admin-modal-close {
     width: 32px;
-
     height: 32px;
 
     display: flex;
-
     align-items: center;
-
     justify-content: center;
 
     color: #555;
@@ -1066,7 +1143,6 @@ main {
     color: #888;
 
     font-size: 12px;
-
     font-weight: 600;
 
     letter-spacing: 0.5px;
@@ -1090,44 +1166,13 @@ main {
     outline: none;
 
     font-family: Arial, Helvetica, sans-serif;
-
     font-size: 14px;
 }
 
 .admin-modal input:focus {
-    border-color: rgba(40, 70, 129, 0.55);
+    border-color: rgba(var(--st-glow), 0.6);
 
-    box-shadow: 0 0 0 2px rgba(40, 70, 129, 0.12);
-}
-
-.admin-submit {
-    width: 100%;
-
-    padding: 12px;
-
-    margin-top: 4px;
-
-    color: #fff;
-
-    background: #1f345f;
-
-    border: none;
-
-    border-radius: 10px;
-
-    cursor: pointer;
-
-    font-family: 'Ubuntu', sans-serif;
-
-    font-size: 14px;
-
-    font-weight: 500;
-
-    transition: background 0.25s ease;
-}
-
-.admin-submit:hover {
-    background: #16274a;
+    box-shadow: 0 0 0 2px rgba(var(--st-glow), 0.15);
 }
 
 .admin-status {
@@ -1148,17 +1193,31 @@ main {
 ========================================================= */
 
 footer {
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    position: relative;
 
     padding: 30px;
 
     text-align: center;
 
-    color: #666d7c;
+    color: #8a90a0;
 
     font-size: 13px;
 
     background: rgba(5, 7, 12, 0.35);
+}
+
+footer::before {
+    content: "";
+
+    position: absolute;
+
+    top: 0;
+    left: 0;
+    right: 0;
+
+    height: 1px;
+
+    background: linear-gradient(90deg, transparent, rgba(var(--st-glow), 0.7), transparent);
 }
 
 
@@ -1176,32 +1235,67 @@ footer {
 
 
 /* =========================================================
-   TABLET / MOBILE
+   HP / TABLET KECIL
+   Navbar jadi 2 baris:
+   baris 1 = Admin (kiri) + Logo (tengah)
+   baris 2 = Nav links (tengah)
 ========================================================= */
 
 @media (max-width: 768px) {
 
+    header {
+        height: auto;
+    }
+
     nav {
-        padding: 0 20px;
+        height: auto;
+
+        padding: 10px 16px 12px;
+
+        flex-direction: column;
+        justify-content: center;
+
+        gap: 10px;
     }
 
     .logo {
+        position: static;
+
+        transform: none;
+
+        order: 1;
+
         font-size: 18px;
     }
 
-    .nav-links {
-        gap: 6px;
-    }
+    .admin-login-btn {
+        left: 16px;
+        top: 10px;
 
-    .nav-links a {
-        padding: 7px 9px;
+        transform: none;
+
+        padding: 7px 10px;
 
         font-size: 11px;
     }
 
-    .admin-login-btn {
-        left: 20px;
+    .admin-login-btn:hover {
+        transform: translateY(-1px);
+    }
 
+    .nav-links {
+        order: 2;
+
+        width: 100%;
+
+        margin-left: 0;
+
+        justify-content: center;
+
+        gap: 6px;
+    }
+
+    .nav-links a {
         padding: 7px 10px;
 
         font-size: 11px;
@@ -1231,6 +1325,10 @@ footer {
         font-size: 36px;
     }
 
+    .section-heading h2::after {
+        width: 70px;
+    }
+
     .library-grid {
         grid-template-columns: 1fr;
     }
@@ -1247,24 +1345,33 @@ footer {
 
 
 /* =========================================================
-   SMALL PHONE
+   HP KECIL
 ========================================================= */
 
 @media (max-width: 480px) {
 
-    header,
     nav {
-        height: 58px;
-    }
-
-    nav {
-        padding: 0 12px;
+        padding: 10px 12px 12px;
     }
 
     .logo {
-        font-size: 15px;
+        font-size: 16px;
 
         letter-spacing: 2px;
+    }
+
+    .admin-login-btn {
+        left: 12px;
+
+        padding: 6px 8px;
+
+        font-size: 10px;
+
+        gap: 4px;
+    }
+
+    .admin-login-btn i {
+        font-size: 13px;
     }
 
     .nav-links {
@@ -1280,25 +1387,11 @@ footer {
     }
 
     .nav-links a {
-        padding: 6px 7px;
-
-        font-size: 10px;
-
-        white-space: nowrap;
-    }
-
-    .admin-login-btn {
-        left: 12px;
-
         padding: 6px 8px;
 
         font-size: 10px;
 
-        gap: 4px;
-    }
-
-    .admin-login-btn i {
-        font-size: 13px;
+        white-space: nowrap;
     }
 
     .library-hero {
@@ -1328,7 +1421,6 @@ footer {
 
     .memory-delete {
         top: 15px;
-
         right: 15px;
     }
 
@@ -1344,11 +1436,9 @@ footer {
 
     .memory-like {
         right: 15px;
-
         bottom: 15px;
 
         width: 44px;
-
         height: 44px;
     }
 
@@ -1356,16 +1446,22 @@ footer {
         font-size: 21px;
     }
 
-    .modal {
+    .modal,
+    .admin-modal {
         padding: 20px;
 
         border-radius: 17px;
     }
 
-    .admin-modal {
-        padding: 20px;
+}
 
-        border-radius: 17px;
+
+@media (prefers-reduced-motion: reduce) {
+
+    .background-overlay::before,
+    .background-overlay::after,
+    .hero-content::after {
+        animation: none;
     }
 
 }
