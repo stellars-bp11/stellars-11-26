@@ -17,6 +17,22 @@
 
 <body>
 
+    <!-- LOADER (hilang setelah halaman selesai dimuat) -->
+    <div id="stellars-loader">
+        <div class="star-wrap">
+            <div class="orbit"></div>
+            <span class="kelip"></span>
+            <span class="kelip"></span>
+            <span class="kelip"></span>
+            <span class="kelip"></span>
+            <svg class="bintang" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="50,10 60,36.25 88.04,37.64 66.17,55.25 73.51,82.36 50,67 26.49,82.36 33.83,55.25 11.96,37.64 40.01,36.25"/>
+            </svg>
+        </div>
+        <div class="teks" id="loader-teks">Memuat</div>
+    </div>
+
+
     <!-- BACKGROUND -->
     <video class="background-video" autoplay muted loop playsinline>
         <source src="Videos/Bp1.mp4" type="video/mp4">
@@ -95,19 +111,19 @@
 
                 <article class="crew-card">
                     <div class="crew-photo">
-                        <img src="images/PPBP 11_Quinetta Aulya Winata.jpg" alt="Nama 1" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Quinetta Aulya Winata.jpg" alt="Quinetta Aulya Winata" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crew-info">
                         <p class="crew-role">Navigator</p>
                         <h3>Quinetta Aulya Winata</h3>
-                        <p class="crew-dob"><i class='bx bx-cake'></i> 20 Agustus 2008 </p>
+                        <p class="crew-dob"><i class='bx bx-cake'></i> 20 Agustus 2008</p>
                         <p class="crew-quote">"Kalo org lain bisa, kenapa harus saya? "</p>
                     </div>
                 </article>
 
                 <article class="crew-card">
                     <div class="crew-photo">
-                        <img src="images/PPBP 11_Darren Leinad Cahaya.jpg" alt="Nama 2" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Darren Leinad Cahaya.jpg" alt="Darren Leinad Cahaya" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crew-info">
                         <p class="crew-role">Navigator</p>
@@ -134,7 +150,7 @@
 
                 <article class="crew-card">
                     <div class="crew-photo">
-                        <img src="images/PPBP 11_ Vianney Yovella Kristanto.jpg" alt="Nama Archivist 1" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_ Vianney Yovella Kristanto.jpg" alt="Vianney Yovella Kristanto" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crew-info">
                         <p class="crew-role">Archivist</p>
@@ -146,7 +162,7 @@
 
                 <article class="crew-card">
                     <div class="crew-photo">
-                        <img src="images/PPBP 11_Levinne Emerson Mulia.jpg" alt="Nama Archivist 2" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Levinne Emerson Mulia.jpg" alt="Levinne Emerson Mulia" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crew-info">
                         <p class="crew-role">Archivist</p>
@@ -173,7 +189,7 @@
 
                 <article class="crew-card">
                     <div class="crew-photo">
-                        <img src="images/PPBP 11_Delfina Calista Ciu Putri.jpg" alt="Nama 3" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Delfina Calista Ciu Putri.jpg" alt="Delfina Calista Ciu Putri" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crew-info">
                         <p class="crew-role">Thinker</p>
@@ -185,11 +201,11 @@
 
                 <article class="crew-card">
                     <div class="crew-photo">
-                        <img src="images/PPBP 11_Kelly Patricia Last.jpeg" alt="Nama 4" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Kelly Patricia Last.jpeg" alt="Kelly Patricia Ongkodjojo" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crew-info">
                         <p class="crew-role">Thinker</p>
-                        <h3> Kelly Patricia Ongkodjojo </h3>
+                        <h3>Kelly Patricia Ongkodjojo</h3>
                         <p class="crew-dob"><i class='bx bx-cake'></i> 22 Januari 2008</p>
                         <p class="crew-quote">"Tulis quote di sini."</p>
                     </div>
@@ -197,19 +213,19 @@
 
                 <article class="crew-card">
                     <div class="crew-photo">
-                        <img src="images/PPBP 11_Felicia Zefanya.jpg" alt="Nama 5" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Felicia Zefanya.jpg" alt="Felicia Zefanya" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crew-info">
                         <p class="crew-role">Thinker</p>
                         <h3>Felicia Zefanya</h3>
-                        <p class="crew-dob"><i class='bx bx-cake'></i> 13  Mei 2007</p>
+                        <p class="crew-dob"><i class='bx bx-cake'></i> 13 Mei 2007</p>
                         <p class="crew-quote">"Aku cinta kopi gula aren ;D"</p>
                     </div>
                 </article>
 
                 <article class="crew-card">
                     <div class="crew-photo">
-                        <img src="images/PPBP 11_Nicke Mega Amelia Trijonoo.jpg" alt="Nama 6" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Nicke Mega Amelia Trijonoo.jpg" alt="Nicke Amelia Trijono" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crew-info">
                         <p class="crew-role">Thinker</p>
@@ -221,7 +237,7 @@
 
                 <article class="crew-card">
                     <div class="crew-photo">
-                        <img src="images/PPBP 11_Tesalonika Uli Putri Silalahi.jpg" alt="Nama 7" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Tesalonika Uli Putri Silalahi.jpg" alt="Tesalonika Uli Putri Silalahi" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crew-info">
                         <p class="crew-role">Thinker</p>
@@ -233,11 +249,11 @@
 
                 <article class="crew-card">
                     <div class="crew-photo">
-                        <img src="images/PPBP 11_Ersya Fely.jpg" alt="Nama 8" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Ersya Fely.jpg" alt="Ersya Fely" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crew-info">
                         <p class="crew-role">Thinker</p>
-                        <h3> Ersya Fely</h3>
+                        <h3>Ersya Fely</h3>
                         <p class="crew-dob"><i class='bx bx-cake'></i> 14 Juli 2008</p>
                         <p class="crew-quote">"Life is a choice"</p>
                     </div>
@@ -260,11 +276,11 @@
 
                 <article class="crew-card">
                     <div class="crew-photo">
-                        <img src="images/PPBP 11_Shareen Tesalonika S.jpg" alt="Nama 9" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Shareen Tesalonika S.jpg" alt="Shareen Tesalonika Setiawan" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crew-info">
                         <p class="crew-role">Connector</p>
-                        <h3> Shareen Tesalonika Setiawan</h3>
+                        <h3>Shareen Tesalonika Setiawan</h3>
                         <p class="crew-dob"><i class='bx bx-cake'></i> 14 April 2008</p>
                         <p class="crew-quote">"Tulis quote di sini."</p>
                     </div>
@@ -272,7 +288,7 @@
 
                 <article class="crew-card">
                     <div class="crew-photo">
-                        <img src="images/PPBP 11_Marsha Setiawan.jpg" alt="Nama 10" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Marsha Setiawan.jpg" alt="Marsha Setiawan" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crew-info">
                         <p class="crew-role">Connector</p>
@@ -284,11 +300,11 @@
 
                 <article class="crew-card">
                     <div class="crew-photo">
-                        <img src="images/PPBP 11_ Anita Lestari Elisabet Siregar.jpg" alt="Nama 11" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_ Anita Lestari Elisabet Siregar.jpg" alt="Anita Lestari Elisabet" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crew-info">
                         <p class="crew-role">Connector</p>
-                        <h3>Anita Lestari Elisabet </h3>
+                        <h3>Anita Lestari Elisabet</h3>
                         <p class="crew-dob"><i class='bx bx-cake'></i> 21 Agustus 2008</p>
                         <p class="crew-quote">"Tulis quote di sini."</p>
                     </div>
@@ -296,7 +312,7 @@
 
                 <article class="crew-card">
                     <div class="crew-photo">
-                        <img src="images/PPBP 11_ANJELIE.jpg" alt="Nama 12" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_ANJELIE.jpg" alt="Anjelie" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crew-info">
                         <p class="crew-role">Connector</p>
@@ -308,11 +324,11 @@
 
                 <article class="crew-card">
                     <div class="crew-photo">
-                        <img src="images/PPBP 11_Johanna Avrilla Hapsari Putri.jpg" alt="Nama 13" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Johanna Avrilla Hapsari Putri.jpg" alt="Johanna Avrilla Hapsari Putri" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crew-info">
                         <p class="crew-role">Connector</p>
-                        <h3>Johanna  Avrilla Hapsari Putri</h3>
+                        <h3>Johanna Avrilla Hapsari Putri</h3>
                         <p class="crew-dob"><i class='bx bx-cake'></i> 14 April 2007</p>
                         <p class="crew-quote">"Tulis quote di sini."</p>
                     </div>
@@ -335,7 +351,7 @@
 
                 <article class="crew-card">
                     <div class="crew-photo">
-                        <img src="images/PPBP 11_Kevano Mareto.jpg" alt="Nama 14" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Kevano Mareto.jpg" alt="Kevano Mareto" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crew-info">
                         <p class="crew-role">Engineer</p>
@@ -347,7 +363,7 @@
 
                 <article class="crew-card">
                     <div class="crew-photo">
-                        <img src="images/PPBP 11_Vincent Farrelius.jpg" alt="Nama 15" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Vincent Farrelius.jpg" alt="Vincent Farellius" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crew-info">
                         <p class="crew-role">Engineer</p>
@@ -359,7 +375,7 @@
 
                 <article class="crew-card">
                     <div class="crew-photo">
-                        <img src="images/PPBP 11_Elmarsha Hannabella.jpg" alt="Nama 16" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Elmarsha Hannabella.jpg" alt="Elmarsha Hannabella" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crew-info">
                         <p class="crew-role">Engineer</p>
@@ -386,7 +402,7 @@
 
                 <article class="crew-card">
                     <div class="crew-photo">
-                        <img src="images/PPBP 11_Kioko Rei.jpg" alt="Nama 17" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Kioko Rei.jpg" alt="Kioko Rei" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crew-info">
                         <p class="crew-role">Storyteller</p>
@@ -398,7 +414,7 @@
 
                 <article class="crew-card">
                     <div class="crew-photo">
-                        <img src="images/PPBP 11_ Raisya Thalita Jasmine .jpg" alt="Nama 18" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_ Raisya Thalita Jasmine .jpg" alt="Raisya Thalita Jasmine" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crew-info">
                         <p class="crew-role">Storyteller</p>
@@ -410,7 +426,7 @@
 
                 <article class="crew-card">
                     <div class="crew-photo">
-                        <img src="images/PPBP 11_Ellie Margaretta.jpg" alt="Nama 19" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Ellie Margaretta.jpg" alt="Ellie Margaretta" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crew-info">
                         <p class="crew-role">Storyteller</p>
@@ -422,11 +438,11 @@
 
                 <article class="crew-card">
                     <div class="crew-photo">
-                        <img src="images/PPBP 11_JASPER_VLADINO_ALVIS 2.png" alt="Nama 20" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_JASPER_VLADINO_ALVIS 2.png" alt="Jasper Vladino Alvis" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crew-info">
                         <p class="crew-role">Storyteller</p>
-                        <h3> Jasper Vladino Alvis</h3>
+                        <h3>Jasper Vladino Alvis</h3>
                         <p class="crew-dob"><i class='bx bx-cake'></i> 07 Mei 2008</p>
                         <p class="crew-quote">"Tulis quote di sini."</p>
                     </div>
@@ -449,7 +465,7 @@
 
                 <article class="crewmate-card">
                     <div class="crewmate-photo">
-                        <img src="images/PPBP 11_Adeline Nadia Nicola.jpg" alt="Nama 1" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Adeline Nadia Nicola.jpg" alt="Adeline Nadia Nicola" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crewmate-info">
                         <h3>Adeline Nadia Nicola</h3>
@@ -460,19 +476,18 @@
 
                 <article class="crewmate-card">
                     <div class="crewmate-photo">
-                        <img src="images/PPBP 11_Andre Praditya Pratama.jpg" alt="Nama 2" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Andre Praditya Pratama.jpg" alt="Andre Praditya Pratama" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crewmate-info">
                         <h3>Andre Praditya Pratama</h3>
                         <p class="crewmate-dob"><i class='bx bx-cake'></i> 15 April 2008</p>
-                        <p class="crewmate-quote">"Lebih baik kita telah mencoba meskipun gagal sekali sebab dengan 
-                                                    kegagalan tersebut kita dapat bangkit dan meraih keberhasilan berkali-kali"</p>
+                        <p class="crewmate-quote">"Lebih baik kita telah mencoba meskipun gagal sekali sebab dengan kegagalan tersebut kita dapat bangkit dan meraih keberhasilan berkali-kali"</p>
                     </div>
                 </article>
 
                 <article class="crewmate-card">
                     <div class="crewmate-photo">
-                        <img src="images/PPBP 11_Carmella Wibowo Widhianto.jpg" alt="Nama 3" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Carmella Wibowo Widhianto.jpg" alt="Carmella Wibowo Widhianto" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crewmate-info">
                         <h3>Carmella Wibowo Widhianto</h3>
@@ -483,7 +498,7 @@
 
                 <article class="crewmate-card">
                     <div class="crewmate-photo">
-                        <img src="images/PPBP 11_Chairine Aretha Nathania.jpg" alt="Nama 4" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Chairine Aretha Nathania.jpg" alt="Chairine Aretha Nathania" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crewmate-info">
                         <h3>Chairine Aretha Nathania</h3>
@@ -494,7 +509,7 @@
 
                 <article class="crewmate-card">
                     <div class="crewmate-photo">
-                        <img src="images/PPBP 11_Danniel.jpg" alt="Nama 5" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Danniel.jpg" alt="Danniel" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crewmate-info">
                         <h3>Danniel</h3>
@@ -505,10 +520,10 @@
 
                 <article class="crewmate-card">
                     <div class="crewmate-photo">
-                        <img src="images/PPBP 11_Eilien Ardelia.jpg" alt="Nama 6" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Eilien Ardelia.jpg" alt="Eilien Ardelia" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crewmate-info">
-                        <h3> Eilien Ardelia</h3>
+                        <h3>Eilien Ardelia</h3>
                         <p class="crewmate-dob"><i class='bx bx-cake'></i> 13 Desember 2007</p>
                         <p class="crewmate-quote">"Lakukan yang terbaik dan biarkan Tuhan melakukan sisanya"</p>
                     </div>
@@ -516,10 +531,10 @@
 
                 <article class="crewmate-card">
                     <div class="crewmate-photo">
-                        <img src="images/PPBP 11_Grace Abigail Wijaya .jpg" alt="Nama 7" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Grace Abigail Wijaya .jpg" alt="Grace Abigail Wijaya" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crewmate-info">
-                        <h3> Grace Abigail Wijaya</h3>
+                        <h3>Grace Abigail Wijaya</h3>
                         <p class="crewmate-dob"><i class='bx bx-cake'></i> 30 November 2007</p>
                         <p class="crewmate-quote">"Hidup saya isinya batagor, mie ayam, matcha, dan taro"</p>
                     </div>
@@ -527,7 +542,7 @@
 
                 <article class="crewmate-card">
                     <div class="crewmate-photo">
-                        <img src="images/PPBP 11_Gracielle Fellisca Tjoa.jpg" alt="Nama 8" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Gracielle Fellisca Tjoa.jpg" alt="Gracielle Fellisca Tjoa" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crewmate-info">
                         <h3>Gracielle Fellisca Tjoa</h3>
@@ -538,7 +553,7 @@
 
                 <article class="crewmate-card">
                     <div class="crewmate-photo">
-                        <img src="images/PPBP 11_Hosea Bowie Immanuel.jpg" alt="Nama 9" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Hosea Bowie Immanuel.jpg" alt="Hosea Bowie Immanuel" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crewmate-info">
                         <h3>Hosea Bowie Immanuel</h3>
@@ -549,7 +564,7 @@
 
                 <article class="crewmate-card">
                     <div class="crewmate-photo">
-                        <img src="images/PPBP 11_JEAN ROMEO JUNIOR SEMBIRING.jpg" alt="Nama 10" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_JEAN ROMEO JUNIOR SEMBIRING.jpg" alt="Jean Romeo Junior Sembiring" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crewmate-info">
                         <h3>Jean Romeo Junior Sembiring</h3>
@@ -560,7 +575,7 @@
 
                 <article class="crewmate-card">
                     <div class="crewmate-photo">
-                        <img src="images/PPBP 11_Keely Michiko Mulyanto .jpg" alt="Nama 11" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Keely Michiko Mulyanto .jpg" alt="Keely Michiko Mulyanto" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crewmate-info">
                         <h3>Keely Michiko Mulyanto</h3>
@@ -571,7 +586,7 @@
 
                 <article class="crewmate-card">
                     <div class="crewmate-photo">
-                        <img src="images/PPBP 11_Maresha Majesty Wales.jpg" alt="Nama 12" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Maresha Majesty Wales.jpg" alt="Maresha Majesty Wales" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crewmate-info">
                         <h3>Maresha Majesty Wales</h3>
@@ -582,7 +597,7 @@
 
                 <article class="crewmate-card">
                     <div class="crewmate-photo">
-                        <img src="images/PPBP 11_MAYA CAROLINE .jpg" alt="Nama 13" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_MAYA CAROLINE .jpg" alt="Maya Caroline" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crewmate-info">
                         <h3>Maya Caroline</h3>
@@ -593,7 +608,7 @@
 
                 <article class="crewmate-card">
                     <div class="crewmate-photo">
-                        <img src="images/PPBP 11_Pande Kadek Redita Julia Dewi.jpg" alt="Nama 14" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Pande Kadek Redita Julia Dewi.jpg" alt="Pande Kadek Redita Julia Dewi" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crewmate-info">
                         <h3>Pande Kadek Redita Julia Dewi</h3>
@@ -604,7 +619,7 @@
 
                 <article class="crewmate-card">
                     <div class="crewmate-photo">
-                        <img src="images/PPBP 11_Patricia Devuba.jpg" alt="Nama 15" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Patricia Devuba.jpg" alt="Patricia Devina" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crewmate-info">
                         <h3>Patricia Devina</h3>
@@ -615,7 +630,7 @@
 
                 <article class="crewmate-card">
                     <div class="crewmate-photo">
-                        <img src="images/PPBP 11_Putu Adelia Nariswari.jpg" alt="Nama 16" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Putu Adelia Nariswari.jpg" alt="Putu Adelia Nariswari" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crewmate-info">
                         <h3>Putu Adelia Nariswari</h3>
@@ -626,19 +641,18 @@
 
                 <article class="crewmate-card">
                     <div class="crewmate-photo">
-                        <img src="images/PPBP 11_Reynard Christian .jpg" alt="Nama 17" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Reynard Christian .jpg" alt="Reynard Christian" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crewmate-info">
                         <h3>Reynard Christian</h3>
                         <p class="crewmate-dob"><i class='bx bx-cake'></i> 14 September 2008</p>
-                        <p class="crewmate-quote">"When was the last time you felt so alive in a room before? 
-                                                    -Reynard Christian 26/09/2026 19:01"</p>
+                        <p class="crewmate-quote">"When was the last time you felt so alive in a room before? -Reynard Christian 26/09/2026 19:01"</p>
                     </div>
                 </article>
 
                 <article class="crewmate-card">
                     <div class="crewmate-photo">
-                        <img src="images/PPBP 11_Samantha Angel.jpg" alt="Nama 18" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Samantha Angel.jpg" alt="Samantha Angel" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crewmate-info">
                         <h3>Samantha Angel</h3>
@@ -649,7 +663,7 @@
 
                 <article class="crewmate-card">
                     <div class="crewmate-photo">
-                        <img src="images/PPBP 11_ Stevander Rusli.jpg" alt="Nama 19" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_ Stevander Rusli.jpg" alt="Stevander Rusli" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crewmate-info">
                         <h3>Stevander Rusli</h3>
@@ -660,13 +674,12 @@
 
                 <article class="crewmate-card">
                     <div class="crewmate-photo">
-                        <img src="images/PPBP 11_Stephanie Felita Widodo.jpg" alt="Nama 20" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Stephanie Felita Widodo.jpg" alt="Stephanie Felita Widodo" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crewmate-info">
                         <h3>Stephanie Felita Widodo</h3>
                         <p class="crewmate-dob"><i class='bx bx-cake'></i> 28 April 2008</p>
-                        <p class="crewmate-quote">"Hidup ini tak ada artinya
-                                                    Maka kau bebas mengarang maknanya seorang"</p>
+                        <p class="crewmate-quote">"Hidup ini tak ada artinya Maka kau bebas mengarang maknanya seorang"</p>
                     </div>
                 </article>
 
@@ -676,7 +689,7 @@
 
                 <article class="crewmate-card">
                     <div class="crewmate-photo">
-                        <img src="images/PPBP 11_ Chantika Anastasia.jpg" alt="Nama 21" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_ Chantika Anastasia.jpg" alt="Chantika Anastasia" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crewmate-info">
                         <h3>Chantika Anastasia</h3>
@@ -687,7 +700,7 @@
 
                 <article class="crewmate-card">
                     <div class="crewmate-photo">
-                        <img src="images/PPBP 11_Vivian Renata Chandra.jpg" alt="Nama 22" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Vivian Renata Chandra.jpg" alt="Vivian Renata Chandra" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crewmate-info">
                         <h3>Vivian Renata Chandra</h3>
@@ -698,13 +711,12 @@
 
                 <article class="crewmate-card">
                     <div class="crewmate-photo">
-                        <img src="images/PPBP 11_Zalika Afarin Azura.jpg" alt="Nama 23" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
+                        <img src="images/PPBP 11_Zalika Afarin Azura.jpg" alt="Zalika Afarin Azura" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
                     </div>
                     <div class="crewmate-info">
                         <h3>Zalika Afarin Azura</h3>
                         <p class="crewmate-dob"><i class='bx bx-cake'></i> 26 Maret 2007</p>
-                        <p class="crewmate-quote">"obrolan satu arah namanya khotbah, 
-                                                    obrolan salah arah namanya fitnah, obrolan segala arah namanya ghibah"</p>
+                        <p class="crewmate-quote">"obrolan satu arah namanya khotbah, obrolan salah arah namanya fitnah, obrolan segala arah namanya ghibah"</p>
                     </div>
                 </article>
 
@@ -721,6 +733,47 @@
             © 2026 Stellars — BP11
         </p>
     </footer>
+
+
+    <!-- JAVASCRIPT LOADER -->
+    <script>
+        (function () {
+
+            var loader = document.getElementById("stellars-loader");
+            var mulai = Date.now();
+            var sudahHilang = false;
+
+            function sembunyikanLoading() {
+
+                if (sudahHilang) return;
+                sudahHilang = true;
+
+                // minimal tampil 1,5 detik supaya animasinya terlihat
+                var sisa = Math.max(0, 1500 - (Date.now() - mulai));
+
+                setTimeout(function () {
+
+                    loader.classList.add("hilang");
+
+                    setTimeout(function () {
+                        loader.hidden = true;
+                    }, 400);
+
+                }, sisa);
+
+            }
+
+            if (document.readyState === "complete") {
+                sembunyikanLoading();
+            } else {
+                window.addEventListener("load", sembunyikanLoading);
+            }
+
+            // Pengaman: kalau ada file yang lambat, loader tetap hilang
+            setTimeout(sembunyikanLoading, 8000);
+
+        })();
+    </script>
 
 </body>
 </html>
