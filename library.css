@@ -1465,3 +1465,326 @@ footer::before {
     }
 
 }
+
+
+/* =========================================================
+   STELLARS LOADER
+========================================================= */
+
+:root {
+    --ld-bg: #0b0d1f;
+    --ld-star: #ffd86b;
+    --ld-glow: rgba(255, 216, 107, 0.55);
+    --ld-orbit: #8f9bff;
+    --ld-text: #c9cff5;
+}
+
+#stellars-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 18px;
+
+    background: var(--ld-bg);
+
+    transition: opacity 0.4s ease;
+}
+
+#stellars-loader[hidden] {
+    display: none;
+}
+
+#stellars-loader.hilang {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#stellars-loader .star-wrap {
+    position: relative;
+    width: 120px;
+    height: 120px;
+}
+
+#stellars-loader .star-wrap svg.bintang {
+    position: absolute;
+    inset: 30px;
+    width: 60px;
+    height: 60px;
+
+    fill: var(--ld-star);
+    filter: drop-shadow(0 0 10px var(--ld-glow));
+
+    animation: ldDenyut 1.6s ease-in-out infinite;
+}
+
+@keyframes ldDenyut {
+    0%, 100% {
+        transform: scale(0.85) rotate(0deg);
+        filter: drop-shadow(0 0 6px var(--ld-glow));
+    }
+    50% {
+        transform: scale(1.15) rotate(18deg);
+        filter: drop-shadow(0 0 18px var(--ld-glow));
+    }
+}
+
+#stellars-loader .orbit {
+    position: absolute;
+    inset: 0;
+
+    border: 1px dashed rgba(143, 155, 255, 0.35);
+    border-radius: 50%;
+
+    animation: ldPutar 3s linear infinite;
+}
+
+#stellars-loader .orbit::after {
+    content: "";
+
+    position: absolute;
+    top: -5px;
+    left: 50%;
+
+    width: 10px;
+    height: 10px;
+    margin-left: -5px;
+
+    background: var(--ld-orbit);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--ld-orbit);
+}
+
+@keyframes ldPutar {
+    to { transform: rotate(360deg); }
+}
+
+#stellars-loader .kelip {
+    position: absolute;
+
+    width: 4px;
+    height: 4px;
+
+    background: #fff;
+    border-radius: 50%;
+
+    opacity: 0;
+
+    animation: ldKelip 2s ease-in-out infinite;
+}
+
+#stellars-loader .kelip:nth-child(2) { top: 4px;    left: 14px;  animation-delay: 0s; }
+#stellars-loader .kelip:nth-child(3) { top: 20px;   right: 0;    animation-delay: 0.5s; }
+#stellars-loader .kelip:nth-child(4) { bottom: 6px; left: 0;     animation-delay: 1s; }
+#stellars-loader .kelip:nth-child(5) { bottom: 0;   right: 22px; animation-delay: 1.5s; }
+
+@keyframes ldKelip {
+    0%, 100% { opacity: 0; transform: scale(0.5); }
+    50%      { opacity: 1; transform: scale(1.4); }
+}
+
+#stellars-loader .teks {
+    color: var(--ld-text);
+
+    font-family: 'Ubuntu', sans-serif;
+    font-size: 14px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+}
+
+#stellars-loader .teks::after {
+    content: "";
+    animation: ldTitik 1.4s steps(4, end) infinite;
+}
+
+@keyframes ldTitik {
+    0%   { content: ""; }
+    25%  { content: "."; }
+    50%  { content: ".."; }
+    75%  { content: "..."; }
+}
+
+
+/* =========================================================
+   STELLARS POPUP (SETELAH UPLOAD)
+========================================================= */
+
+.popup-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+
+    display: grid;
+    place-items: center;
+
+    padding: 20px;
+
+    background: rgba(5, 6, 20, 0.75);
+
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+
+    opacity: 0;
+
+    transition: opacity 0.25s ease;
+}
+
+.popup-overlay[hidden] {
+    display: none;
+}
+
+.popup-overlay.tampil {
+    opacity: 1;
+}
+
+.popup-kotak {
+    width: 100%;
+    max-width: 360px;
+
+    padding: 28px 24px 22px;
+
+    text-align: center;
+
+    color: #c9cff5;
+
+    background: #141735;
+
+    border: 1px solid rgba(143, 155, 255, 0.25);
+    border-radius: 18px;
+
+    box-shadow: 0 0 40px rgba(255, 216, 107, 0.12);
+
+    transform: translateY(16px) scale(0.95);
+
+    transition: transform 0.3s cubic-bezier(0.2, 1.2, 0.4, 1);
+}
+
+.popup-overlay.tampil .popup-kotak {
+    transform: none;
+}
+
+.popup-ikon {
+    display: grid;
+    place-items: center;
+
+    width: 64px;
+    height: 64px;
+
+    margin: 0 auto 12px;
+
+    font-size: 32px;
+
+    color: #ffd86b;
+
+    background: rgba(255, 216, 107, 0.12);
+
+    border-radius: 50%;
+
+    filter: drop-shadow(0 0 10px rgba(255, 216, 107, 0.5));
+
+    animation: ldMunculBintang 0.6s ease-out both;
+}
+
+.popup-ikon.gagal {
+    color: #ff7a8a;
+
+    background: rgba(255, 122, 138, 0.12);
+
+    filter: drop-shadow(0 0 10px rgba(255, 122, 138, 0.5));
+}
+
+@keyframes ldMunculBintang {
+    0%   { transform: scale(0) rotate(-120deg); opacity: 0; }
+    70%  { transform: scale(1.2) rotate(10deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0); }
+}
+
+.popup-kotak h3 {
+    margin: 0 0 6px;
+
+    font-family: 'Ubuntu', sans-serif;
+    font-size: 20px;
+
+    color: #fff;
+}
+
+.popup-kotak p {
+    margin: 0 0 14px;
+
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.popup-preview {
+    margin-bottom: 16px;
+}
+
+.popup-preview img,
+.popup-preview video {
+    width: 100%;
+    max-height: 180px;
+
+    object-fit: cover;
+
+    border-radius: 12px;
+    border: 1px solid rgba(143, 155, 255, 0.25);
+}
+
+.popup-tombol {
+    display: flex;
+    gap: 10px;
+}
+
+.popup-tombol button {
+    flex: 1;
+
+    padding: 11px 12px;
+
+    font-family: 'Ubuntu', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    border-radius: 10px;
+    border: 1px solid transparent;
+
+    transition:
+        transform 0.15s ease,
+        filter 0.15s ease;
+}
+
+.popup-tombol button:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.1);
+}
+
+.btn-utama {
+    color: #1a1530;
+    background: #ffd86b;
+}
+
+.btn-kedua {
+    color: #c9cff5;
+    background: transparent;
+    border-color: rgba(143, 155, 255, 0.4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    #stellars-loader .orbit,
+    #stellars-loader .kelip,
+    #stellars-loader .star-wrap svg.bintang {
+        animation-duration: 6s;
+    }
+
+    .popup-ikon,
+    .popup-kotak {
+        animation: none;
+        transition: none;
+    }
+
+}

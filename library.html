@@ -28,6 +28,25 @@
 <body>
 
     <!-- =========================================
+         LOADER (muncul sampai data Firebase masuk)
+    ========================================== -->
+
+    <div id="stellars-loader">
+        <div class="star-wrap">
+            <div class="orbit"></div>
+            <span class="kelip"></span>
+            <span class="kelip"></span>
+            <span class="kelip"></span>
+            <span class="kelip"></span>
+            <svg class="bintang" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="50,10 60,36.25 88.04,37.64 66.17,55.25 73.51,82.36 50,67 26.49,82.36 33.83,55.25 11.96,37.64 40.01,36.25"/>
+            </svg>
+        </div>
+        <div class="teks" id="loader-teks">Memuat memori</div>
+    </div>
+
+
+    <!-- =========================================
          BACKGROUND VIDEO
     ========================================== -->
 
@@ -398,6 +417,24 @@
 
         </div>
 
+    </div>
+
+
+    <!-- =========================================
+         POPUP SETELAH UPLOAD
+    ========================================== -->
+
+    <div id="stellars-popup" class="popup-overlay" hidden>
+        <div class="popup-kotak" role="dialog" aria-modal="true" aria-labelledby="popup-judul">
+            <div class="popup-ikon" id="popup-ikon">★</div>
+            <h3 id="popup-judul">Berhasil!</h3>
+            <p id="popup-pesan"></p>
+            <div id="popup-preview" class="popup-preview" hidden></div>
+            <div class="popup-tombol">
+                <button type="button" id="popup-kedua" class="btn-kedua">Upload lagi</button>
+                <button type="button" id="popup-utama" class="btn-utama">Lihat di Library</button>
+            </div>
+        </div>
     </div>
 
 

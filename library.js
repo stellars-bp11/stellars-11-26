@@ -105,6 +105,134 @@ const adminStatus = document.getElementById("adminStatus");
 
 
 /* =========================================================
+   LOADER
+========================================================= */
+
+const stellarsLoader = document.getElementById("stellars-loader");
+const loaderTeks = document.getElementById("loader-teks");
+
+function tampilkanLoading(pesan = "Memuat") {
+
+    loaderTeks.textContent = pesan;
+    stellarsLoader.hidden = false;
+    stellarsLoader.classList.remove("hilang");
+
+}
+
+function sembunyikanLoading() {
+
+    if (stellarsLoader.hidden) return;
+
+    stellarsLoader.classList.add("hilang");
+
+    setTimeout(() => {
+        stellarsLoader.hidden = true;
+    }, 400);
+
+}
+
+// Pengaman: kalau Firestore lambat atau gagal, loader tetap hilang
+setTimeout(sembunyikanLoading, 8000);
+
+
+/* =========================================================
+   POPUP (SETELAH UPLOAD)
+========================================================= */
+
+const popup = document.getElementById("stellars-popup");
+const popupIkon = document.getElementById("popup-ikon");
+const popupJudul = document.getElementById("popup-judul");
+const popupPesan = document.getElementById("popup-pesan");
+const popupPreview = document.getElementById("popup-preview");
+const popupUtama = document.getElementById("popup-utama");
+const popupKedua = document.getElementById("popup-kedua");
+
+function tampilkanPopup({
+    tipe = "sukses",            // "sukses" atau "gagal"
+    judul = "Berhasil!",
+    pesan = "",
+    urlPreview = null,
+    jenis = "image",            // "image" atau "video"
+    teksUtama = "Lihat di Library",
+    teksKedua = "Upload lagi",
+    onUtama = null,
+    onKedua = null
+} = {}) {
+
+    popupIkon.textContent = tipe === "sukses" ? "★" : "!";
+    popupIkon.classList.toggle("gagal", tipe !== "sukses");
+    popupJudul.textContent = judul;
+    popupPesan.textContent = pesan;
+    popupUtama.textContent = teksUtama;
+    popupKedua.textContent = teksKedua;
+
+    popupPreview.innerHTML = "";
+
+    if (urlPreview) {
+
+        const img = document.createElement("img");
+
+        // Video Cloudinary: ganti ekstensi jadi .jpg untuk gambar poster
+        img.src = jenis === "video"
+            ? urlPreview.replace(/\.[^./]+$/, ".jpg")
+            : urlPreview;
+
+        img.alt = "Pratinjau unggahan";
+
+        img.onerror = () => {
+            popupPreview.hidden = true;
+        };
+
+        popupPreview.appendChild(img);
+        popupPreview.hidden = false;
+
+    } else {
+
+        popupPreview.hidden = true;
+
+    }
+
+    popupUtama.onclick = () => {
+        tutupPopup();
+        if (onUtama) onUtama();
+    };
+
+    popupKedua.onclick = () => {
+        tutupPopup();
+        if (onKedua) onKedua();
+    };
+
+    popup.hidden = false;
+
+    requestAnimationFrame(() => {
+        popup.classList.add("tampil");
+    });
+
+    popupUtama.focus();
+
+}
+
+function tutupPopup() {
+
+    popup.classList.remove("tampil");
+
+    setTimeout(() => {
+        popup.hidden = true;
+        popupPreview.innerHTML = "";
+    }, 250);
+
+}
+
+popup.addEventListener("click", (event) => {
+
+    if (event.target === popup) {
+        tutupPopup();
+    }
+
+});
+
+
+/* =========================================================
    MEDIA HELPERS
 ========================================================= */
 
@@ -227,6 +355,11 @@ modalOverlay.addEventListener("click", (event) => {
 document.addEventListener("keydown", (event) => {
 
     if (event.key !== "Escape") return;
+
+    if (!popup.hidden) {
+        tutupPopup();
+        return;
+    }
 
     if (modalOverlay.classList.contains("open")) {
         closeModal();
@@ -777,16 +910,40 @@ memoryForm.addEventListener("submit", async (event) => {
 
         closeModal();
 
-        alert("Memory uploaded successfully!");
+
+        /* 3. POPUP SUKSES */
+
+        tampilkanPopup({
+            tipe: "sukses",
+            judul: "Memori tersimpan!",
+            pesan: mediaType === "video"
+                ? "Videomu sudah masuk ke Library."
+                : "Fotomu sudah masuk ke Library.",
+            urlPreview: upload.imageUrl,
+            jenis: mediaType,
+            onUtama: () => {
+                libraryGrid.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+            },
+            onKedua: openModal
+        });
 
     } catch (error) {
 
         console.error("Upload error:", error);
 
-        alert(`Upload failed: ${error.message}`);
-
         submitBtn.disabled = false;
         submitBtn.textContent = "Save Memory";
+
+        tampilkanPopup({
+            tipe: "gagal",
+            judul: "Upload gagal",
+            pesan: error.message || "Coba lagi ya. Pastikan koneksi stabil.",
+            teksUtama: "Coba lagi",
+            teksKedua: "Tutup"
+        });
 
     }
 
@@ -836,6 +993,7 @@ onSnapshot(
 
         applyLikedState();
         updateDeleteButtons();
+        sembunyikanLoading();
 
     },
 
@@ -843,6 +1001,8 @@ onSnapshot(
 
         console.error("Firestore error:", error);
         console.error("Check Firestore Rules and database configuration.");
+
+        sembunyikanLoading();
 
     }
 
