@@ -34,6 +34,25 @@
 
 
     <!-- =========================================
+         LOADER (hilang setelah halaman selesai dimuat)
+    ========================================== -->
+
+    <div id="stellars-loader">
+        <div class="star-wrap">
+            <div class="orbit"></div>
+            <span class="kelip"></span>
+            <span class="kelip"></span>
+            <span class="kelip"></span>
+            <span class="kelip"></span>
+            <svg class="bintang" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="50,10 60,36.25 88.04,37.64 66.17,55.25 73.51,82.36 50,67 26.49,82.36 33.83,55.25 11.96,37.64 40.01,36.25"/>
+            </svg>
+        </div>
+        <div class="teks" id="loader-teks">Memuat</div>
+    </div>
+
+
+    <!-- =========================================
          NAVBAR
     ========================================== -->
 
@@ -61,14 +80,13 @@
             </a>
 
             <a href="library.html">
-                library
+                Library
             </a>
 
         </div>
 
 
         <!-- GET TO KNOW US -->
-        <!-- Ganti USERNAME_KELAS dengan username Instagram kelas -->
         <a
             href="https://www.instagram.com/ppbp.11?utm_source=ig_web_button_share_sheet&stkn=ZDNlZDc0MzIxNw=="
             class="profile-button"
@@ -147,7 +165,7 @@
 
                 <div class="header">
 
-                    <i class='bx bxs-brain' ></i>
+                    <i class='bx bxs-brain'></i>
 
                     <h5>
                         Business Brains
@@ -227,10 +245,10 @@
 
                 <div class="photo">
 
-                    <!-- Ganti src dengan foto Atma Jaya -->
                     <img
                         src="images/atma.jpeg"
                         alt="Atma Jaya"
+                        loading="lazy"
                     >
 
                     <span>
@@ -262,10 +280,10 @@
 
                 <div class="photo">
 
-                    <!-- Ganti src dengan foto Bli -->
                     <img
                         src="images/bli.jpeg"
-                        alt="Bli"
+                        alt="BLI"
+                        loading="lazy"
                     >
 
                     <span>
@@ -281,9 +299,9 @@
                     </h5>
 
                     <p>
-                        August 19 marked the beginning of STELLARS chapter at BLI. 
-                        What started with unfamiliar faces slowly turned into open conversations and shared laughs. 
-                        Somewhere between classes, and little breaks, the awkwardness faded and comfort found its way in. 
+                        August 19 marked the beginning of STELLARS chapter at BLI.
+                        What started with unfamiliar faces slowly turned into open conversations and shared laughs.
+                        Somewhere between classes, and little breaks, the awkwardness faded and comfort found its way in.
                         Maybe it was never about the big moments, but the little ones that made this chapter worth remembering.
                     </p>
 
@@ -291,16 +309,18 @@
 
             </div>
 
-        <!-- Entry 3 -->
 
-        <div class="entry">
+
+            <!-- ENTRY 3 -->
+
+            <div class="entry">
 
                 <div class="photo">
 
-                    <!-- Ganti src dengan foto RTB -->
                     <img
                         src="images/rtb.jpeg"
                         alt="RTB"
+                        loading="lazy"
                     >
 
                     <span>
@@ -316,7 +336,7 @@
                     </h5>
 
                     <p>
-                        More than just a place to stay, 
+                        More than just a place to stay,
                         Rumah Talenta BCA is where we grow, learn, and create unforgettable memories together.
                         A home away from home, where friendships are built and dreams begin.
                     </p>
@@ -326,6 +346,8 @@
             </div>
 
         </div>
+
+
 
         <!-- =====================================
              TENTANG KITA
@@ -347,6 +369,49 @@
 
     </main>
 
+
+    <!-- =========================================
+         JAVASCRIPT LOADER
+    ========================================== -->
+
+    <script>
+        (function () {
+
+            var loader = document.getElementById("stellars-loader");
+            var mulai = Date.now();
+            var sudahHilang = false;
+
+            function sembunyikanLoading() {
+
+                if (sudahHilang) return;
+                sudahHilang = true;
+
+                // minimal tampil 1,5 detik supaya animasinya terlihat
+                var sisa = Math.max(0, 1500 - (Date.now() - mulai));
+
+                setTimeout(function () {
+
+                    loader.classList.add("hilang");
+
+                    setTimeout(function () {
+                        loader.hidden = true;
+                    }, 400);
+
+                }, sisa);
+
+            }
+
+            if (document.readyState === "complete") {
+                sembunyikanLoading();
+            } else {
+                window.addEventListener("load", sembunyikanLoading);
+            }
+
+            // Pengaman: kalau ada file yang lambat (misalnya video), loader tetap hilang
+            setTimeout(sembunyikanLoading, 8000);
+
+        })();
+    </script>
 
 </body>
 
