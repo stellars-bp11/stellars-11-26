@@ -49,6 +49,7 @@ import {
     getFirestore,
     doc,
     getDoc,
+    updateDoc,
     collection,
     query,
     where,
@@ -89,6 +90,12 @@ const logoutButton = document.getElementById("logoutButton");
 const openProfileButton = document.getElementById("openProfileButton");
 const profileDialog = document.getElementById("profileDialog");
 const closeProfileDialog = document.getElementById("closeProfileDialog");
+const profileDetailsForm = document.getElementById("profileDetailsForm");
+const profileBirthDateInput = document.getElementById("profileBirthDate");
+const profileSloganInput = document.getElementById("profileSlogan");
+const profileSaveMessage = document.getElementById("profileSaveMessage");
+const saveProfileButton = document.getElementById("saveProfileButton");
+const portalPersonalSlogan = document.getElementById("portalPersonalSlogan");
 
 const studentView = document.getElementById("studentView");
 const adminView = document.getElementById("adminView");
@@ -180,8 +187,6 @@ function showProfile(profile, authUser) {
     const role = roleLabel(profile.role);
 
     document.getElementById("profileAvatar").textContent = getInitials(fullName);
-    document.getElementById("profileButtonName").textContent = fullName;
-    document.getElementById("profileButtonRole").textContent = role;
     document.getElementById("profileMenuName").textContent = fullName;
     document.getElementById("profileMenuNim").textContent = nim;
 
@@ -189,6 +194,12 @@ function showProfile(profile, authUser) {
     document.getElementById("profileDialogUsername").textContent = profile.username || "—";
     document.getElementById("profileDialogNim").textContent = nim;
     document.getElementById("profileDialogRole").textContent = role;
+    profileBirthDateInput.value = profile.birthDate || "";
+    profileSloganInput.value = profile.slogan || "";
+    profileSaveMessage.textContent = "";
+
+    portalPersonalSlogan.textContent =
+        profile.slogan || "Together we shine beyond the limits.";
 
     document.getElementById("portalWelcomeTitle").innerHTML =
         "Welcome back, <span></span>";
@@ -218,6 +229,12 @@ function showProfile(profile, authUser) {
         loadStudentResults(authUser.uid);
     } else {
         resultsContainer.replaceChildren();
+    }
+
+    // The home-page account menu can deep-link to the profile editor.
+    if (new URLSearchParams(window.location.search).get("profile") === "1") {
+        if (typeof profileDialog.showModal === "function") profileDialog.showModal();
+        window.history.replaceState({}, "", window.location.pathname);
     }
 }
 
@@ -473,7 +490,43 @@ document.addEventListener("keydown", event => {
 /* Profile dialog */
 openProfileButton.addEventListener("click", () => {
     closeProfileMenu();
+    profileSaveMessage.textContent = "";
     if (typeof profileDialog.showModal === "function") profileDialog.showModal();
+});
+
+profileDetailsForm.addEventListener("submit", async event => {
+    event.preventDefault();
+    if (!currentAuthUser || !currentProfile) return;
+
+    const birthDate = profileBirthDateInput.value;
+    const slogan = profileSloganInput.value.trim().slice(0, 120);
+
+    saveProfileButton.disabled = true;
+    saveProfileButton.textContent = "Saving…";
+    profileSaveMessage.textContent = "";
+
+    try {
+        await updateDoc(doc(db, "users", currentAuthUser.uid), {
+            birthDate,
+            slogan
+        });
+
+        currentProfile = { ...currentProfile, birthDate, slogan };
+        portalPersonalSlogan.textContent =
+            slogan || "Together we shine beyond the limits.";
+        profileSaveMessage.textContent = "Profile berhasil disimpan.";
+        profileSaveMessage.dataset.type = "success";
+    } catch (error) {
+        console.error("Unable to save profile details:", error);
+        profileSaveMessage.textContent =
+            error.code === "permission-denied"
+                ? "Akses penyimpanan belum diizinkan. Perbarui Firestore Rules terlebih dahulu."
+                : "Profil belum berhasil disimpan. Coba lagi.";
+        profileSaveMessage.dataset.type = "error";
+    } finally {
+        saveProfileButton.disabled = false;
+        saveProfileButton.textContent = "Save Profile";
+    }
 });
 
 closeProfileDialog.addEventListener("click", () => profileDialog.close());
