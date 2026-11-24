@@ -100,6 +100,17 @@ const academicWorkspaceLauncher = document.getElementById("openAcademicWorkspace
 const academicWorkspaceBack = document.getElementById("closeAcademicWorkspace");
 const academicWorkspaceCard = document.querySelector(".academic-grade-card");
 const academicImportStatus = document.getElementById("academicImportStatus");
+const adminResultsNotice = document.getElementById("adminResultsNotice");
+const adminResultsSearch = document.getElementById("adminResultsSearch");
+const adminResultsSubject = document.getElementById("adminResultsSubject");
+const adminResultsStatus = document.getElementById("adminResultsStatus");
+const adminResultsSummary = document.getElementById("adminResultsSummary");
+const adminResultsTableBody = document.getElementById("adminResultsTableBody");
+const refreshAdminResultsButton = document.getElementById("refreshAdminResults");
+
+let adminResultRecords = [];
+let adminResultsLoading = false;
+let adminResultsControlsBound = false;
 
 let academicWorkspaceShellBound = false;
 
@@ -219,6 +230,9 @@ function showProfile(profile, authUser) {
     adminView.hidden = !isAdmin;
 
     if (isAdmin) {
+        bindAdminResultsControls();
+        loadAdminResults();
+
         import("./academic-import.js")
             .then(({ initAcademicImport }) => {
                 initAcademicImport(profile, authUser);
@@ -370,6 +384,189 @@ async function loadStudentResults(studentId) {
             "Hasil belum dapat dimuat. Pastikan profil, scores, dan Firestore Security Rules Academic Portal sudah disiapkan.",
             "error"
         );
+    }
+}
+
+
+function setAdminResultsNotice(message, type = "info") {
+    if (!adminResultsNotice) return;
+    adminResultsNotice.textContent = message;
+    adminResultsNotice.dataset.type = type;
+    adminResultsNotice.hidden = false;
+}
+
+function bindAdminResultsControls() {
+    if (adminResultsControlsBound) return;
+    adminResultsControlsBound = true;
+
+    refreshAdminResultsButton?.addEventListener("click", () => loadAdminResults());
+
+    adminResultsSearch?.addEventListener("input", renderAdminResults);
+    adminResultsSubject?.addEventListener("change", renderAdminResults);
+    adminResultsStatus?.addEventListener("change", renderAdminResults);
+
+    window.addEventListener("academic-results-updated", () => {
+        if (currentProfile && ["admin", "superAdmin", "super_admin"].includes(currentProfile.role)) {
+            loadAdminResults({ silent: true });
+        }
+    });
+}
+
+async function loadAdminResults({ silent = false } = {}) {
+    if (adminResultsLoading || !adminResultsTableBody) return;
+
+    adminResultsLoading = true;
+    if (refreshAdminResultsButton) refreshAdminResultsButton.disabled = true;
+    if (!silent) setAdminResultsNotice("Loading academic results…");
+
+    try {
+        const [scoresSnapshot, usersSnapshot] = await Promise.all([
+            getDocs(collection(db, "scores")),
+            getDocs(collection(db, "users"))
+        ]);
+
+        const usersById = new Map();
+        usersSnapshot.forEach((userDoc) => {
+            const data = userDoc.data() || {};
+            usersById.set(userDoc.id, {
+                fullName: data.fullName || data.username || "Student account",
+                nim: data.nim || "—"
+            });
+        });
+
+        adminResultRecords = scoresSnapshot.docs.map((scoreDoc) => {
+            const data = scoreDoc.data() || {};
+            const student = usersById.get(data.studentId) || {};
+            return {
+                id: scoreDoc.id,
+                studentName: student.fullName || "Student account",
+                nim: student.nim || "—",
+                subjectName: data.subjectName || "Unnamed subject",
+                assessmentName: data.assessmentName || "Unnamed assessment",
+                score: data.score,
+                maxScore: data.maxScore ?? 100,
+                isPublished: data.isPublished === true,
+                examDate: data.examDate || null,
+                publishedAt: data.publishedAt || null
+            };
+        });
+
+        adminResultRecords.sort((a, b) => {
+            const subjectCompare = a.subjectName.localeCompare(b.subjectName, "id");
+            if (subjectCompare !== 0) return subjectCompare;
+            const studentCompare = a.studentName.localeCompare(b.studentName, "id");
+            if (studentCompare !== 0) return studentCompare;
+            return a.assessmentName.localeCompare(b.assessmentName, "id");
+        });
+
+        const selectedSubject = adminResultsSubject?.value || "";
+        if (adminResultsSubject) {
+            const subjects = [...new Set(adminResultRecords.map((item) => item.subjectName))]
+                .sort((a, b) => a.localeCompare(b, "id"));
+            adminResultsSubject.replaceChildren();
+            const allOption = makeElement("option", "", "All subjects");
+            allOption.value = "";
+            adminResultsSubject.appendChild(allOption);
+
+            subjects.forEach((subject) => {
+                const option = makeElement("option", "", subject);
+                option.value = subject;
+                adminResultsSubject.appendChild(option);
+            });
+
+            adminResultsSubject.value = subjects.includes(selectedSubject) ? selectedSubject : "";
+        }
+
+        setAdminResultsNotice(
+            adminResultRecords.length
+                ? "Loaded " + adminResultRecords.length + " academic score record(s). Draft records are visible to administrators only."
+                : "No academic score records have been saved yet.",
+            "success"
+        );
+        renderAdminResults();
+    } catch (error) {
+        console.error("Unable to load administrator academic results:", error);
+        setAdminResultsNotice(
+            error.code === "permission-denied"
+                ? "Access denied while loading scores or student profiles. Check that the latest admin Firestore read rules are published."
+                : "Academic results could not be loaded. " + (error.message || "Please try again."),
+            "error"
+        );
+        adminResultsTableBody.replaceChildren();
+        const row = makeElement("tr");
+        row.append(makeElement("td", "", "Unable to load academic results."));
+        row.firstElementChild.colSpan = 6;
+        adminResultsTableBody.appendChild(row);
+        if (adminResultsSummary) adminResultsSummary.textContent = "No results available.";
+    } finally {
+        adminResultsLoading = false;
+        if (refreshAdminResultsButton) refreshAdminResultsButton.disabled = false;
+    }
+}
+
+function renderAdminResults() {
+    if (!adminResultsTableBody) return;
+
+    const search = String(adminResultsSearch?.value || "").trim().toLocaleLowerCase("id");
+    const subject = adminResultsSubject?.value || "";
+    const status = adminResultsStatus?.value || "all";
+
+    const visibleRecords = adminResultRecords.filter((record) => {
+        if (subject && record.subjectName !== subject) return false;
+        if (status === "published" && !record.isPublished) return false;
+        if (status === "draft" && record.isPublished) return false;
+
+        if (!search) return true;
+        return [
+            record.studentName,
+            record.nim,
+            record.subjectName,
+            record.assessmentName
+        ].some((value) => String(value).toLocaleLowerCase("id").includes(search));
+    });
+
+    adminResultsTableBody.replaceChildren();
+
+    if (!visibleRecords.length) {
+        const row = makeElement("tr");
+        const cell = makeElement("td", "", adminResultRecords.length
+            ? "No results match the selected filters."
+            : "No academic results yet.");
+        cell.colSpan = 6;
+        row.appendChild(cell);
+        adminResultsTableBody.appendChild(row);
+    } else {
+        visibleRecords.forEach((record) => {
+            const row = makeElement("tr");
+            row.append(
+                makeElement("td", "", record.studentName),
+                makeElement("td", "", record.nim),
+                makeElement("td", "", record.subjectName),
+                makeElement("td", "", record.assessmentName),
+                makeElement("td", "academic-admin-score",
+                    (record.score === null || record.score === undefined
+                        ? "—"
+                        : formatScore(record.score)) + " / " + formatScore(record.maxScore))
+            );
+
+            const statusCell = makeElement("td");
+            const statusBadge = makeElement(
+                "span",
+                "academic-admin-result-status " + (record.isPublished ? "is-published" : "is-draft"),
+                record.isPublished ? "Published" : "Draft"
+            );
+            statusCell.appendChild(statusBadge);
+            row.appendChild(statusCell);
+            adminResultsTableBody.appendChild(row);
+        });
+    }
+
+    const publishedCount = visibleRecords.filter((item) => item.isPublished).length;
+    const draftCount = visibleRecords.length - publishedCount;
+    if (adminResultsSummary) {
+        adminResultsSummary.textContent =
+            visibleRecords.length + " result record(s) shown · " +
+            publishedCount + " published · " + draftCount + " draft";
     }
 }
 
