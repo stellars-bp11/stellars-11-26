@@ -2214,6 +2214,23 @@ body.academic-page {
     opacity: .6;
 }
 
+.academic-delete-button {
+    min-height: 35px;
+    padding: 0 11px;
+    border: 1px solid #e8b9c0;
+    border-radius: 9px;
+    color: #a83245;
+    background: #fff7f8;
+    cursor: pointer;
+    font: 600 11px 'Ubuntu',sans-serif;
+    white-space: nowrap;
+}
+
+.academic-delete-button:disabled {
+    cursor: wait;
+    opacity: .6;
+}
+
 .academic-sr-only {
     position: absolute;
     width: 1px;
