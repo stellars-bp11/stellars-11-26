@@ -127,6 +127,20 @@ function hasAdminRole(profile) {
         ["admin", "superAdmin"].includes(profile.role);
 }
 
+function canDeleteUpload(uploadData) {
+    if (!hasAdminRole(activeProfile) || !uploadData) return false;
+
+    if (uploadData.status === "published") return canPublish();
+
+    if (uploadData.status === "deleting") {
+        return uploadData.deletionRequiresPublisher === true
+            ? canPublish()
+            : true;
+    }
+
+    return ["ready", "failed"].includes(uploadData.status);
+}
+
 function categoryFromAssessmentName(name) {
     const cleaned = String(name || "").trim();
     return cleaned.replace(/\s*[\(\[]?\d+[\)\]]?\s*$/, "").trim() || cleaned || "Assessment";
@@ -239,8 +253,15 @@ function bindWorkspaceEvents() {
 
     historyContainer?.addEventListener("click", async (event) => {
         const publishButton = event.target.closest("[data-publish-upload]");
-        if (!publishButton) return;
-        await publishSavedUpload(publishButton.dataset.publishUpload, publishButton);
+        if (publishButton) {
+            await publishSavedUpload(publishButton.dataset.publishUpload, publishButton);
+            return;
+        }
+
+        const deleteButton = event.target.closest("[data-delete-upload]");
+        if (deleteButton) {
+            await deleteSavedUpload(deleteButton.dataset.deleteUpload, deleteButton);
+        }
     });
 }
 
@@ -795,6 +816,8 @@ async function commitInChunks(operations) {
         chunk.forEach((operation) => {
             if (operation.type === "update") {
                 batch.update(operation.ref, operation.data);
+            } else if (operation.type === "delete") {
+                batch.delete(operation.ref);
             } else if (operation.type === "merge") {
                 batch.set(operation.ref, operation.data, { merge: true });
             } else {
@@ -1060,6 +1083,24 @@ async function refreshImportHistory() {
                 actions.appendChild(pending);
             }
 
+            if (canDeleteUpload(data)) {
+                const deleteButton = document.createElement("button");
+                deleteButton.type = "button";
+                deleteButton.className = "academic-delete-button";
+                deleteButton.textContent = data.status === "deleting"
+                    ? "Retry Delete"
+                    : data.status === "published"
+                        ? "Delete Published"
+                        : "Delete Draft";
+                deleteButton.dataset.deleteUpload = uploadDoc.id;
+                actions.appendChild(deleteButton);
+            } else if (data.status === "published" && hasAdminRole(activeProfile)) {
+                const pendingDelete = document.createElement("small");
+                pendingDelete.className = "academic-import-muted";
+                pendingDelete.textContent = "Publisher approval required to delete";
+                actions.appendChild(pendingDelete);
+            }
+
             row.append(main, actions);
             historyContainer.appendChild(row);
         });
@@ -1153,6 +1194,138 @@ async function publishSavedUpload(uploadId, button) {
             "Publishing failed. Check that the signed-in account has publishing permission and that the latest Firestore Rules are active. " + friendlyError(error),
             "error"
         );
+        button.disabled = false;
+        button.textContent = originalLabel;
+    }
+}
+
+async function deleteSavedUpload(uploadId, button) {
+    if (!activeUser || !hasAdminRole(activeProfile) || !uploadId) {
+        setImportStatus("This account does not have permission to delete academic results.", "error");
+        return;
+    }
+
+    const originalLabel = button.textContent;
+    button.disabled = true;
+    button.textContent = "Checking…";
+
+    try {
+        const uploadRef = doc(db, "uploads", uploadId);
+        const [uploadSnapshot, assessmentsSnapshot, scoresSnapshot] = await Promise.all([
+            getDoc(uploadRef),
+            getDocs(query(collection(db, "assessments"), where("sourceUploadId", "==", uploadId))),
+            getDocs(query(collection(db, "scores"), where("sourceUploadId", "==", uploadId)))
+        ]);
+
+        if (!uploadSnapshot.exists()) throw new Error("Import history record was not found.");
+
+        const uploadData = uploadSnapshot.data() || {};
+        if (uploadData.status === "deleted") {
+            throw new Error("This import has already been deleted.");
+        }
+
+        if (!["ready", "failed", "published", "deleting"].includes(uploadData.status)) {
+            throw new Error("Only saved drafts, published imports, or interrupted deletions can be deleted.");
+        }
+
+        const hasPublishedRecords =
+            assessmentsSnapshot.docs.some((item) => item.data()?.isPublished === true) ||
+            scoresSnapshot.docs.some((item) => item.data()?.isPublished === true);
+
+        const requiresPublisher =
+            uploadData.status === "published" ||
+            uploadData.deletionRequiresPublisher === true ||
+            hasPublishedRecords;
+
+        if (requiresPublisher && !canPublish()) {
+            throw new Error("Deleting published results requires Super Admin or an admin with publishing permission.");
+        }
+        if (!requiresPublisher && !hasAdminRole(activeProfile)) {
+            throw new Error("An active admin account is required to delete this draft.");
+        }
+
+        if (requiresPublisher) {
+            const confirmed = window.confirm(
+                "PERMANENT ACTION: This will remove the published assessment components and student scores from this import. Students will no longer be able to see these results. The import history will remain as a deleted audit record."
+            );
+            if (!confirmed) return;
+
+            const typedConfirmation = window.prompt(
+                'Type DELETE to confirm removal of "' + (uploadData.subjectName || uploadData.fileName || "this import") + '".'
+            );
+            if (typedConfirmation !== "DELETE") {
+                setImportStatus("Deletion cancelled. The confirmation text did not match.", "info");
+                return;
+            }
+        } else {
+            const confirmed = window.confirm(
+                "Delete this draft and all assessment components and score records belonging to it? Students cannot see draft results. The import history will remain as a deleted audit record."
+            );
+            if (!confirmed) return;
+        }
+
+        button.textContent = "Deleting…";
+
+        if (uploadData.status !== "deleting") {
+            await updateDoc(uploadRef, {
+                status: "deleting",
+                previousStatus: uploadData.status,
+                deletionRequiresPublisher: requiresPublisher,
+                deletionStartedAt: serverTimestamp(),
+                deletionStartedBy: activeUser.uid
+            });
+        }
+
+        const deleteOperations = [];
+        assessmentsSnapshot.forEach((item) => {
+            deleteOperations.push({ type: "delete", ref: item.ref });
+        });
+        scoresSnapshot.forEach((item) => {
+            deleteOperations.push({ type: "delete", ref: item.ref });
+        });
+
+        await commitInChunks(deleteOperations);
+
+        await updateDoc(uploadRef, {
+            status: "deleted",
+            deletedAt: serverTimestamp(),
+            deletedBy: activeUser.uid,
+            deletedAssessmentCount: assessmentsSnapshot.size,
+            deletedScoreCount: scoresSnapshot.size,
+            deletionRequiresPublisher: requiresPublisher
+        });
+
+        try {
+            await setDoc(doc(collection(db, "activityLogs")), {
+                actorUid: activeUser.uid,
+                action: "academic_import_deleted",
+                uploadId,
+                createdAt: serverTimestamp(),
+                description:
+                    "Deleted " + assessmentsSnapshot.size + " assessment(s) and " +
+                    scoresSnapshot.size + " score record(s) from a " +
+                    (requiresPublisher ? "published" : "draft") +
+                    " import. Import history retained for audit."
+            });
+        } catch (logError) {
+            console.warn("Academic import deletion activity log was not saved:", logError);
+        }
+
+        setImportStatus(
+            (requiresPublisher ? "Published results" : "Draft results") +
+            " deleted successfully. The import history remains marked as deleted.",
+            "success"
+        );
+        await refreshImportHistory();
+    } catch (error) {
+        console.error("Could not delete Academic import:", error);
+        setImportStatus(
+            "Deletion did not finish. If the history shows 'deleting', use Retry Delete after checking the error. " +
+            friendlyError(error),
+            "error"
+        );
+        await refreshImportHistory();
+    } finally {
         button.disabled = false;
         button.textContent = originalLabel;
     }
