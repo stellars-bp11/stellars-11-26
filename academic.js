@@ -95,6 +95,35 @@ const adminView = document.getElementById("adminView");
 const resultsNotice = document.getElementById("resultsNotice");
 const resultsContainer = document.getElementById("resultsContainer");
 
+const academicWorkspace = document.getElementById("academicImportWorkspace");
+const academicWorkspaceLauncher = document.getElementById("openAcademicWorkspace");
+const academicWorkspaceBack = document.getElementById("closeAcademicWorkspace");
+const academicWorkspaceCard = document.querySelector(".academic-grade-card");
+const academicImportStatus = document.getElementById("academicImportStatus");
+
+let academicWorkspaceShellBound = false;
+
+function bindAcademicWorkspaceShell() {
+    if (academicWorkspaceShellBound) return;
+    academicWorkspaceShellBound = true;
+
+    academicWorkspaceLauncher?.addEventListener("click", () => {
+        if (!academicWorkspace || !academicWorkspaceCard) return;
+        academicWorkspace.hidden = false;
+        academicWorkspaceCard.hidden = true;
+        academicWorkspace.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    academicWorkspaceBack?.addEventListener("click", () => {
+        if (!academicWorkspace || !academicWorkspaceCard) return;
+        academicWorkspace.hidden = true;
+        academicWorkspaceCard.hidden = false;
+        academicWorkspaceCard.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+}
+
+bindAcademicWorkspaceShell();
+
 let currentProfile = null;
 let currentAuthUser = null;
 function roleLabel(role) {
@@ -191,9 +220,17 @@ function showProfile(profile, authUser) {
 
     if (isAdmin) {
         import("./academic-import.js")
-            .then(({ initAcademicImport }) => initAcademicImport(profile, authUser))
+            .then(({ initAcademicImport }) => {
+                initAcademicImport(profile, authUser);
+            })
             .catch((error) => {
                 console.error("Academic importer could not be initialized:", error);
+                if (academicImportStatus) {
+                    academicImportStatus.textContent =
+                        "Importer module failed to load. Please sync the latest feature branch and refresh. " +
+                        (error?.message || "");
+                    academicImportStatus.dataset.type = "error";
+                }
             });
     }
 
