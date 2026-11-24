@@ -132,12 +132,126 @@
                     <i class="bx bx-book-open"></i>
                 </div>
                 <div class="academic-grade-card-copy">
-                    <p class="academic-grade-card-kicker">YOUR ACADEMIC SPACE</p>
-                    <h3>See Your Grades</h3>
-                    <p>Your published academic results will be presented here in one clear, easy-to-read view.</p>
+                    <p class="academic-grade-card-kicker">STELLARS ACADEMIC WORKSPACE</p>
+                    <h3>Manage Academic Results</h3>
+                    <p>Upload class results, review student matching, and publish verified grades.</p>
+                    <button class="academic-grade-card-button" id="openAcademicWorkspace" type="button">
+                        <span>Open Workspace</span>
+                        <i class="bx bx-right-arrow-alt" aria-hidden="true"></i>
+                    </button>
                 </div>
                 <span class="academic-grade-card-sparkle" aria-hidden="true">✦</span>
             </article>
+
+            <section class="academic-import-workspace" id="academicImportWorkspace" hidden aria-labelledby="importWorkspaceTitle">
+                <div class="academic-import-heading">
+                    <div>
+                        <p class="portal-kicker">RESULTS MANAGEMENT</p>
+                        <h2 id="importWorkspaceTitle">Upload Results</h2>
+                        <p>Import a subject's spreadsheet or text-based PDF, check every student match, then save it as a draft.</p>
+                    </div>
+                    <button class="academic-workspace-back" id="closeAcademicWorkspace" type="button">
+                        <i class="bx bx-arrow-back" aria-hidden="true"></i>
+                        <span>Back to dashboard</span>
+                    </button>
+                </div>
+
+                <div class="academic-import-step-card">
+                    <div class="academic-import-step-heading">
+                        <span class="academic-import-step-number">01</span>
+                        <div>
+                            <h3>Choose a results file</h3>
+                            <p>Supported formats: Excel (.xlsx, .xls), CSV, and text-based PDF. The original file stays in your browser.</p>
+                        </div>
+                    </div>
+                    <label class="academic-upload-dropzone" for="academicResultsFile">
+                        <span class="academic-upload-icon"><i class="bx bx-cloud-upload" aria-hidden="true"></i></span>
+                        <strong>Choose a file to import</strong>
+                        <span>Excel, CSV, or PDF · Maximum 15 MB</span>
+                        <input id="academicResultsFile" type="file" accept=".xlsx,.xls,.csv,.pdf,application/pdf">
+                    </label>
+                    <p class="academic-import-status" id="academicImportStatus" role="status" aria-live="polite">No file selected yet.</p>
+                </div>
+
+                <div class="academic-import-step-card" id="academicMappingPanel" hidden>
+                    <div class="academic-import-step-heading">
+                        <span class="academic-import-step-number">02</span>
+                        <div>
+                            <h3>Review the table structure</h3>
+                            <p>Choose the header row, identify student columns, and keep every assessment component found in the file.</p>
+                        </div>
+                    </div>
+
+                    <div class="academic-import-fields">
+                        <label class="academic-import-field" id="academicSheetField" hidden>
+                            <span>Worksheet</span>
+                            <select id="academicSheetSelect"></select>
+                        </label>
+                        <label class="academic-import-field">
+                            <span>Header row</span>
+                            <input id="academicHeaderRow" type="number" min="1" step="1" value="1">
+                        </label>
+                        <label class="academic-import-field academic-import-field-wide">
+                            <span>Subject name</span>
+                            <input id="academicSubjectName" type="text" maxlength="120" placeholder="e.g. Introduction to Accounting">
+                        </label>
+                        <label class="academic-import-field">
+                            <span>Student name column</span>
+                            <select id="academicNameColumn"></select>
+                        </label>
+                        <label class="academic-import-field">
+                            <span>NIM column</span>
+                            <select id="academicNimColumn"></select>
+                        </label>
+                        <label class="academic-import-field academic-import-field-wide">
+                            <span>Exam date <small>(optional)</small></span>
+                            <input id="academicExamDate" type="date">
+                        </label>
+                    </div>
+
+                    <div class="academic-assessment-editor">
+                        <div class="academic-assessment-editor-heading">
+                            <div>
+                                <h4>Assessment components</h4>
+                                <p>These names are read dynamically from the selected file. Uncheck columns that are not scores.</p>
+                            </div>
+                        </div>
+                        <div id="academicAssessmentColumns" class="academic-assessment-columns">
+                            <p class="academic-import-muted">Select a header row to detect assessment columns.</p>
+                        </div>
+                    </div>
+
+                    <div class="academic-review-summary" id="academicReviewSummary">
+                        Select the student name and NIM columns to preview the rows.
+                    </div>
+                    <div class="academic-review-table-wrap">
+                        <table class="academic-review-table" id="academicReviewTable">
+                            <caption class="academic-sr-only">Imported student results preview</caption>
+                        </table>
+                    </div>
+                    <div class="academic-import-actions">
+                        <button class="academic-secondary-button" id="resetAcademicImport" type="button">Choose another file</button>
+                        <button class="academic-primary-button" id="saveAcademicDrafts" type="button" disabled>
+                            <i class="bx bx-save" aria-hidden="true"></i>
+                            <span>Save as Draft</span>
+                        </button>
+                    </div>
+                    <p class="academic-import-footnote">Blank scores stay blank; they are never changed into zero. Every assessment is saved unpublished until an authorized publisher approves it.</p>
+                </div>
+
+                <div class="academic-import-step-card academic-import-history-card">
+                    <div class="academic-import-step-heading">
+                        <span class="academic-import-step-number">03</span>
+                        <div>
+                            <h3>Recent imports</h3>
+                            <p>Review saved drafts and previously published uploads.</p>
+                        </div>
+                    </div>
+                    <div id="academicImportHistory" class="academic-import-history">
+                        <p class="academic-import-muted">Loading import history…</p>
+                    </div>
+                </div>
+            </section>
         </section>
     </main>
 
