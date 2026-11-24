@@ -43,6 +43,17 @@ service cloud.firestore {
       );
     }
 
+    // Student visibility is gated by the parent import status. During a
+    // multi-batch publish, students see none of the scores until publication
+    // is complete. Marking an upload "deleting" withdraws visibility first.
+    function sourceImportIsPublished() {
+      let uploadId = resource.data.sourceUploadId;
+      let uploadPath = /databases/$(database)/documents/uploads/$(uploadId);
+      return uploadId is string &&
+        exists(uploadPath) &&
+        get(uploadPath).data.status == 'published';
+    }
+
     function validAssessmentData() {
       let data = request.resource.data;
       return data.keys().hasAll([
@@ -146,7 +157,8 @@ service cloud.firestore {
       allow get, list: if isAdmin() ||
         (isStudent() &&
          resource.data.studentId == request.auth.uid &&
-         resource.data.isPublished == true);
+         resource.data.isPublished == true &&
+         sourceImportIsPublished());
 
       allow create: if validScoreData() && (
         (isAdmin() && request.resource.data.isPublished == false) ||
