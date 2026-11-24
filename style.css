@@ -1074,3 +1074,27 @@ h2.separator {
         font-size: 12px;
     }
 }
+
+
+
+/* NAV ACTIONS: keep Instagram CTA beside the round account avatar */
+nav .site-nav-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    flex: 0 0 auto;
+}
+nav .site-nav-actions .profile-button { white-space: nowrap; }
+nav .site-account-wrap { margin-left: 0; }
+@media (max-width: 900px) {
+    nav { gap: 16px; padding-left: 32px; padding-right: 32px; }
+    nav .links { gap: 2px; }
+    nav .links a { padding-left: 10px; padding-right: 10px; }
+}
+@media (max-width: 600px) {
+    nav { justify-content: space-between; }
+    nav .site-nav-actions { margin-left: auto; gap: 8px; }
+    nav .site-nav-actions .profile-button { padding: 9px 11px; font-size: 11px; }
+    nav .site-account-button { width: 42px; height: 42px; }
+}
