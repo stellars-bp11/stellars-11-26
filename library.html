@@ -80,9 +80,7 @@
                 <li><a href="academic.html">Academics</a></li>
             </ul>
             
-            <div class="site-nav-actions">
-                <button class="admin-login-btn" id="adminLoginBtn" type="button"><i class="bx bx-lock-alt"></i><span>Admin</span></button>
-                <div class="site-account-wrap">
+            <div class="site-nav-actions"><div class="site-account-wrap">
                     <button class="site-account-button" id="siteAccountButton" type="button"
                             aria-label="Open account menu" aria-haspopup="true" aria-expanded="false">
                         <span id="siteAccountAvatar">★</span>
@@ -324,87 +322,6 @@
                 >
                     Save Memory
                 </button>
-
-            </form>
-
-        </div>
-
-    </div>
-
-
-    <!-- =========================================
-         ADMIN LOGIN MODAL
-    ========================================== -->
-
-    <div
-        class="admin-modal-overlay"
-        id="adminModalOverlay"
-    >
-
-        <div
-            class="admin-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="adminModalTitle"
-        >
-
-            <!-- HEADER -->
-
-            <div class="admin-modal-header">
-
-                <h3 id="adminModalTitle">
-                    Admin Login
-                </h3>
-
-                <button
-                    class="admin-modal-close"
-                    id="adminModalClose"
-                    type="button"
-                    aria-label="Close"
-                >
-                    <i class="bx bx-x"></i>
-                </button>
-
-            </div>
-
-
-            <!-- LOGIN FORM -->
-
-            <form id="adminLoginForm">
-
-                <label>
-                    <span>Email</span>
-                    <input
-                        type="email"
-                        id="adminEmail"
-                        placeholder="Admin email"
-                        autocomplete="email"
-                        required
-                    >
-                </label>
-
-                <label>
-                    <span>Password</span>
-                    <input
-                        type="password"
-                        id="adminPassword"
-                        placeholder="Admin password"
-                        autocomplete="current-password"
-                        required
-                    >
-                </label>
-
-                <button
-                    type="submit"
-                    class="admin-submit"
-                >
-                    Login
-                </button>
-
-                <p
-                    class="admin-status"
-                    id="adminStatus"
-                ></p>
 
             </form>
 
