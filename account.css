@@ -484,3 +484,21 @@ nav.navbar .site-account-wrap {
         font-size: 9px;
     }
 }
+
+/* Academic signed-out Sign In button — account.css loads after academic.css */
+.academic-header .academic-nav-actions > a#academicSignInLink,
+.academic-header .academic-nav-actions > a#academicSignInLink:link,
+.academic-header .academic-nav-actions > a#academicSignInLink:visited {
+    color: #33266f !important;
+    background: #ffffff !important;
+    border: 1px solid #ffffff !important;
+    box-shadow: 0 7px 20px rgba(5, 10, 55, .24) !important;
+}
+.academic-header .academic-nav-actions > a#academicSignInLink span,
+.academic-header .academic-nav-actions > a#academicSignInLink i {
+    color: #33266f !important;
+}
+.academic-header .academic-nav-actions > a#academicSignInLink:hover {
+    color: #241957 !important;
+    background: #f0edff !important;
+}
