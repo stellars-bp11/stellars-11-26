@@ -16,6 +16,8 @@ Required fields:
 - `nim` — student NIM; may be an empty string for a non-student admin.
 - `role` — exactly `student`, `admin`, or `superAdmin`.
 - `isActive` — boolean.
+- `birthDate` — date string in `YYYY-MM-DD` format, editable by the account owner.
+- `slogan` — personal slogan string up to 120 characters, editable by the account owner.
 
 Optional fields:
 
