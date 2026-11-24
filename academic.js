@@ -271,7 +271,8 @@ async function loadStudentResults(studentId) {
          */
         const scoresQuery = query(
             collection(db, "scores"),
-            where("studentId", "==", studentId)
+            where("studentId", "==", studentId),
+            where("isPublished", "==", true)
         );
 
         const snapshot = await getDocs(scoresQuery);
