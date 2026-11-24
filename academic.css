@@ -2976,3 +2976,29 @@ body.academic-page {
     border-color: #c9c1e3;
     background: #f0edfa;
 }
+
+
+/* Bulk cleanup control for deleted import history */
+.academic-history-clear-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    margin-left: auto;
+    flex: 0 0 auto;
+}
+
+.academic-history-clear-button[hidden] {
+    display: none !important;
+}
+
+@media (max-width: 760px) {
+    .academic-import-history-card .academic-import-step-heading {
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .academic-import-history-card .academic-history-clear-button {
+        margin-left: 56px;
+    }
+}
