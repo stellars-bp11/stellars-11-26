@@ -165,26 +165,8 @@ function bindWorkspaceEvents() {
     if (listenersBound) return;
     listenersBound = true;
 
-    openWorkspaceButton?.addEventListener("click", async () => {
-        workspace.hidden = false;
-        openWorkspaceButton.closest(".academic-grade-card").hidden = true;
-        workspace.scrollIntoView({ behavior: "smooth", block: "start" });
-        await refreshImportHistory();
-        try {
-            await loadRoster();
-            setImportStatus("Student roster loaded: " + rosterByNim.size + " active accounts are available for matching.", "success");
-            renderReview();
-        } catch (error) {
-            console.error("Unable to load STELLARS student roster:", error);
-            setImportStatus("Could not load the student roster. Check that the current account has administrator access to nimIndex. " + friendlyError(error), "error");
-        }
-    });
-
-    closeWorkspaceButton?.addEventListener("click", () => {
-        workspace.hidden = true;
-        openWorkspaceButton.closest(".academic-grade-card").hidden = false;
-        openWorkspaceButton.scrollIntoView({ behavior: "smooth", block: "center" });
-    });
+    // Workspace open/close controls are handled by academic.js.
+    // This module manages only parsing, Firestore drafts, and publication.
 
     fileInput?.addEventListener("change", async () => {
         const file = fileInput.files?.[0];
