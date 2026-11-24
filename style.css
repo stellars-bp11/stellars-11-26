@@ -1098,3 +1098,21 @@ nav .site-account-wrap { margin-left: 0; }
     nav .site-nav-actions .profile-button { padding: 9px 11px; font-size: 11px; }
     nav .site-account-button { width: 42px; height: 42px; }
 }
+
+
+@media (max-width: 600px) {
+    nav {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 10px 12px;
+    }
+    nav a.logo { grid-column: 1; grid-row: 1; }
+    nav .site-nav-actions { grid-column: 2; grid-row: 1; }
+    nav .links {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        order: initial;
+        width: 100%;
+    }
+}
