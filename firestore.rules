@@ -43,15 +43,14 @@ service cloud.firestore {
       );
     }
 
-    // Student visibility is gated by the parent import status. During a
-    // multi-batch publish, students see none of the scores until publication
-    // is complete. Marking an upload "deleting" withdraws visibility first.
+    // Student visibility is gated by a minimal publication manifest.
+    // Its status changes to "withdrawing" before any deletion batches begin.
     function sourceImportIsPublished() {
       let uploadId = resource.data.sourceUploadId;
-      let uploadPath = /databases/$(database)/documents/uploads/$(uploadId);
+      let manifestPath = /databases/$(database)/documents/publishedImports/$(uploadId);
       return uploadId is string &&
-        exists(uploadPath) &&
-        get(uploadPath).data.status == 'published';
+        exists(manifestPath) &&
+        get(manifestPath).data.status == 'published';
     }
 
     function validAssessmentData() {
@@ -152,8 +151,17 @@ service cloud.firestore {
         (isAdmin() && resource.data.isPublished == false);
     }
 
+    match /publishedImports/{uploadId} {
+      // Students can discover only active publication manifests. These contain
+      // no roster, NIM, uploader identity, or individual score information.
+      allow get, list: if isAdmin() ||
+        (isStudent() && resource.data.status == 'published');
+      allow create, update, delete: if canPublish();
+    }
+
     match /scores/{scoreId} {
-      // Student reads must query their own UID and published records only.
+      // Student score queries must be scoped to their UID, one source import,
+      // and published records. The manifest is checked independently.
       allow get, list: if isAdmin() ||
         (isStudent() &&
          resource.data.studentId == request.auth.uid &&
