@@ -2254,3 +2254,8 @@ body.academic-page {
         width: 100%;
     }
 }
+
+
+.academic-grade-card[hidden] {
+    display: none !important;
+}
