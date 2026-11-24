@@ -20,6 +20,7 @@ import {
     limit,
     setDoc,
     updateDoc,
+    deleteDoc,
     serverTimestamp,
     writeBatch
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
@@ -1116,6 +1117,29 @@ async function refreshImportHistory() {
             limit(15)
         ));
 
+        // Backfill manifests for older published imports. Never overwrite an
+        // existing manifest: a "withdrawing" manifest must stay withdrawn if a
+        // previous deletion attempt was interrupted.
+        const publishedUploadsSnapshot = await getDocs(query(
+            collection(db, "uploads"),
+            where("status", "==", "published")
+        ));
+
+        for (const uploadDoc of publishedUploadsSnapshot.docs) {
+            const manifestRef = doc(db, "publishedImports", uploadDoc.id);
+            const manifestSnapshot = await getDoc(manifestRef);
+            if (!manifestSnapshot.exists()) {
+                const uploadData = uploadDoc.data() || {};
+                await setDoc(manifestRef, {
+                    sourceUploadId: uploadDoc.id,
+                    subjectName: uploadData.subjectName || "Academic results",
+                    status: "published",
+                    publishedAt: uploadData.publishedAt || serverTimestamp(),
+                    migratedAt: serverTimestamp()
+                });
+            }
+        }
+
         if (snapshot.empty) {
             const empty = document.createElement("p");
             empty.className = "academic-import-muted";
@@ -1254,6 +1278,16 @@ async function publishSavedUpload(uploadId, button) {
 
         await commitInChunks(operations);
 
+        // This manifest is the single publication gate used by student queries.
+        // It is written only after every assessment and score batch succeeds.
+        await setDoc(doc(db, "publishedImports", uploadId), {
+            sourceUploadId: uploadId,
+            subjectName: uploadSnapshot.data().subjectName || "Academic results",
+            status: "published",
+            publishedAt: serverTimestamp(),
+            publishedBy: activeUser.uid
+        });
+
         await updateDoc(doc(db, "uploads", uploadId), {
             status: "published",
             publishedAt: serverTimestamp(),
@@ -1362,6 +1396,20 @@ async function deleteSavedUpload(uploadId, button) {
         }
 
         button.textContent = "Deleting…";
+
+        if (requiresPublisher) {
+            const manifestRef = doc(db, "publishedImports", uploadId);
+            const manifestSnapshot = await getDoc(manifestRef);
+            if (manifestSnapshot.exists() && manifestSnapshot.data()?.status === "published") {
+                // Changing the manifest status immediately removes it from
+                // student queries, even if later deletion batches are interrupted.
+                await updateDoc(manifestRef, {
+                    status: "withdrawing",
+                    withdrawnAt: serverTimestamp(),
+                    withdrawnBy: activeUser.uid
+                });
+            }
+        }
 
         if (uploadData.status !== "deleting") {
             await updateDoc(uploadRef, {
