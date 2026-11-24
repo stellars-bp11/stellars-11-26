@@ -144,26 +144,50 @@
             </article>
 
             <section class="academic-admin-results-panel" aria-labelledby="adminResultsTitle">
+                <span class="admin-results-sparkle admin-results-sparkle-one" aria-hidden="true">✦</span>
+                <span class="admin-results-sparkle admin-results-sparkle-two" aria-hidden="true">✧</span>
+
                 <div class="academic-admin-results-heading">
-                    <div>
-                        <p class="portal-kicker">STUDENT PERFORMANCE</p>
-                        <h2 id="adminResultsTitle">Academic Results</h2>
-                        <p>View imported scores for every student, including draft and published records.</p>
+                    <div class="admin-results-title-copy">
+                        <p class="admin-results-kicker"><i class="bx bxs-star" aria-hidden="true"></i> YOUR PERSONAL SCOREBOARD</p>
+                        <h2 id="adminResultsTitle">My Academic Results</h2>
+                        <p>Your own academic constellation — matched securely with your registered NIM.</p>
                     </div>
-                    <button class="academic-secondary-button academic-results-refresh" id="refreshAdminResults" type="button">
-                        <i class="bx bx-refresh" aria-hidden="true"></i>
-                        <span>Refresh Results</span>
-                    </button>
+                    <div class="admin-results-header-actions">
+                        <div class="admin-results-nim-pill">
+                            <i class="bx bx-id-card" aria-hidden="true"></i>
+                            <span id="adminResultsNimLabel">NIM —</span>
+                        </div>
+                        <button class="academic-secondary-button academic-results-refresh" id="refreshAdminResults" type="button">
+                            <i class="bx bx-refresh" aria-hidden="true"></i>
+                            <span>Refresh</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="admin-results-stats" aria-label="Your result summary">
+                    <article class="admin-results-stat stat-subjects">
+                        <span class="admin-results-stat-icon"><i class="bx bx-book-open" aria-hidden="true"></i></span>
+                        <div><small>SUBJECTS</small><strong id="adminResultsSubjectCount">0</strong></div>
+                    </article>
+                    <article class="admin-results-stat stat-components">
+                        <span class="admin-results-stat-icon"><i class="bx bx-list-check" aria-hidden="true"></i></span>
+                        <div><small>COMPONENTS</small><strong id="adminResultsComponentCount">0</strong></div>
+                    </article>
+                    <article class="admin-results-stat stat-published">
+                        <span class="admin-results-stat-icon"><i class="bx bxs-check-circle" aria-hidden="true"></i></span>
+                        <div><small>PUBLISHED</small><strong id="adminResultsPublishedCount">0</strong></div>
+                    </article>
                 </div>
 
                 <p class="academic-review-summary" id="adminResultsNotice" role="status" aria-live="polite">
-                    Loading academic results…
+                    Finding your account through the registered NIM…
                 </p>
 
                 <div class="academic-admin-results-controls">
                     <label class="academic-import-field">
-                        <span>Search student or assessment</span>
-                        <input id="adminResultsSearch" type="search" placeholder="Name, NIM, subject, or assessment">
+                        <span>Find a subject or component</span>
+                        <input id="adminResultsSearch" type="search" placeholder="Try Accounting, Quiz, UAC…">
                     </label>
                     <label class="academic-import-field">
                         <span>Subject</span>
@@ -172,34 +196,22 @@
                         </select>
                     </label>
                     <label class="academic-import-field">
-                        <span>Publication status</span>
+                        <span>Show</span>
                         <select id="adminResultsStatus">
                             <option value="all">All results</option>
-                            <option value="published">Published</option>
-                            <option value="draft">Draft</option>
+                            <option value="published">Published only</option>
+                            <option value="draft">Draft only</option>
                         </select>
                     </label>
                 </div>
 
-                <p class="academic-admin-results-summary" id="adminResultsSummary">No results loaded.</p>
-
-                <div class="academic-review-table-wrap academic-admin-results-table-wrap">
-                    <table class="academic-review-table academic-admin-results-table">
-                        <caption class="academic-sr-only">Academic scores for all students</caption>
-                        <thead>
-                            <tr>
-                                <th>Student</th>
-                                <th>NIM</th>
-                                <th>Subject</th>
-                                <th>Assessment</th>
-                                <th>Score</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adminResultsTableBody">
-                            <tr><td colspan="6">Loading results…</td></tr>
-                        </tbody>
-                    </table>
+                <p class="academic-admin-results-summary" id="adminResultsSummary">Your results will appear here.</p>
+                <div class="admin-results-cards" id="adminResultsCards" aria-live="polite">
+                    <div class="admin-results-empty-state">
+                        <i class="bx bx-planet" aria-hidden="true"></i>
+                        <strong>Mapping your stars…</strong>
+                        <span>Looking up the NIM connected to this account.</span>
+                    </div>
                 </div>
             </section>
 
