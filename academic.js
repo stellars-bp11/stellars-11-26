@@ -189,6 +189,14 @@ function showProfile(profile, authUser) {
     studentView.hidden = !isStudent;
     adminView.hidden = !isAdmin;
 
+    if (isAdmin) {
+        import("./academic-import.js")
+            .then(({ initAcademicImport }) => initAcademicImport(profile, authUser))
+            .catch((error) => {
+                console.error("Academic importer could not be initialized:", error);
+            });
+    }
+
     if (isStudent) {
         loadStudentResults(authUser.uid);
     } else {
