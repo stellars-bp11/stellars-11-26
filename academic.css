@@ -1588,3 +1588,101 @@ body.academic-page {
         font-size: 13px;
     }
 }
+
+
+/* Single Academic Portal destination card */
+.academic-grade-card {
+    position: relative;
+    width: min(100%, 900px);
+    min-height: 190px;
+    display: flex;
+    align-items: center;
+    gap: 25px;
+    overflow: hidden;
+    margin: 0 auto;
+    padding: clamp(28px, 5vw, 46px);
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    border-radius: 24px;
+    color: var(--st-ink);
+    background: rgba(255, 255, 255, 0.97);
+    box-shadow: 0 20px 55px rgba(3, 5, 25, 0.20);
+}
+
+.academic-grade-card-icon {
+    flex: 0 0 70px;
+    width: 70px;
+    height: 70px;
+    display: grid;
+    place-items: center;
+    border-radius: 21px;
+    color: #fff;
+    background: linear-gradient(135deg, var(--st-blue), var(--st-violet));
+    box-shadow: 0 10px 25px rgba(75, 42, 173, 0.24);
+    font-size: 34px;
+}
+
+.academic-grade-card-copy {
+    position: relative;
+    z-index: 1;
+    max-width: 590px;
+}
+
+.academic-grade-card-kicker {
+    color: var(--st-violet);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.8px;
+}
+
+.academic-grade-card h3 {
+    margin-top: 9px;
+    color: #242139;
+    font-size: clamp(25px, 3.5vw, 34px);
+    font-weight: 600;
+    letter-spacing: -0.8px;
+}
+
+.academic-grade-card-copy > p:last-child {
+    margin-top: 10px;
+    color: #77748d;
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.academic-grade-card-sparkle {
+    position: absolute;
+    right: 34px;
+    top: 22px;
+    color: rgba(75, 42, 173, 0.12);
+    font-size: 80px;
+    pointer-events: none;
+}
+
+@media (max-width: 560px) {
+    .academic-grade-card {
+        min-height: 0;
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 19px;
+        padding: 27px 23px;
+    }
+
+    .academic-grade-card-icon {
+        width: 58px;
+        height: 58px;
+        flex-basis: 58px;
+        border-radius: 17px;
+        font-size: 28px;
+    }
+
+    .academic-grade-card-sparkle {
+        top: 18px;
+        right: 22px;
+        font-size: 58px;
+    }
+
+    .academic-grade-card-copy > p:last-child {
+        font-size: 13px;
+    }
+}
