@@ -48,6 +48,28 @@ After changing `firestore.rules`, publish the complete rules in Firebase
 Console (Firestore Database > Rules). A GitHub commit alone does not deploy
 Firestore Rules.
 
+## Academic Results importer
+
+The Academic admin workspace reads `.xlsx`, `.xls`, and `.csv` files with
+SheetJS 0.20.3. It can also extract selectable text from PDF files using
+Mozilla PDF.js 6.5.438. Scanned/image-only PDFs are not OCR-processed.
+
+The administrator chooses the worksheet and header row, maps the student name
+and NIM columns, and reviews dynamically detected assessment columns. Each
+selected worksheet is treated as one subject. The importer matches NIMs against
+the protected `nimIndex` collection and requires unmatched or invalid rows to
+be corrected or excluded before saving.
+
+The uploaded source file stays in the browser. Import metadata is stored under
+`uploads`, while subjects, draft assessments, and draft scores are stored in
+their respective collections. A saved draft is not visible to students.
+Publishing is available to `superAdmin` accounts and admins whose profile has
+`canPublish: true`.
+
+This importer uses the existing Academic collections and current Firestore
+Rules. No additional rule change is required for this first import workflow.
+Do not republish a different rule set unless the rules file itself is changed.
+
 ## Firestore data schema
 
 The trusted provisioning process creates:
