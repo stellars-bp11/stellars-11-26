@@ -2919,3 +2919,28 @@ body.academic-page {
         width: 100%;
     }
 }
+
+/* SIGNED-OUT HEADER ACTION — ENSURE CLEAR TEXT / BUTTON CONTRAST */
+.academic-page .academic-nav-actions .academic-nav-pill {
+    color: #33266f !important;
+    background: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.88);
+    box-shadow: 0 7px 20px rgba(5, 10, 55, 0.24);
+}
+
+.academic-page .academic-nav-actions .academic-nav-pill i,
+.academic-page .academic-nav-actions .academic-nav-pill span {
+    color: #33266f !important;
+}
+
+.academic-page .academic-nav-actions .academic-nav-pill:hover {
+    color: #241957 !important;
+    background: #f0edff !important;
+    border-color: #ffffff;
+    box-shadow: 0 10px 24px rgba(5, 10, 55, 0.30);
+}
+
+.academic-page .academic-nav-actions .academic-nav-pill:focus-visible {
+    outline: 3px solid #d0c7ff;
+    outline-offset: 3px;
+}
