@@ -210,12 +210,16 @@ Firebase Console > Firestore Database > Rules. Committing that file to GitHub
 does not deploy the rules to Firebase automatically.
 
 
-## Administrator results overview
+## Administrator personal results overview
 
-The administrator dashboard includes a read-only results overview for all
-student score records. It joins each score's `studentId` to the corresponding
-`users/{uid}` profile to display the student's name and NIM, and shows the
-subject, assessment, score, and publication status. Administrators can search
-by student name, NIM, subject, or assessment and filter by subject and
-published/draft status. The overview refreshes after an import is saved,
-published, or deleted.
+The administrator dashboard also includes a personal Academic Results
+scoreboard. It normalizes the NIM in the signed-in admin profile and matches
+it against active document IDs in `nimIndex`. Results are loaded only when
+the matched roster UID is identical to the signed-in Firebase Authentication
+UID. The dashboard then queries score documents for that UID only; it does not
+display classmates' records or list every user profile.
+
+The scoreboard shows the admin's own subjects, assessment components, score,
+maximum score, and Draft/Published status. Admins can search by subject or
+assessment and filter by subject and publication status. The scoreboard
+refreshes after an import is saved, published, or deleted.
