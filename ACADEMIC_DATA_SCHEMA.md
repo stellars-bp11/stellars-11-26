@@ -118,7 +118,7 @@ Rules:
 - A score must be between 0 and its `maxScore`; `maxScore` cannot exceed 100.
 - A blank cell must remain `null`, never be converted to zero.
 - A score is visible to the student only when `isPublished == true`.
-- The student dashboard queries by their own UID and published status.
+- The student dashboard first queries `publishedImports` with `status == "published"`, then queries scores by the student's own UID, the specific `sourceUploadId`, and `isPublished == true`.
 
 ## 6. `uploads/{uploadId}`
 
