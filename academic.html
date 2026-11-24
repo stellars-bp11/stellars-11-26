@@ -11,7 +11,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Ubuntu:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="academic.css">
 </head>
@@ -31,14 +30,42 @@
                 <a href="library.html"><i class="bx bx-library" aria-hidden="true"></i><span>Library</span></a>
             </div>
 
-            <a class="academic-nav-pill" href="index.html">
-                <i class="bx bx-arrow-back" aria-hidden="true"></i>
-                <span>Back to Website</span>
-            </a>
+            <div class="academic-nav-actions">
+                <div class="academic-profile-area" id="profileArea" hidden>
+                    <button class="academic-profile-button" id="profileMenuButton" type="button" aria-haspopup="true" aria-expanded="false">
+                        <span class="academic-avatar" id="profileAvatar">S</span>
+                        <span class="academic-profile-button-copy">
+                            <strong id="profileButtonName">Student</strong>
+                            <small id="profileButtonRole">Student</small>
+                        </span>
+                        <i class="bx bx-chevron-down" aria-hidden="true"></i>
+                    </button>
+
+                    <div class="academic-profile-menu" id="profileMenu" hidden>
+                        <div class="profile-menu-heading">
+                            <strong id="profileMenuName">Student</strong>
+                            <span id="profileMenuNim">NIM not available</span>
+                        </div>
+                        <button type="button" id="openProfileButton">
+                            <i class="bx bx-user-circle" aria-hidden="true"></i>
+                            <span>My Profile</span>
+                        </button>
+                        <button type="button" id="logoutButton" class="profile-logout">
+                            <i class="bx bx-log-out" aria-hidden="true"></i>
+                            <span>Log Out</span>
+                        </button>
+                    </div>
+                </div>
+
+                <a class="academic-nav-pill" href="index.html">
+                    <i class="bx bx-arrow-back" aria-hidden="true"></i>
+                    <span>Back to Website</span>
+                </a>
+            </div>
         </nav>
     </header>
 
-    <main class="academic-main">
+    <main class="academic-main" id="loginView">
         <section class="academic-intro" aria-labelledby="academic-title">
             <div class="academic-eyebrow">
                 <span class="eyebrow-star"><i class="bx bxs-star" aria-hidden="true"></i></span>
@@ -84,7 +111,7 @@
                     <div class="login-mark"><i class="bx bxs-graduation" aria-hidden="true"></i></div>
                     <p class="login-kicker">WELCOME BACK, STAR</p>
                     <h2 id="login-title">Sign in to continue</h2>
-                    <p class="login-subtitle">Enter the account details provided by your class administrator.</p>
+                    <p class="login-subtitle">Enter the username and password provided by your class administrator.</p>
                 </div>
 
                 <form id="academicLoginForm" class="academic-login-form" novalidate>
@@ -97,6 +124,7 @@
                             type="text"
                             placeholder="Enter your full name"
                             autocomplete="username"
+                            autocapitalize="words"
                             required
                         >
                     </div>
@@ -119,7 +147,7 @@
 
                     <p class="academic-form-message" id="academicFormMessage" role="status" aria-live="polite"></p>
 
-                    <button class="academic-submit-button" type="submit">
+                    <button class="academic-submit-button" id="loginSubmitButton" type="submit">
                         <span>Sign In</span>
                         <i class="bx bx-right-arrow-alt" aria-hidden="true"></i>
                     </button>
@@ -135,6 +163,83 @@
         </section>
     </main>
 
-    <script src="academic.js" defer></script>
+    <main class="academic-portal-shell" id="portalView" hidden>
+        <section class="portal-welcome">
+            <div class="academic-eyebrow">
+                <span class="eyebrow-star"><i class="bx bxs-star" aria-hidden="true"></i></span>
+                <span id="portalEyebrow">STELLARS BP11 · ACADEMIC PORTAL</span>
+            </div>
+            <h1 id="portalWelcomeTitle">Welcome back, <span>Star.</span></h1>
+            <p id="portalWelcomeCopy">Your academic journey, all in one place.</p>
+        </section>
+
+        <section class="portal-student-view" id="studentView" hidden>
+            <div class="portal-section-heading">
+                <div>
+                    <p class="portal-kicker">YOUR ACADEMIC RECORD</p>
+                    <h2>My Results</h2>
+                    <p>Published scores from your subjects and assessments.</p>
+                </div>
+                <div class="portal-student-chip">
+                    <i class="bx bx-id-card" aria-hidden="true"></i>
+                    <span id="studentNimLabel">NIM —</span>
+                </div>
+            </div>
+
+            <div class="results-notice" id="resultsNotice" role="status" aria-live="polite">
+                <i class="bx bx-info-circle" aria-hidden="true"></i>
+                <span>Loading your published results…</span>
+            </div>
+            <div class="academic-results-grid" id="resultsContainer"></div>
+        </section>
+
+        <section class="portal-admin-view" id="adminView" hidden>
+            <div class="portal-section-heading">
+                <div>
+                    <p class="portal-kicker">MANAGEMENT WORKSPACE</p>
+                    <h2>Admin Dashboard</h2>
+                    <p>Manage academic assessments and published results.</p>
+                </div>
+                <span class="admin-access-label"><i class="bx bx-shield-quarter"></i> Authorized access</span>
+            </div>
+
+            <div class="admin-module-grid">
+                <article class="admin-module-card">
+                    <span><i class="bx bx-cloud-upload"></i></span>
+                    <h3>Upload Results</h3>
+                    <p>Upload a PDF or Excel file containing multiple subjects and assessments.</p>
+                    <small>Next development phase</small>
+                </article>
+                <article class="admin-module-card">
+                    <span><i class="bx bx-list-check"></i></span>
+                    <h3>Assessment Review</h3>
+                    <p>Review extracted student names, matching status, and score validation.</p>
+                    <small>Next development phase</small>
+                </article>
+                <article class="admin-module-card">
+                    <span><i class="bx bx-history"></i></span>
+                    <h3>Upload History</h3>
+                    <p>Review previous imports and publication activity.</p>
+                    <small>Next development phase</small>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <dialog class="academic-profile-dialog" id="profileDialog">
+        <div class="profile-dialog-top">
+            <span class="login-mark"><i class="bx bx-user-circle"></i></span>
+            <button id="closeProfileDialog" type="button" aria-label="Close profile"><i class="bx bx-x"></i></button>
+        </div>
+        <p class="login-kicker">YOUR ACCOUNT</p>
+        <h2 id="profileDialogName">Student Name</h2>
+        <dl>
+            <div><dt>Username</dt><dd id="profileDialogUsername">—</dd></div>
+            <div><dt>NIM</dt><dd id="profileDialogNim">—</dd></div>
+            <div><dt>Role</dt><dd id="profileDialogRole">Student</dd></div>
+        </dl>
+    </dialog>
+
+    <script type="module" src="academic.js"></script>
 </body>
 </html>
