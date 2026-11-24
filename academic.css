@@ -3002,3 +3002,35 @@ body.academic-page {
         margin-left: 56px;
     }
 }
+
+
+/* Visible feedback directly beneath Recent Imports controls */
+.academic-history-clear-notice {
+    margin: -8px 0 14px 56px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    color: #625b7d;
+    background: #f7f5fc;
+    font: 500 12px 'Roboto', sans-serif;
+    line-height: 1.5;
+}
+
+.academic-history-clear-notice[data-type="success"] {
+    color: #28704f;
+    background: #edf8f1;
+}
+
+.academic-history-clear-notice[data-type="error"] {
+    color: #a83245;
+    background: #fff1f2;
+}
+
+.academic-history-clear-notice[hidden] {
+    display: none !important;
+}
+
+@media (max-width: 760px) {
+    .academic-history-clear-notice {
+        margin-left: 0;
+    }
+}
