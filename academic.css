@@ -2944,3 +2944,22 @@ body.academic-page {
     outline: 3px solid #d0c7ff;
     outline-offset: 3px;
 }
+
+/* Academic Portal loading motion */
+@keyframes academicLoadingSpin {
+    to { transform: rotate(360deg); }
+}
+.academic-loading-spinner {
+    display: inline-block;
+    animation: academicLoadingSpin .9s linear infinite;
+    transform-origin: center;
+}
+.admin-results-empty-state.is-loading i {
+    color: #8a76ce;
+    font-size: 34px;
+}
+@media (prefers-reduced-motion: reduce) {
+    .academic-loading-spinner {
+        animation: none;
+    }
+}
