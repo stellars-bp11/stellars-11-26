@@ -981,6 +981,7 @@ async function saveCurrentDraft() {
             definitions.length + " assessment component(s). No grades are visible to students yet.";
         resetCurrentImport();
         setImportStatus(successMessage, "success");
+        window.dispatchEvent(new CustomEvent("academic-results-updated"));
         await refreshImportHistory();
     } catch (error) {
         console.error("Could not save Academic draft:", error);
@@ -1187,6 +1188,7 @@ async function publishSavedUpload(uploadId, button) {
         }
 
         setImportStatus("Results published successfully. Students can now see only their own published scores.", "success");
+        window.dispatchEvent(new CustomEvent("academic-results-updated"));
         await refreshImportHistory();
     } catch (error) {
         console.error("Could not publish Academic import:", error);
@@ -1349,6 +1351,7 @@ async function deleteSavedUpload(uploadId, button) {
             " deleted successfully. The import history remains marked as deleted.",
             "success"
         );
+        window.dispatchEvent(new CustomEvent("academic-results-updated"));
         await refreshImportHistory();
     } catch (error) {
         console.error("Could not delete Academic import:", error);
