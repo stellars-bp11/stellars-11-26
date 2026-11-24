@@ -254,3 +254,8 @@ the currently signed-in profile. Each account must have an active matching
   the upload remains `ready`; retrying Publish re-reads all related records
   and applies the published flag to the complete set. If cleanup fails, the
   upload remains `deleting` and can be resumed with **Retry Delete**.
+
+
+## Published import manifests
+
+Student visibility is gated by both `scores.isPublished == true` and a matching `publishedImports/{uploadId}.status == "published"` manifest. Students first query published manifests, then query their own scores separately for each `sourceUploadId`. The manifest contains only publication metadata and is moved to `withdrawing` before deletion begins. Older published uploads are backfilled with manifests when an administrator refreshes import history.
