@@ -6,7 +6,7 @@
  * Assessment names are detected dynamically from the selected header row.
  */
 
-import { getApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import { getApp, getApps, initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import {
     getFirestore,
@@ -24,9 +24,18 @@ import {
     writeBatch
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
-const app = getApp();
-const auth = getAuth(app);
-const db = getFirestore(app);
+const firebaseConfig = {
+    apiKey: "AIzaSyD3ptwKTkLqFCmvrTVJFooFiVLE63mh83c",
+    authDomain: "class-web-7241e.firebaseapp.com",
+    projectId: "class-web-7241e",
+    storageBucket: "class-web-7241e.firebasestorage.app",
+    messagingSenderId: "167560389153",
+    appId: "1:167560389153:web:f61f4f821275c48373f960",
+    measurementId: "G-DTHTZNT135"
+};
+
+let auth = null;
+let db = null;
 
 const SHEETJS_URL = "https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs";
 const PDFJS_URL = "https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/build/pdf.mjs";
@@ -109,13 +118,13 @@ function friendlyError(error) {
 
 function canPublish() {
     if (!activeProfile || activeProfile.isActive !== true) return false;
-    if (activeProfile.role === "superAdmin" || activeProfile.role === "super_admin") return true;
+    if (activeProfile.role === "superAdmin") return true;
     return activeProfile.role === "admin" && activeProfile.canPublish === true;
 }
 
 function hasAdminRole(profile) {
     return !!profile && profile.isActive === true &&
-        ["admin", "superAdmin", "super_admin"].includes(profile.role);
+        ["admin", "superAdmin"].includes(profile.role);
 }
 
 function categoryFromAssessmentName(name) {
@@ -193,12 +202,18 @@ function bindWorkspaceEvents() {
 
     nameColumnSelect?.addEventListener("change", () => {
         selectedNameColumn = nameColumnSelect.value;
+        currentRows.forEach((row) => {
+            row.name = selectedNameColumn === "" ? "" : cellText(row.cells[Number(selectedNameColumn)]);
+        });
         buildAssessmentDefinitions();
         renderReview();
     });
 
     nimColumnSelect?.addEventListener("change", () => {
         selectedNimColumn = nimColumnSelect.value;
+        currentRows.forEach((row) => {
+            row.nim = selectedNimColumn === "" ? "" : cellText(row.cells[Number(selectedNimColumn)]);
+        });
         buildAssessmentDefinitions();
         renderReview();
     });
@@ -249,6 +264,10 @@ function bindWorkspaceEvents() {
 
 export function initAcademicImport(profile, user) {
     if (!hasAdminRole(profile) || !user) return;
+
+    const sharedApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    auth = getAuth(sharedApp);
+    db = getFirestore(sharedApp);
 
     activeProfile = profile;
     activeUser = user;
@@ -790,6 +809,8 @@ async function commitInChunks(operations) {
         chunk.forEach((operation) => {
             if (operation.type === "update") {
                 batch.update(operation.ref, operation.data);
+            } else if (operation.type === "merge") {
+                batch.set(operation.ref, operation.data, { merge: true });
             } else {
                 batch.set(operation.ref, operation.data);
             }
@@ -856,7 +877,7 @@ async function saveCurrentDraft() {
         });
 
         const operations = [{
-            type: subjectExists ? "set" : "set",
+            type: subjectExists ? "merge" : "set",
             ref: subjectRef,
             data: {
                 subjectName,
@@ -947,12 +968,10 @@ async function saveCurrentDraft() {
             console.warn("Academic import activity log was not saved:", logError);
         }
 
-        setImportStatus(
-            "Draft saved successfully: " + includedRows.length + " student(s), " +
-            definitions.length + " assessment component(s). No grades are visible to students yet.",
-            "success"
-        );
+        const successMessage = "Draft saved successfully: " + includedRows.length + " student(s), " +
+            definitions.length + " assessment component(s). No grades are visible to students yet.";
         resetCurrentImport();
+        setImportStatus(successMessage, "success");
         await refreshImportHistory();
     } catch (error) {
         console.error("Could not save Academic draft:", error);
