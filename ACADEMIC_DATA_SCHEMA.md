@@ -208,3 +208,14 @@ Only `superAdmin` accounts and admins with `canPublish: true` can publish.
 The Firestore Security Rules in `firestore.rules` must also be copied into
 Firebase Console > Firestore Database > Rules. Committing that file to GitHub
 does not deploy the rules to Firebase automatically.
+
+
+## Administrator results overview
+
+The administrator dashboard includes a read-only results overview for all
+student score records. It joins each score's `studentId` to the corresponding
+`users/{uid}` profile to display the student's name and NIM, and shows the
+subject, assessment, score, and publication status. Administrators can search
+by student name, NIM, subject, or assessment and filter by subject and
+published/draft status. The overview refreshes after an import is saved,
+published, or deleted.
