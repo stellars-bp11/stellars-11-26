@@ -2278,3 +2278,138 @@ body.academic-page {
 .academic-grade-card[hidden] {
     display: none !important;
 }
+
+
+/* Administrator-wide Academic Results overview */
+.academic-admin-results-panel {
+    margin: 28px auto 0;
+    padding: clamp(20px, 3vw, 30px);
+    border: 1px solid rgba(255, 255, 255, .72);
+    border-radius: 22px;
+    color: #302d46;
+    background: rgba(255, 255, 255, .97);
+    box-shadow: 0 20px 55px rgba(3, 5, 25, .18);
+}
+
+.academic-admin-results-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.academic-admin-results-heading h2 {
+    margin-top: 6px;
+    color: #292541;
+    font-size: clamp(22px, 3vw, 29px);
+}
+
+.academic-admin-results-heading > div > p:last-child {
+    margin-top: 7px;
+    color: #77748d;
+    font: 12px/1.6 'Roboto', sans-serif;
+}
+
+.academic-results-refresh {
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.academic-results-refresh:disabled {
+    cursor: wait;
+    opacity: .55;
+}
+
+.academic-admin-results-panel .academic-review-summary {
+    margin-top: 0;
+}
+
+.academic-admin-results-controls {
+    display: grid;
+    grid-template-columns: minmax(190px, 1.5fr) repeat(2, minmax(150px, 1fr));
+    gap: 12px;
+    margin-top: 17px;
+}
+
+.academic-admin-results-controls .academic-import-field input,
+.academic-admin-results-controls .academic-import-field select {
+    width: 100%;
+    min-height: 40px;
+    padding: 0 11px;
+    border: 1px solid #dedbed;
+    border-radius: 9px;
+    color: #302d46;
+    background: #fff;
+    font: 12px 'Roboto', sans-serif;
+}
+
+.academic-admin-results-summary {
+    margin-top: 17px;
+    color: #6f6a85;
+    font: 11px/1.5 'Roboto', sans-serif;
+    font-weight: 600;
+}
+
+.academic-admin-results-table-wrap {
+    max-height: 600px;
+}
+
+.academic-admin-results-table {
+    min-width: 760px;
+}
+
+.academic-admin-results-table td {
+    white-space: nowrap;
+}
+
+.academic-admin-results-table td:first-child,
+.academic-admin-results-table td:nth-child(3),
+.academic-admin-results-table td:nth-child(4) {
+    color: #302d46;
+}
+
+.academic-admin-score {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.academic-admin-result-status {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.academic-admin-result-status.is-published {
+    color: #28734d;
+    background: #ecf8f1;
+}
+
+.academic-admin-result-status.is-draft {
+    color: #98651d;
+    background: #fff6e8;
+}
+
+@media (max-width: 760px) {
+    .academic-admin-results-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .academic-admin-results-controls {
+        grid-template-columns: 1fr;
+    }
+
+    .academic-results-refresh {
+        width: 100%;
+        justify-content: center;
+    }
+}
