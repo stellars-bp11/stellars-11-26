@@ -310,7 +310,12 @@ function formatDate(value) {
 function showResultsNotice(message, type = "info") {
     resultsNotice.dataset.type = type;
     resultsNotice.replaceChildren();
-    const icon = makeElement("i", type === "error" ? "bx bx-error-circle" : "bx bx-info-circle");
+    const isLoading = /^(Loading|Checking)/i.test(message);
+    const icon = makeElement(
+        "i",
+        isLoading ? "bx bx-loader-alt academic-loading-spinner"
+            : type === "error" ? "bx bx-error-circle" : "bx bx-info-circle"
+    );
     icon.setAttribute("aria-hidden", "true");
     resultsNotice.append(icon, makeElement("span", "", message));
     resultsNotice.hidden = false;
@@ -480,8 +485,13 @@ function setAdminResultsNotice(message, type = "info") {
 function renderPersonalScoreCardsEmpty(container, title, message) {
     if (!container) return;
     container.replaceChildren();
-    const empty = makeElement("div", "admin-results-empty-state");
-    const icon = makeElement("i", "bx bx-planet");
+    const isLoading = /^(Mapping|Loading|Checking)/i.test(title);
+    const empty = makeElement("div", isLoading
+        ? "admin-results-empty-state is-loading"
+        : "admin-results-empty-state");
+    const icon = makeElement("i", isLoading
+        ? "bx bx-loader-alt academic-loading-spinner"
+        : "bx bx-planet");
     icon.setAttribute("aria-hidden", "true");
     empty.append(
         icon,
