@@ -1967,3 +1967,9 @@ body { background: #f2f0fb; color: #17152a; }
 .crew-info { color: #24213b; }
 .crew-info h3, .featured-info h2 { color: #17152a; }
 footer { color: #68647d; }
+
+
+@media (max-width: 700px) {
+    .site-header .admin-login-btn { min-width: 38px; padding: 0 9px; }
+    .site-header .admin-login-btn span { display: none; }
+}
