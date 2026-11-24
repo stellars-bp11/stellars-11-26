@@ -105,7 +105,11 @@ const adminResultsSearch = document.getElementById("adminResultsSearch");
 const adminResultsSubject = document.getElementById("adminResultsSubject");
 const adminResultsStatus = document.getElementById("adminResultsStatus");
 const adminResultsSummary = document.getElementById("adminResultsSummary");
-const adminResultsTableBody = document.getElementById("adminResultsTableBody");
+const adminResultsCards = document.getElementById("adminResultsCards");
+const adminResultsNimLabel = document.getElementById("adminResultsNimLabel");
+const adminResultsSubjectCount = document.getElementById("adminResultsSubjectCount");
+const adminResultsComponentCount = document.getElementById("adminResultsComponentCount");
+const adminResultsPublishedCount = document.getElementById("adminResultsPublishedCount");
 const refreshAdminResultsButton = document.getElementById("refreshAdminResults");
 
 let adminResultRecords = [];
@@ -388,6 +392,10 @@ async function loadStudentResults(studentId) {
 }
 
 
+function normalizeAcademicNim(value) {
+    return String(value ?? "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
+
 function setAdminResultsNotice(message, type = "info") {
     if (!adminResultsNotice) return;
     adminResultsNotice.textContent = message;
@@ -395,12 +403,24 @@ function setAdminResultsNotice(message, type = "info") {
     adminResultsNotice.hidden = false;
 }
 
+function renderAdminResultsEmpty(title, message) {
+    if (!adminResultsCards) return;
+    adminResultsCards.replaceChildren();
+    const empty = makeElement("div", "admin-results-empty-state");
+    empty.append(
+        makeElement("i", "bx bx-planet"),
+        makeElement("strong", "", title),
+        makeElement("span", "", message)
+    );
+    empty.firstElementChild.setAttribute("aria-hidden", "true");
+    adminResultsCards.appendChild(empty);
+}
+
 function bindAdminResultsControls() {
     if (adminResultsControlsBound) return;
     adminResultsControlsBound = true;
 
     refreshAdminResultsButton?.addEventListener("click", () => loadAdminResults());
-
     adminResultsSearch?.addEventListener("input", renderAdminResults);
     adminResultsSubject?.addEventListener("change", renderAdminResults);
     adminResultsStatus?.addEventListener("change", renderAdminResults);
@@ -413,34 +433,54 @@ function bindAdminResultsControls() {
 }
 
 async function loadAdminResults({ silent = false } = {}) {
-    if (adminResultsLoading || !adminResultsTableBody) return;
+    if (adminResultsLoading || !adminResultsCards) return;
 
     adminResultsLoading = true;
     if (refreshAdminResultsButton) refreshAdminResultsButton.disabled = true;
-    if (!silent) setAdminResultsNotice("Loading academic results…");
+    if (!silent) {
+        setAdminResultsNotice("Checking your registered NIM…");
+        renderAdminResultsEmpty("Mapping your stars…", "Looking up the NIM connected to this account.");
+    }
 
     try {
-        const [scoresSnapshot, usersSnapshot] = await Promise.all([
-            getDocs(collection(db, "scores")),
-            getDocs(collection(db, "users"))
-        ]);
+        const nimKey = normalizeAcademicNim(currentProfile?.nim);
+        if (!nimKey || !currentAuthUser?.uid) {
+            throw new Error("This admin profile does not have a registered NIM. Ask the administrator to verify the account profile.");
+        }
 
-        const usersById = new Map();
-        usersSnapshot.forEach((userDoc) => {
-            const data = userDoc.data() || {};
-            usersById.set(userDoc.id, {
-                fullName: data.fullName || data.username || "Student account",
-                nim: data.nim || "—"
-            });
+        // Match the signed-in admin's profile NIM against the private roster.
+        // Do not display scores unless that NIM resolves back to this exact Auth UID.
+        const rosterSnapshot = await getDocs(collection(db, "nimIndex"));
+        let rosterMatch = null;
+
+        rosterSnapshot.forEach((memberDoc) => {
+            if (normalizeAcademicNim(memberDoc.id) === nimKey) {
+                const member = memberDoc.data() || {};
+                rosterMatch = {
+                    uid: String(member.uid || ""),
+                    fullName: String(member.fullName || ""),
+                    isActive: member.isActive === true
+                };
+            }
         });
+
+        if (!rosterMatch || !rosterMatch.isActive || rosterMatch.uid !== currentAuthUser.uid) {
+            throw new Error("The NIM on this profile does not match an active roster entry for this account. No scores were displayed.");
+        }
+
+        if (adminResultsNimLabel) {
+            adminResultsNimLabel.textContent = "NIM " + (currentProfile.nim || "—");
+        }
+
+        const scoresSnapshot = await getDocs(query(
+            collection(db, "scores"),
+            where("studentId", "==", rosterMatch.uid)
+        ));
 
         adminResultRecords = scoresSnapshot.docs.map((scoreDoc) => {
             const data = scoreDoc.data() || {};
-            const student = usersById.get(data.studentId) || {};
             return {
                 id: scoreDoc.id,
-                studentName: student.fullName || "Student account",
-                nim: student.nim || "—",
                 subjectName: data.subjectName || "Unnamed subject",
                 assessmentName: data.assessmentName || "Unnamed assessment",
                 score: data.score,
@@ -454,8 +494,6 @@ async function loadAdminResults({ silent = false } = {}) {
         adminResultRecords.sort((a, b) => {
             const subjectCompare = a.subjectName.localeCompare(b.subjectName, "id");
             if (subjectCompare !== 0) return subjectCompare;
-            const studentCompare = a.studentName.localeCompare(b.studentName, "id");
-            if (studentCompare !== 0) return studentCompare;
             return a.assessmentName.localeCompare(b.assessmentName, "id");
         });
 
@@ -464,6 +502,7 @@ async function loadAdminResults({ silent = false } = {}) {
             const subjects = [...new Set(adminResultRecords.map((item) => item.subjectName))]
                 .sort((a, b) => a.localeCompare(b, "id"));
             adminResultsSubject.replaceChildren();
+
             const allOption = makeElement("option", "", "All subjects");
             allOption.value = "";
             adminResultsSubject.appendChild(allOption);
@@ -477,27 +516,43 @@ async function loadAdminResults({ silent = false } = {}) {
             adminResultsSubject.value = subjects.includes(selectedSubject) ? selectedSubject : "";
         }
 
+        if (adminResultsSubjectCount) {
+            adminResultsSubjectCount.textContent = String(new Set(adminResultRecords.map((item) => item.subjectName)).size);
+        }
+        if (adminResultsComponentCount) {
+            adminResultsComponentCount.textContent = String(adminResultRecords.length);
+        }
+        if (adminResultsPublishedCount) {
+            adminResultsPublishedCount.textContent = String(adminResultRecords.filter((item) => item.isPublished).length);
+        }
+
         setAdminResultsNotice(
             adminResultRecords.length
-                ? "Loaded " + adminResultRecords.length + " academic score record(s). Draft records are visible to administrators only."
-                : "No academic score records have been saved yet.",
+                ? "NIM verified — showing only scores linked to your account. Drafts are included for your own review."
+                : "NIM verified. No academic results have been recorded for this account yet.",
             "success"
         );
         renderAdminResults();
     } catch (error) {
-        console.error("Unable to load administrator academic results:", error);
+        console.error("Unable to load personal administrator academic results:", error);
+        adminResultRecords = [];
+        if (adminResultsSubject) {
+            adminResultsSubject.replaceChildren();
+            const option = makeElement("option", "", "All subjects");
+            option.value = "";
+            adminResultsSubject.appendChild(option);
+        }
+        if (adminResultsSubjectCount) adminResultsSubjectCount.textContent = "0";
+        if (adminResultsComponentCount) adminResultsComponentCount.textContent = "0";
+        if (adminResultsPublishedCount) adminResultsPublishedCount.textContent = "0";
         setAdminResultsNotice(
             error.code === "permission-denied"
-                ? "Access denied while loading scores or student profiles. Check that the latest admin Firestore read rules are published."
-                : "Academic results could not be loaded. " + (error.message || "Please try again."),
+                ? "Access denied while verifying the NIM or reading your scores. Check the admin Firestore read rules."
+                : (error.message || "Your academic results could not be loaded."),
             "error"
         );
-        adminResultsTableBody.replaceChildren();
-        const row = makeElement("tr");
-        row.append(makeElement("td", "", "Unable to load academic results."));
-        row.firstElementChild.colSpan = 6;
-        adminResultsTableBody.appendChild(row);
-        if (adminResultsSummary) adminResultsSummary.textContent = "No results available.";
+        renderAdminResultsEmpty("We couldn't map this account", "Check that your profile NIM matches its active nimIndex record.");
+        if (adminResultsSummary) adminResultsSummary.textContent = "No personal results available.";
     } finally {
         adminResultsLoading = false;
         if (refreshAdminResultsButton) refreshAdminResultsButton.disabled = false;
@@ -505,7 +560,7 @@ async function loadAdminResults({ silent = false } = {}) {
 }
 
 function renderAdminResults() {
-    if (!adminResultsTableBody) return;
+    if (!adminResultsCards) return;
 
     const search = String(adminResultsSearch?.value || "").trim().toLocaleLowerCase("id");
     const subject = adminResultsSubject?.value || "";
@@ -517,47 +572,90 @@ function renderAdminResults() {
         if (status === "draft" && record.isPublished) return false;
 
         if (!search) return true;
-        return [
-            record.studentName,
-            record.nim,
-            record.subjectName,
-            record.assessmentName
-        ].some((value) => String(value).toLocaleLowerCase("id").includes(search));
+        return [record.subjectName, record.assessmentName]
+            .some((value) => String(value).toLocaleLowerCase("id").includes(search));
     });
 
-    adminResultsTableBody.replaceChildren();
+    adminResultsCards.replaceChildren();
 
     if (!visibleRecords.length) {
-        const row = makeElement("tr");
-        const cell = makeElement("td", "", adminResultRecords.length
-            ? "No results match the selected filters."
-            : "No academic results yet.");
-        cell.colSpan = 6;
-        row.appendChild(cell);
-        adminResultsTableBody.appendChild(row);
+        renderAdminResultsEmpty(
+            adminResultRecords.length ? "Nothing in this orbit" : "Your results are on their way",
+            adminResultRecords.length
+                ? "Try another subject, component, or publication filter."
+                : "When your scores are imported using your registered NIM, they will appear here."
+        );
     } else {
+        const grouped = new Map();
         visibleRecords.forEach((record) => {
-            const row = makeElement("tr");
-            row.append(
-                makeElement("td", "", record.studentName),
-                makeElement("td", "", record.nim),
-                makeElement("td", "", record.subjectName),
-                makeElement("td", "", record.assessmentName),
-                makeElement("td", "academic-admin-score",
-                    (record.score === null || record.score === undefined
-                        ? "—"
-                        : formatScore(record.score)) + " / " + formatScore(record.maxScore))
+            if (!grouped.has(record.subjectName)) grouped.set(record.subjectName, []);
+            grouped.get(record.subjectName).push(record);
+        });
+
+        grouped.forEach((records, subjectName) => {
+            const card = makeElement("article", "admin-score-subject-card");
+
+            const cardHead = makeElement("div", "admin-score-subject-head");
+            const subjectIcon = makeElement("span", "admin-score-subject-icon");
+            subjectIcon.appendChild(makeElement("i", "bx bx-book-heart"));
+            subjectIcon.firstElementChild.setAttribute("aria-hidden", "true");
+
+            const subjectCopy = makeElement("div", "admin-score-subject-copy");
+            subjectCopy.append(
+                makeElement("small", "", "YOUR SUBJECT"),
+                makeElement("h3", "", subjectName)
             );
 
-            const statusCell = makeElement("td");
-            const statusBadge = makeElement(
-                "span",
-                "academic-admin-result-status " + (record.isPublished ? "is-published" : "is-draft"),
-                record.isPublished ? "Published" : "Draft"
-            );
-            statusCell.appendChild(statusBadge);
-            row.appendChild(statusCell);
-            adminResultsTableBody.appendChild(row);
+            const itemCount = makeElement("span", "admin-score-subject-count",
+                records.length + (records.length === 1 ? " ITEM" : " ITEMS"));
+            cardHead.append(subjectIcon, subjectCopy, itemCount);
+            card.appendChild(cardHead);
+
+            const list = makeElement("div", "admin-score-items");
+            records.forEach((record) => {
+                const item = makeElement("article", "admin-score-item");
+                const top = makeElement("div", "admin-score-item-top");
+                const itemName = makeElement("strong", "admin-score-item-name", record.assessmentName);
+
+                const statusBadge = makeElement(
+                    "span",
+                    "admin-score-status " + (record.isPublished ? "is-published" : "is-draft"),
+                    record.isPublished ? "Published" : "Draft"
+                );
+                top.append(itemName, statusBadge);
+
+                const hasScore = record.score !== null &&
+                    record.score !== undefined &&
+                    Number.isFinite(Number(record.score));
+                const maximum = Number(record.maxScore);
+                const safeMaximum = Number.isFinite(maximum) && maximum > 0 ? maximum : 100;
+                const scoreText = hasScore
+                    ? formatScore(record.score) + " / " + formatScore(safeMaximum)
+                    : "Not graded yet";
+
+                const scoreLine = makeElement("div", "admin-score-line");
+                scoreLine.append(
+                    makeElement("span", "", "Your score"),
+                    makeElement("strong", "", scoreText)
+                );
+
+                const meter = makeElement("div", "admin-score-meter");
+                meter.setAttribute("role", "img");
+                const percentage = hasScore
+                    ? Math.max(0, Math.min(100, Number(record.score) / safeMaximum * 100))
+                    : 0;
+                meter.setAttribute("aria-label", hasScore ? Math.round(percentage) + "% of maximum score" : "No score entered");
+
+                const fill = makeElement("span", "admin-score-meter-fill" + (record.isPublished ? " is-published" : " is-draft"));
+                fill.style.width = percentage + "%";
+                meter.appendChild(fill);
+
+                item.append(top, scoreLine, meter);
+                list.appendChild(item);
+            });
+
+            card.appendChild(list);
+            adminResultsCards.appendChild(card);
         });
     }
 
@@ -565,7 +663,7 @@ function renderAdminResults() {
     const draftCount = visibleRecords.length - publishedCount;
     if (adminResultsSummary) {
         adminResultsSummary.textContent =
-            visibleRecords.length + " result record(s) shown · " +
+            visibleRecords.length + " component(s) shown · " +
             publishedCount + " published · " + draftCount + " draft";
     }
 }
