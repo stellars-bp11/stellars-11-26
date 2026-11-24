@@ -1276,6 +1276,39 @@ async function deleteSavedUpload(uploadId, button) {
             });
         }
 
+        if (requiresPublisher) {
+            // Withdraw published records first so students cannot see a partial result
+            // set while a large import is being removed in multiple Firestore batches.
+            const withdrawalOperations = [];
+            assessmentsSnapshot.forEach((item) => {
+                if (item.data()?.isPublished === true) {
+                    withdrawalOperations.push({
+                        type: "update",
+                        ref: item.ref,
+                        data: {
+                            isPublished: false,
+                            withdrawnAt: serverTimestamp(),
+                            withdrawnBy: activeUser.uid
+                        }
+                    });
+                }
+            });
+            scoresSnapshot.forEach((item) => {
+                if (item.data()?.isPublished === true) {
+                    withdrawalOperations.push({
+                        type: "update",
+                        ref: item.ref,
+                        data: {
+                            isPublished: false,
+                            withdrawnAt: serverTimestamp(),
+                            withdrawnBy: activeUser.uid
+                        }
+                    });
+                }
+            });
+            await commitInChunks(withdrawalOperations);
+        }
+
         const deleteOperations = [];
         assessmentsSnapshot.forEach((item) => {
             deleteOperations.push({ type: "delete", ref: item.ref });
