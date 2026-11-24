@@ -335,29 +335,41 @@ async function loadStudentResults(studentId) {
 
     try {
         /*
-         * Students can read only records where studentId matches their own UID
-         * and isPublished is true. Firestore Rules enforce this independently.
+         * Read only published import manifests first. Each score query is then
+         * constrained to one sourceUploadId so Firestore Rules can verify that
+         * the parent publication manifest exists and is still published.
          */
-        const scoresQuery = query(
-            collection(db, "scores"),
-            where("studentId", "==", studentId),
-            where("isPublished", "==", true)
+        const publishedImportsSnapshot = await getDocs(query(
+            collection(db, "publishedImports"),
+            where("status", "==", "published")
+        ));
+
+        const scoreSnapshots = await Promise.all(
+            publishedImportsSnapshot.docs.map((publishedImport) =>
+                getDocs(query(
+                    collection(db, "scores"),
+                    where("studentId", "==", studentId),
+                    where("sourceUploadId", "==", publishedImport.id),
+                    where("isPublished", "==", true)
+                ))
+            )
         );
 
-        const snapshot = await getDocs(scoresQuery);
-        studentResultRecords = snapshot.docs.map((scoreDoc) => {
-            const data = scoreDoc.data() || {};
-            return {
-                id: scoreDoc.id,
-                subjectName: data.subjectName || "Unnamed subject",
-                assessmentName: data.assessmentName || "Unnamed assessment",
-                score: data.score,
-                maxScore: data.maxScore ?? 100,
-                isPublished: true,
-                examDate: data.examDate || null,
-                publishedAt: data.publishedAt || null
-            };
-        });
+        studentResultRecords = scoreSnapshots.flatMap((snapshot) =>
+            snapshot.docs.map((scoreDoc) => {
+                const data = scoreDoc.data() || {};
+                return {
+                    id: scoreDoc.id,
+                    subjectName: data.subjectName || "Unnamed subject",
+                    assessmentName: data.assessmentName || "Unnamed assessment",
+                    score: data.score,
+                    maxScore: data.maxScore ?? 100,
+                    isPublished: true,
+                    examDate: data.examDate || null,
+                    publishedAt: data.publishedAt || null
+                };
+            })
+        );
 
         studentResultRecords.sort((a, b) => {
             const subjectCompare = a.subjectName.localeCompare(b.subjectName, "id");
