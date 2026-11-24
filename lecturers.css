@@ -1225,24 +1225,34 @@ footer::before {
     .site-header .profile-button { padding: 0 8px; font-size: 10px; }
     .site-header .nav-links a { padding: 7px 8px; font-size: 11px; }
 }
-/* Match Home's soft lavender canvas while retaining each page's original imagery. */
-body { background: #f2f0fb; color: #17152a; }
+
+/* =========================================================
+   MATCH THE ACADEMIC PORTAL NAVY / VIOLET VISUAL THEME
+========================================================= */
+body {
+    background: #090d1b;
+    color: #fff;
+}
+
+.background-video {
+    opacity: 0.32;
+}
+
 .background-overlay {
     background:
-      radial-gradient(ellipse 55% 45% at 12% 8%, rgba(139,92,246,.12), transparent 72%),
-      radial-gradient(ellipse 50% 45% at 90% 15%, rgba(15,33,130,.10), transparent 72%),
-      linear-gradient(180deg, rgba(242,240,251,.08), rgba(242,240,251,.92) 68%, #f2f0fb);
+        radial-gradient(ellipse 55% 60% at 13% 35%, rgba(75, 42, 173, 0.50), transparent 72%),
+        radial-gradient(ellipse 48% 55% at 88% 18%, rgba(15, 33, 130, 0.48), transparent 72%),
+        linear-gradient(125deg, rgba(5, 8, 25, 0.90), rgba(13, 10, 37, 0.82));
 }
-.hero-content h1 { color: #fff; }
-.hero-content > p:last-child { color: rgba(255,255,255,.88); }
-.section-heading h2 { color: #17152a; }
-.section-heading .eyebrow { color: #4b2aad; }
-.memory-card, .lecturer-card, .crew-card, .crewmate-card, .featured-lecturer {
-    color: #24213b; background: #fff; border-color: rgba(75,42,173,.10);
-    box-shadow: 0 12px 32px rgba(30,24,75,.10);
+
+/* Retain compact Admin access on narrow Library layouts. */
+@media (max-width: 700px) {
+    .site-header .admin-login-btn {
+        min-width: 38px;
+        padding: 0 9px;
+    }
+
+    .site-header .admin-login-btn span {
+        display: none;
+    }
 }
-.memory-card p, .lecturer-card p, .crew-card p, .crewmate-card p { color: #68647d; }
-.featured-info { color: #24213b; }
-.crew-info { color: #24213b; }
-.crew-info h3, .featured-info h2 { color: #17152a; }
-footer { color: #68647d; }
