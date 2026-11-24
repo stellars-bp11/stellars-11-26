@@ -2281,7 +2281,7 @@ body.academic-page {
 
 
 /* Personal Academic Scoreboard */
-.academic-admin-results-panel {
+.academic-personal-results-panel {
     position: relative;
     isolation: isolate;
     overflow: hidden;
@@ -2470,20 +2470,20 @@ body.academic-page {
     font-variant-numeric: tabular-nums;
 }
 
-.academic-admin-results-panel .academic-review-summary {
+.academic-personal-results-panel .academic-review-summary {
     margin-top: 0;
     border-color: #e7e1f7;
     color: #625982;
     background: #f8f6ff;
 }
 
-.academic-admin-results-panel .academic-review-summary[data-type="success"] {
+.academic-personal-results-panel .academic-review-summary[data-type="success"] {
     border-color: #cde8d9;
     color: #246b46;
     background: #f5fcf8;
 }
 
-.academic-admin-results-panel .academic-review-summary[data-type="error"] {
+.academic-personal-results-panel .academic-review-summary[data-type="error"] {
     border-color: #f0c9d3;
     color: #9b2c48;
     background: #fff7f8;
@@ -2494,6 +2494,13 @@ body.academic-page {
     grid-template-columns: minmax(190px, 1.5fr) repeat(2, minmax(140px, 1fr));
     gap: 12px;
     margin-top: 18px;
+}
+
+.student-results-controls {
+    grid-template-columns: minmax(190px, 1.5fr) minmax(140px, 1fr);
+}
+.student-personal-results-panel {
+    margin-top: 0;
 }
 
 .academic-admin-results-controls .academic-import-field input,
