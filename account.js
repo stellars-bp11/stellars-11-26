@@ -62,8 +62,13 @@ const closeLoginButton = document.getElementById("siteLoginClose");
 
 const authReady = setPersistence(auth, browserLocalPersistence);
 const pageParams = new URLSearchParams(window.location.search);
-const shouldAutoOpenLogin = pageParams.get("login") === "1";
+let shouldAutoOpenLogin = pageParams.get("login") === "1";
 const returnTarget = pageParams.get("return");
+
+// Consume the one-time login URL flags so they cannot reopen the dialog on logout.
+if (shouldAutoOpenLogin || returnTarget) {
+    window.history.replaceState({}, "", window.location.pathname + window.location.hash);
+}
 
 function initials(name) {
     return String(name || "S")
@@ -199,11 +204,13 @@ authReady
             logoutButton.hidden = true;
 
             if (shouldAutoOpenLogin && !loginDialog.open) {
+                shouldAutoOpenLogin = false;
                 loginDialog.showModal();
             }
             return;
         }
 
+        shouldAutoOpenLogin = false;
         avatar.textContent = initials(user.displayName || "S");
         nameLabel.textContent = user.displayName || "STELLARS Member";
         metaLabel.textContent = "Signed in";
@@ -220,9 +227,13 @@ authReady
                 const fullName = profile.fullName || user.displayName || "STELLARS Member";
                 avatar.textContent = initials(fullName);
                 nameLabel.textContent = fullName;
-                metaLabel.textContent = profile.role
-                    ? profile.role + (profile.nim ? " · NIM " + profile.nim : "")
-                    : "Signed in";
+                const roleNames = {
+                    student: "Student",
+                    admin: "Admin",
+                    superAdmin: "Super Admin",
+                    super_admin: "Super Admin"
+                };
+                metaLabel.textContent = roleNames[profile.role] || "Signed in";
             }
         } catch (error) {
             console.error("Could not load the STELLARS account profile:", error);
