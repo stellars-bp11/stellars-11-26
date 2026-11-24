@@ -129,8 +129,8 @@ Suggested fields:
 
 - `fileName`
 - `fileType`
-- `status` — for example `processing`, `needs_review`, `ready`,
-  `published`, or `rejected`.
+- `status` — includes `processing`, `ready`, `failed`, `published`,
+  `deleting`, and `deleted`.
 - `uploadedBy` — admin UID.
 - `createdAt`
 - `subjectCount`
@@ -138,8 +138,15 @@ Suggested fields:
 - `rowCount`
 - `issueCount`
 - `publishedAt`
+- `deletedAt`, `deletedBy`, `deletedAssessmentCount`, and
+  `deletedScoreCount` — deletion audit metadata.
+- `deletionRequiresPublisher` — records whether publisher-level permission
+  is required to resume an interrupted deletion.
 
-Parsed rows can be staged as subcollection documents later if required.
+The import history document is retained as an audit record after deletion.
+The related assessment and score documents are removed. The subject catalogue
+document is retained because it may be shared by other imports or used as a
+course-level record.
 
 ## 7. `activityLogs/{logId}`
 
@@ -155,6 +162,21 @@ Admin-only audit trail. Suggested fields include `actorUid`, `action`,
 4. Draft `assessments` and `scores` are saved with `isPublished: false`.
 5. An authorized publisher marks the reviewed records as published.
 6. Student accounts can read only their own published score records.
+
+## Deletion flow
+
+1. An active admin can delete a saved draft or a failed import. The operation
+   removes every related assessment and score document identified by
+   `sourceUploadId`.
+2. Only a Super Admin or an admin with `canPublish: true` can delete a
+   published import. Published assessment and score records are first
+   withdrawn (`isPublished: false`) so students cannot see a partial result
+   set while batched deletion is running.
+3. The upload history record is not physically deleted. It is marked
+   `deleting` while cleanup runs, then `deleted` after all related records
+   are removed. If a batch fails, the admin can retry cleanup from history.
+4. A successful deletion is recorded in `activityLogs`. Deleting an import
+   does not delete the subject catalogue document.
 
 
 ## Browser importer behavior
