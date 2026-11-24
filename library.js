@@ -1,4 +1,6 @@
 import {
+    getApp,
+    getApps,
     initializeApp
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 
@@ -11,13 +13,12 @@ import {
     onSnapshot,
     query,
     orderBy,
-    serverTimestamp
+    serverTimestamp,
+    getDoc
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 import {
     getAuth,
-    signInWithEmailAndPassword,
-    signOut,
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 
@@ -38,13 +39,6 @@ const firebaseConfig = {
 
 
 /* =========================================================
-   ADMIN UID
-========================================================= */
-
-const ADMIN_UID = "PKHSk7VpN4YJFW9URexjfDEZgjo2";
-
-
-/* =========================================================
    CLOUDINARY
 ========================================================= */
 
@@ -59,7 +53,7 @@ const MAX_VIDEO_SIZE = 50 * 1024 * 1024;    // 50 MB
    INITIALIZE FIREBASE
 ========================================================= */
 
-const app = initializeApp(firebaseConfig);
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 const memoriesRef = collection(db, "memories");
@@ -76,7 +70,7 @@ const LIKES_KEY = "stellars-library-likes";
    ADMIN STATE
 ========================================================= */
 
-let isAdmin = false;
+let isSuperAdmin = false;
 
 
 /* =========================================================
@@ -95,13 +89,6 @@ const memoryDescriptionInput = document.getElementById("memoryDescription");
 const modalPreview = document.getElementById("modalPreview");
 const submitBtn = document.querySelector(".modal-submit");
 
-const adminLoginBtn = document.getElementById("adminLoginBtn");
-const adminModalOverlay = document.getElementById("adminModalOverlay");
-const adminModalClose = document.getElementById("adminModalClose");
-const adminLoginForm = document.getElementById("adminLoginForm");
-const adminEmail = document.getElementById("adminEmail");
-const adminPassword = document.getElementById("adminPassword");
-const adminStatus = document.getElementById("adminStatus");
 
 
 /* =========================================================
@@ -365,9 +352,6 @@ document.addEventListener("keydown", (event) => {
         closeModal();
     }
 
-    if (adminModalOverlay.classList.contains("open")) {
-        closeAdminModal();
-    }
 
 });
 
@@ -461,161 +445,49 @@ function saveLikedIds(ids) {
 
 
 /* =========================================================
-   ADMIN UI
+   SHARED SUPER ADMIN ACCESS
 ========================================================= */
-
-function updateAdminButton() {
-
-    if (!adminLoginBtn) return;
-
-    if (isAdmin) {
-
-        adminLoginBtn.innerHTML = `
-            <i class="bx bx-log-out"></i>
-            <span>Logout</span>
-        `;
-
-    } else {
-
-        adminLoginBtn.innerHTML = `
-            <i class="bx bx-lock-alt"></i>
-            <span>Admin</span>
-        `;
-
-    }
-
-}
-
 
 function updateDeleteButtons() {
 
     document
         .querySelectorAll(".memory-delete")
         .forEach((button) => {
-
-            button.style.display = isAdmin ? "flex" : "none";
-
+            button.style.display = isSuperAdmin ? "flex" : "none";
         });
 
 }
 
+onAuthStateChanged(auth, async (user) => {
 
-/* =========================================================
-   ADMIN MODAL
-========================================================= */
+    // Hide delete controls until the shared account role is verified.
+    isSuperAdmin = false;
+    updateDeleteButtons();
 
-function openAdminModal() {
-
-    if (isAdmin) return;
-
-    adminStatus.textContent = "";
-    adminModalOverlay.classList.add("open");
-
-}
-
-
-function closeAdminModal() {
-
-    adminModalOverlay.classList.remove("open");
-    adminStatus.textContent = "";
-
-}
-
-
-adminLoginBtn.addEventListener("click", async () => {
-
-    // Kalau sudah login sebagai admin, tombol jadi Logout.
-    if (isAdmin) {
-
-        try {
-
-            await signOut(auth);
-
-        } catch (error) {
-
-            console.error("Logout error:", error);
-            alert("Could not log out.");
-
-        }
-
-        return;
-
-    }
-
-    openAdminModal();
-
-});
-
-
-adminModalClose.addEventListener("click", closeAdminModal);
-
-adminModalOverlay.addEventListener("click", (event) => {
-
-    if (event.target === adminModalOverlay) {
-        closeAdminModal();
-    }
-
-});
-
-
-/* =========================================================
-   ADMIN LOGIN
-========================================================= */
-
-adminLoginForm.addEventListener("submit", async (event) => {
-
-    event.preventDefault();
-
-    const email = adminEmail.value.trim();
-    const password = adminPassword.value;
-
-    if (!email || !password) return;
-
-    adminStatus.textContent = "Logging in...";
+    if (!user) return;
 
     try {
 
-        const credentials = await signInWithEmailAndPassword(
-            auth,
-            email,
-            password
-        );
+        const profileSnapshot = await getDoc(doc(db, "users", user.uid));
 
-        // Login Firebase berhasil, tapi UID harus cocok dengan admin.
-        if (credentials.user.uid !== ADMIN_UID) {
+        // Ignore a stale lookup if the signed-in account changed meanwhile.
+        if (auth.currentUser?.uid !== user.uid) return;
 
-            await signOut(auth);
+        const profile = profileSnapshot.exists()
+            ? profileSnapshot.data()
+            : null;
 
-            throw new Error("This account is not the admin account.");
-
-        }
-
-        adminStatus.textContent = "Login successful.";
-        adminLoginForm.reset();
-
-        setTimeout(closeAdminModal, 400);
+        isSuperAdmin = !!profile &&
+            profile.isActive === true &&
+            profile.role === "superAdmin";
 
     } catch (error) {
 
-        console.error("LOGIN ERROR:", error);
-
-        adminStatus.textContent =
-            `${error.code || "Error"}: ${error.message}`;
+        console.error("Could not verify Library superAdmin role:", error);
+        isSuperAdmin = false;
 
     }
 
-});
-
-
-/* =========================================================
-   AUTH STATE
-========================================================= */
-
-onAuthStateChanged(auth, (user) => {
-
-    isAdmin = !!user && user.uid === ADMIN_UID;
-
-    updateAdminButton();
     updateDeleteButtons();
 
 });
@@ -684,7 +556,7 @@ function buildMemoryCard(memory) {
     deleteButton.dataset.action = "delete";
     deleteButton.title = "Delete memory";
     deleteButton.setAttribute("aria-label", "Delete memory");
-    deleteButton.style.display = isAdmin ? "flex" : "none";
+    deleteButton.style.display = isSuperAdmin ? "flex" : "none";
 
     const deleteIcon = document.createElement("i");
     deleteIcon.className = "bx bx-trash";
@@ -1021,8 +893,8 @@ async function deleteCloudMemory(card) {
         2. Firestore Rules tetap memeriksa UID.
     */
 
-    if (!isAdmin) {
-        alert("Only the admin can delete memories.");
+    if (!isSuperAdmin) {
+        alert("Only an active superAdmin can delete memories.");
         return;
     }
 
@@ -1122,6 +994,5 @@ libraryGrid.addEventListener("click", async (event) => {
    INITIAL UI
 ========================================================= */
 
-updateAdminButton();
 updateDeleteButtons();
 applyLikedState();
