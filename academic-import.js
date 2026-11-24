@@ -20,6 +20,7 @@ import {
     limit,
     setDoc,
     updateDoc,
+    deleteDoc,
     serverTimestamp,
     writeBatch
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
@@ -342,6 +343,12 @@ function bindWorkspaceEvents() {
         const deleteButton = event.target.closest("[data-delete-upload]");
         if (deleteButton) {
             await deleteSavedUpload(deleteButton.dataset.deleteUpload, deleteButton);
+            return;
+        }
+
+        const removeHistoryButton = event.target.closest("[data-remove-deleted-history]");
+        if (removeHistoryButton) {
+            await removeDeletedHistory(removeHistoryButton.dataset.removeDeletedHistory, removeHistoryButton);
         }
     });
 }
@@ -1188,7 +1195,14 @@ async function refreshImportHistory() {
                 actions.appendChild(pending);
             }
 
-            if (canDeleteUpload(data)) {
+            if (data.status === "deleted" && hasAdminRole(activeProfile)) {
+                const removeHistoryButton = document.createElement("button");
+                removeHistoryButton.type = "button";
+                removeHistoryButton.className = "academic-delete-button academic-history-remove-button";
+                removeHistoryButton.textContent = "Remove History";
+                removeHistoryButton.dataset.removeDeletedHistory = uploadDoc.id;
+                actions.appendChild(removeHistoryButton);
+            } else if (canDeleteUpload(data)) {
                 const deleteButton = document.createElement("button");
                 deleteButton.type = "button";
                 deleteButton.className = "academic-delete-button";
@@ -1217,6 +1231,60 @@ async function refreshImportHistory() {
         message.className = "academic-import-muted";
         message.textContent = "Import history could not be loaded. " + friendlyError(error);
         historyContainer.appendChild(message);
+    }
+}
+
+async function removeDeletedHistory(uploadId, button) {
+    if (!activeUser || !hasAdminRole(activeProfile) || !uploadId) {
+        setImportStatus("This account does not have permission to remove import history.", "error");
+        return;
+    }
+
+    const originalLabel = button.textContent;
+    button.disabled = true;
+    button.textContent = "Checking…";
+
+    try {
+        const uploadRef = doc(db, "uploads", uploadId);
+        const uploadSnapshot = await getDoc(uploadRef);
+
+        if (!uploadSnapshot.exists()) {
+            throw new Error("This import history entry no longer exists.");
+        }
+
+        const uploadData = uploadSnapshot.data() || {};
+        if (uploadData.status !== "deleted") {
+            throw new Error("Only imports already marked as deleted can be removed from Recent Imports.");
+        }
+
+        if (uploadData.deletionRequiresPublisher === true && !canPublish()) {
+            throw new Error("Removing history for a deleted published import requires publishing permission.");
+        }
+
+        const confirmed = await showAcademicConfirmation({
+            title: "Remove deleted history?",
+            message: "This removes the entry from Recent Imports only. It does not change any grades, assessments, or active published results.",
+            confirmLabel: "Remove history",
+            danger: true
+        });
+        if (!confirmed) return;
+
+        button.textContent = "Removing…";
+        await deleteDoc(uploadRef);
+
+        setImportStatus("Deleted import history removed from Recent Imports.", "success");
+        await refreshImportHistory();
+    } catch (error) {
+        console.error("Could not remove deleted Academic history:", error);
+        setImportStatus(
+            "The deleted import history could not be removed. " + friendlyError(error),
+            "error"
+        );
+    } finally {
+        if (button.isConnected) {
+            button.disabled = false;
+            button.textContent = originalLabel;
+        }
     }
 }
 
