@@ -29,17 +29,24 @@ When a visitor opens Academics while signed out, the page shows an access
 prompt. Its sign-in link opens the main STELLARS sign-in dialog and returns to
 Academics after successful sign-in.
 
-## Existing Library administrator
+## Library deletion access
 
-The Gallery delete permission remains tied to the existing Library UID:
+The Library uses the same Firebase Authentication session as the main STELLARS
+website. There is no separate Library Admin login.
 
-`PKHSk7VpN4YJFW9URexjfDEZgjo2`
+Delete controls are shown only when the signed-in account has an active
+`users/{uid}` profile with:
 
-The newly provisioned Jasper Academic Portal account is a separate Firebase
-Authentication user. It does not replace the existing Library administrator
-UID. Therefore, use the old Library account when Gallery deletion is needed.
-Do not change the `/memories` Firestore rule unless Gallery administration is
-intentionally migrated and verified separately.
+- `role: "superAdmin"`
+- `isActive: true`
+
+The `/memories/{memoryId}` Firestore delete rule independently checks that
+same active superAdmin role. This allows the provisioned STELLARS superAdmin
+accounts to delete memories without relying on the former Library-only UID.
+
+After changing `firestore.rules`, publish the complete rules in Firebase
+Console (Firestore Database > Rules). A GitHub commit alone does not deploy
+Firestore Rules.
 
 ## Firestore data schema
 
