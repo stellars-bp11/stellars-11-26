@@ -22,23 +22,20 @@
     <div class="academic-background-overlay" aria-hidden="true"></div>
 
     <header class="academic-header">
-        <nav class="academic-navbar" aria-label="Main navigation">
-            <a class="academic-logo" href="index.html" aria-label="STELLARS home">Stellars</a>
-
-            <div class="academic-nav-links">
-                <a href="index.html"><i class="bx bx-home-alt-2" aria-hidden="true"></i><span>Home</span></a>
-                <a href="library.html"><i class="bx bx-library" aria-hidden="true"></i><span>Library</span></a>
+        <nav class="academic-navbar" aria-label="STELLARS account header">
+            <div class="academic-brand-block">
+                <a class="academic-logo" href="index.html" aria-label="STELLARS home">Stellars</a>
+                <span class="academic-brand-motto">TOGETHER WE SHINE BEYOND THE LIMITS</span>
             </div>
 
             <div class="academic-nav-actions">
+                <div class="academic-header-stars" aria-hidden="true">
+                    <span>✦</span><span>✧</span><span>·</span>
+                </div>
+
                 <div class="academic-profile-area" id="profileArea" hidden>
-                    <button class="academic-profile-button" id="profileMenuButton" type="button" aria-haspopup="true" aria-expanded="false">
+                    <button class="academic-profile-button" id="profileMenuButton" type="button" aria-label="Open profile menu" aria-haspopup="true" aria-expanded="false">
                         <span class="academic-avatar" id="profileAvatar">S</span>
-                        <span class="academic-profile-button-copy">
-                            <strong id="profileButtonName">Student</strong>
-                            <small id="profileButtonRole">Student</small>
-                        </span>
-                        <i class="bx bx-chevron-down" aria-hidden="true"></i>
                     </button>
 
                     <div class="academic-profile-menu" id="profileMenu" hidden>
@@ -56,11 +53,6 @@
                         </button>
                     </div>
                 </div>
-
-                <a class="academic-nav-pill" href="index.html">
-                    <i class="bx bx-arrow-back" aria-hidden="true"></i>
-                    <span>Back to Website</span>
-                </a>
             </div>
         </nav>
     </header>
@@ -171,6 +163,9 @@
             </div>
             <h1 id="portalWelcomeTitle">Welcome back, <span>Star.</span></h1>
             <p id="portalWelcomeCopy">Your academic journey, all in one place.</p>
+            <p class="portal-personal-slogan" id="portalPersonalSlogan">Together we shine beyond the limits.</p>
+            <span class="portal-welcome-sparkle sparkle-one" aria-hidden="true">✦</span>
+            <span class="portal-welcome-sparkle sparkle-two" aria-hidden="true">✧</span>
         </section>
 
         <section class="portal-student-view" id="studentView" hidden>
@@ -227,17 +222,32 @@
     </main>
 
     <dialog class="academic-profile-dialog" id="profileDialog">
-        <div class="profile-dialog-top">
-            <span class="login-mark"><i class="bx bx-user-circle"></i></span>
-            <button id="closeProfileDialog" type="button" aria-label="Close profile"><i class="bx bx-x"></i></button>
-        </div>
-        <p class="login-kicker">YOUR ACCOUNT</p>
-        <h2 id="profileDialogName">Student Name</h2>
-        <dl>
-            <div><dt>Username</dt><dd id="profileDialogUsername">—</dd></div>
-            <div><dt>NIM</dt><dd id="profileDialogNim">—</dd></div>
-            <div><dt>Role</dt><dd id="profileDialogRole">Student</dd></div>
-        </dl>
+        <form class="profile-details-form" id="profileDetailsForm">
+            <div class="profile-dialog-top">
+                <span class="login-mark"><i class="bx bx-user-circle"></i></span>
+                <button id="closeProfileDialog" type="button" aria-label="Close profile"><i class="bx bx-x"></i></button>
+            </div>
+            <p class="login-kicker">YOUR ACCOUNT</p>
+            <h2 id="profileDialogName">Student Name</h2>
+            <dl>
+                <div><dt>Username</dt><dd id="profileDialogUsername">—</dd></div>
+                <div><dt>NIM</dt><dd id="profileDialogNim">—</dd></div>
+                <div><dt>Role</dt><dd id="profileDialogRole">Student</dd></div>
+            </dl>
+
+            <label for="profileBirthDate">Date of Birth</label>
+            <input id="profileBirthDate" name="birthDate" type="date">
+
+            <label for="profileSlogan">Your Personal Slogan</label>
+            <textarea id="profileSlogan" name="slogan" rows="3" maxlength="120"
+                      placeholder="Write a short line that inspires you..."></textarea>
+            <small class="profile-field-hint">Maximum 120 characters. You can change this anytime.</small>
+
+            <p class="profile-save-message" id="profileSaveMessage" role="status" aria-live="polite"></p>
+            <button class="profile-save-button" id="saveProfileButton" type="submit">
+                Save Profile
+            </button>
+        </form>
     </dialog>
 
     <script type="module" src="academic.js"></script>
