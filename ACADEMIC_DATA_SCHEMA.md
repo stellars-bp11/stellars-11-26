@@ -230,3 +230,27 @@ display classmates' records or list every user profile.
 This logic is role-generic: both Super Admin accounts use the NIM and UID on
 the currently signed-in profile. Each account must have an active matching
 `nimIndex` entry before any personal result is displayed.
+
+
+## Reliability and recovery safeguards
+
+- Draft imports are written in Firestore batches and each score/assessment
+  carries its `sourceUploadId`. If the browser stops during import, the upload
+  can remain in `processing`; administrators can use **Recover Import** to
+  remove any partial assessment and score documents, while retaining history.
+- Failed imports can be deleted by querying all remaining documents by
+  `sourceUploadId`. Repeating deletion processes only documents that remain.
+  Deletion totals are retained on the upload record for the audit summary.
+- Student score visibility is gated by both the score's `isPublished` flag
+  and its parent upload's `status == "published"`. The importer publishes
+  assessment/score batches first and changes the upload status to `published`
+  only after all batches succeed. Partial publication therefore remains hidden
+  from students. When deletion begins, the upload status changes to `deleting`,
+  withdrawing student visibility before cleanup batches run.
+- This visibility gate is enforced by Firestore Security Rules, not only by
+  browser UI. The updated `firestore.rules` must be published in Firebase
+  Console for the protection to take effect.
+- Batch operations are not one Firestore transaction. If publishing fails,
+  the upload remains `ready`; retrying Publish re-reads all related records
+  and applies the published flag to the complete set. If cleanup fails, the
+  upload remains `deleting` and can be resumed with **Retry Delete**.
