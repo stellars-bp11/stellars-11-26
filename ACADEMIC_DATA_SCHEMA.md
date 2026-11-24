@@ -210,16 +210,23 @@ Firebase Console > Firestore Database > Rules. Committing that file to GitHub
 does not deploy the rules to Firebase automatically.
 
 
-## Administrator personal results overview
+## Personal results scoreboards
 
-The administrator dashboard also includes a personal Academic Results
-scoreboard. It normalizes the NIM in the signed-in admin profile and matches
-it against active document IDs in `nimIndex`. Results are loaded only when
-the matched roster UID is identical to the signed-in Firebase Authentication
-UID. The dashboard then queries score documents for that UID only; it does not
+Student and administrator accounts use the same personal subject-card
+scoreboard design, including subject/component summaries, score progress bars,
+and publication badges.
+
+Student accounts query scores only for their own Firebase Authentication UID
+and only where `isPublished == true`. Students can search their own subject
+and assessment names, filter by subject, and refresh their published results.
+
+Administrator accounts additionally verify the NIM in the signed-in profile
+against an active document ID in `nimIndex`. Results are loaded only when the
+matched roster UID is identical to the signed-in Firebase Authentication UID.
+The admin scoreboard then queries score documents for that UID only and can
+show both Draft and Published status for the admin's own records. It does not
 display classmates' records or list every user profile.
 
-The scoreboard shows the admin's own subjects, assessment components, score,
-maximum score, and Draft/Published status. Admins can search by subject or
-assessment and filter by subject and publication status. The scoreboard
-refreshes after an import is saved, published, or deleted.
+This logic is role-generic: both Super Admin accounts use the NIM and UID on
+the currently signed-in profile. Each account must have an active matching
+`nimIndex` entry before any personal result is displayed.
