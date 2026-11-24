@@ -87,10 +87,24 @@ service cloud.firestore {
     }
 
     // Profiles and roles are provisioned by the trusted admin process.
+    function validSelfProfileUpdate() {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      return changed.hasOnly(['birthDate', 'slogan']) &&
+        request.resource.data.keys().hasAll(['birthDate', 'slogan']) &&
+        request.resource.data.birthDate is string &&
+        request.resource.data.birthDate.size() <= 10 &&
+        request.resource.data.slogan is string &&
+        request.resource.data.slogan.size() <= 120;
+    }
+
     match /users/{userId} {
       allow get: if (signedIn() && request.auth.uid == userId) || isAdmin();
       allow list: if isAdmin();
-      allow create, update, delete: if false;
+      allow update: if signedIn() &&
+        request.auth.uid == userId &&
+        resource.data.isActive == true &&
+        validSelfProfileUpdate();
+      allow create, delete: if false;
     }
 
     // Private NIM-to-UID index. Never expose this collection to students.
