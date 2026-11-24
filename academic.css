@@ -2963,3 +2963,16 @@ body.academic-page {
         animation: none;
     }
 }
+
+
+/* Quiet action for removing an import entry after its data was deleted */
+.academic-history-remove-button {
+    border-color: #ded9ed;
+    color: #625b7d;
+    background: #f8f7fc;
+}
+
+.academic-history-remove-button:hover {
+    border-color: #c9c1e3;
+    background: #f0edfa;
+}
