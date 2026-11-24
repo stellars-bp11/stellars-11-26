@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0f2182">
+    <meta name="description" content="STELLARS Academic Portal — academic results for the STELLARS community.">
+
+    <title>Stellars — Academic Portal</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Ubuntu:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="academic.css">
+    <link rel="stylesheet" href="account.css">
+</head>
+<body class="academic-page">
+
+    <video class="academic-background-video" autoplay muted loop playsinline aria-hidden="true">
+        <source src="Videos/Kling.mp4.mp4" type="video/mp4">
+    </video>
+    <div class="academic-background-overlay" aria-hidden="true"></div>
+
+    <header class="academic-header">
+        <nav class="academic-navbar" aria-label="STELLARS main navigation">
+            <div class="academic-brand-block">
+                <a class="academic-logo" href="index.html" aria-label="STELLARS home">Stellars</a>
+            </div>
+            <div class="academic-nav-links">
+                <a href="index.html">Home</a>
+                <a href="lecturers.html">Lecturers</a>
+                <a href="crewmates.html">Crewmates</a>
+                <a href="library.html">Library</a>
+                <a href="academic.html" aria-current="page">Academics</a>
+            </div>
+            <div class="academic-nav-actions">
+                <a class="academic-nav-pill" id="academicSignInLink"
+                   href="index.html?login=1&amp;return=academic.html">
+                    <i class="bx bx-log-in" aria-hidden="true"></i>
+                    <span>Sign In</span>
+                </a>
+                <div class="academic-profile-area" id="profileArea" hidden>
+                    <button class="academic-profile-button" id="profileMenuButton" type="button"
+                            aria-label="Open profile menu" aria-haspopup="true" aria-expanded="false">
+                        <span class="academic-avatar" id="profileAvatar">S</span>
+                    </button>
+                    <div class="academic-profile-menu" id="profileMenu" hidden>
+                        <div class="profile-menu-heading">
+                            <strong id="profileMenuName">Student</strong>
+                            <span id="profileMenuNim">NIM not available</span>
+                        </div>
+                        <button type="button" id="openProfileButton">
+                            <i class="bx bx-user-circle" aria-hidden="true"></i>
+                            <span>My Profile</span>
+                        </button>
+                        <button type="button" id="logoutButton" class="profile-logout">
+                            <i class="bx bx-log-out" aria-hidden="true"></i>
+                            <span>Log Out</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="academic-access-main" id="loginView">
+        <section class="academic-access-card" aria-labelledby="academic-access-title">
+            <div class="academic-eyebrow">
+                <span class="eyebrow-star"><i class="bx bx-lock-alt" aria-hidden="true"></i></span>
+                <span>STELLARS BP11 · ACADEMIC ACCESS</span>
+            </div>
+            <h1 id="academic-access-title">Your results,<br><span>your account.</span></h1>
+            <p class="academic-access-copy">
+                Academic results are private. Sign in to the main STELLARS website
+                first, then return here to see the results connected to your own account.
+            </p>
+            <p class="academic-access-message" id="academicAccessMessage" role="status" aria-live="polite" hidden></p>
+            <a class="academic-access-button" href="index.html?login=1&amp;return=academic.html">
+                <i class="bx bx-log-in" aria-hidden="true"></i>
+                <span>Sign In to STELLARS</span>
+            </a>
+            <a class="academic-access-home" href="index.html">Back to STELLARS homepage</a>
+        </section>
+    </main>
+
+    <main class="academic-portal-shell" id="portalView" hidden>
+        <section class="portal-welcome">
+            <div class="academic-eyebrow">
+                <span class="eyebrow-star"><i class="bx bxs-star" aria-hidden="true"></i></span>
+                <span id="portalEyebrow">STELLARS BP11 · ACADEMIC PORTAL</span>
+            </div>
+            <h1 id="portalWelcomeTitle">Welcome back, <span>Star.</span></h1>
+            <p id="portalWelcomeCopy">Your academic journey, all in one place.</p>
+            <p class="portal-personal-slogan" id="portalPersonalSlogan">Together we shine beyond the limits.</p>
+            <span class="portal-welcome-sparkle sparkle-one" aria-hidden="true">✦</span>
+            <span class="portal-welcome-sparkle sparkle-two" aria-hidden="true">✧</span>
+        </section>
+
+        <section class="portal-student-view" id="studentView" hidden>
+            <div class="academic-personal-results-panel student-personal-results-panel">
+                <span class="admin-results-sparkle admin-results-sparkle-one" aria-hidden="true">✦</span>
+                <span class="admin-results-sparkle admin-results-sparkle-two" aria-hidden="true">✧</span>
+
+                <div class="academic-admin-results-heading">
+                    <div class="admin-results-title-copy">
+                        <p class="admin-results-kicker"><i class="bx bxs-star" aria-hidden="true"></i> YOUR PERSONAL SCOREBOARD</p>
+                        <h2>My Academic Results</h2>
+                        <p>Your learning journey, one milestone at a time. Only your published scores appear here.</p>
+                    </div>
+                    <div class="admin-results-header-actions">
+                        <div class="admin-results-nim-pill">
+                            <i class="bx bx-id-card" aria-hidden="true"></i>
+                            <span id="studentNimLabel">NIM —</span>
+                        </div>
+                        <button class="academic-results-refresh" id="refreshStudentResults" type="button">
+                            <i class="bx bx-refresh" aria-hidden="true"></i>
+                            <span>Refresh</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="admin-results-stats" aria-label="Your published results summary">
+                    <article class="admin-results-stat stat-subjects">
+                        <span class="admin-results-stat-icon"><i class="bx bx-book-open" aria-hidden="true"></i></span>
+                        <div><small>SUBJECTS</small><strong id="studentResultsSubjectCount">0</strong></div>
+                    </article>
+                    <article class="admin-results-stat stat-components">
+                        <span class="admin-results-stat-icon"><i class="bx bx-list-check" aria-hidden="true"></i></span>
+                        <div><small>COMPONENTS</small><strong id="studentResultsComponentCount">0</strong></div>
+                    </article>
+                    <article class="admin-results-stat stat-published">
+                        <span class="admin-results-stat-icon"><i class="bx bxs-check-circle" aria-hidden="true"></i></span>
+                        <div><small>PUBLISHED</small><strong id="studentResultsPublishedCount">0</strong></div>
+                    </article>
+                </div>
+
+                <p class="academic-review-summary" id="resultsNotice" role="status" aria-live="polite">
+                    Finding your published results…
+                </p>
+
+                <div class="academic-admin-results-controls student-results-controls">
+                    <label class="academic-import-field">
+                        <span>Find a subject or component</span>
+                        <input id="studentResultsSearch" type="search" placeholder="Try Accounting, Quiz, UAC…">
+                    </label>
+                    <label class="academic-import-field">
+                        <span>Subject</span>
+                        <select id="studentResultsSubject">
+                            <option value="">All subjects</option>
+                        </select>
+                    </label>
+                </div>
+
+                <p class="academic-admin-results-summary" id="studentResultsSummary">Your results will appear here.</p>
+                <div class="admin-results-cards" id="resultsContainer" aria-live="polite">
+                    <div class="admin-results-empty-state">
+                        <i class="bx bx-planet" aria-hidden="true"></i>
+                        <strong>Mapping your stars…</strong>
+                        <span>Loading your published academic records.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="portal-admin-view" id="adminView" hidden>
+            <div class="portal-section-heading">
+                <div>
+                    <p class="portal-kicker">MANAGEMENT WORKSPACE</p>
+                    <h2>Admin Dashboard</h2>
+                    <p>Manage academic assessments and published results.</p>
+                </div>
+                <span class="admin-access-label"><i class="bx bx-shield-quarter"></i> Authorized access</span>
+            </div>
+
+            <article class="academic-grade-card">
+                <div class="academic-grade-card-icon" aria-hidden="true">
+                    <i class="bx bx-book-open"></i>
+                </div>
+                <div class="academic-grade-card-copy">
+                    <p class="academic-grade-card-kicker">STELLARS ACADEMIC WORKSPACE</p>
+                    <h3>Manage Academic Results</h3>
+                    <p>Upload class results, review student matching, and publish verified grades.</p>
+                    <button class="academic-grade-card-button" id="openAcademicWorkspace" type="button">
+                        <span>Open Workspace</span>
+                        <i class="bx bx-right-arrow-alt" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <span class="academic-grade-card-sparkle" aria-hidden="true">✦</span>
+            </article>
+
+            <section class="academic-personal-results-panel" aria-labelledby="adminResultsTitle">
+                <span class="admin-results-sparkle admin-results-sparkle-one" aria-hidden="true">✦</span>
+                <span class="admin-results-sparkle admin-results-sparkle-two" aria-hidden="true">✧</span>
+
+                <div class="academic-admin-results-heading">
+                    <div class="admin-results-title-copy">
+                        <p class="admin-results-kicker"><i class="bx bxs-star" aria-hidden="true"></i> YOUR PERSONAL SCOREBOARD</p>
+                        <h2 id="adminResultsTitle">My Academic Results</h2>
+                        <p>Your own academic constellation — matched securely with your registered NIM.</p>
+                    </div>
+                    <div class="admin-results-header-actions">
+                        <div class="admin-results-nim-pill">
+                            <i class="bx bx-id-card" aria-hidden="true"></i>
+                            <span id="adminResultsNimLabel">NIM —</span>
+                        </div>
+                        <button class="academic-secondary-button academic-results-refresh" id="refreshAdminResults" type="button">
+                            <i class="bx bx-refresh" aria-hidden="true"></i>
+                            <span>Refresh</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="admin-results-stats" aria-label="Your result summary">
+                    <article class="admin-results-stat stat-subjects">
+                        <span class="admin-results-stat-icon"><i class="bx bx-book-open" aria-hidden="true"></i></span>
+                        <div><small>SUBJECTS</small><strong id="adminResultsSubjectCount">0</strong></div>
+                    </article>
+                    <article class="admin-results-stat stat-components">
+                        <span class="admin-results-stat-icon"><i class="bx bx-list-check" aria-hidden="true"></i></span>
+                        <div><small>COMPONENTS</small><strong id="adminResultsComponentCount">0</strong></div>
+                    </article>
+                    <article class="admin-results-stat stat-published">
+                        <span class="admin-results-stat-icon"><i class="bx bxs-check-circle" aria-hidden="true"></i></span>
+                        <div><small>PUBLISHED</small><strong id="adminResultsPublishedCount">0</strong></div>
+                    </article>
+                </div>
+
+                <p class="academic-review-summary" id="adminResultsNotice" role="status" aria-live="polite">
+                    Finding your account through the registered NIM…
+                </p>
+
+                <div class="academic-admin-results-controls">
+                    <label class="academic-import-field">
+                        <span>Find a subject or component</span>
+                        <input id="adminResultsSearch" type="search" placeholder="Try Accounting, Quiz, UAC…">
+                    </label>
+                    <label class="academic-import-field">
+                        <span>Subject</span>
+                        <select id="adminResultsSubject">
+                            <option value="">All subjects</option>
+                        </select>
+                    </label>
+                    <label class="academic-import-field">
+                        <span>Show</span>
+                        <select id="adminResultsStatus">
+                            <option value="all">All results</option>
+                            <option value="published">Published only</option>
+                            <option value="draft">Draft only</option>
+                        </select>
+                    </label>
+                </div>
+
+                <p class="academic-admin-results-summary" id="adminResultsSummary">Your results will appear here.</p>
+                <div class="admin-results-cards" id="adminResultsCards" aria-live="polite">
+                    <div class="admin-results-empty-state">
+                        <i class="bx bx-planet" aria-hidden="true"></i>
+                        <strong>Mapping your stars…</strong>
+                        <span>Looking up the NIM connected to this account.</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="academic-import-workspace" id="academicImportWorkspace" hidden aria-labelledby="importWorkspaceTitle">
+                <div class="academic-import-heading">
+                    <div>
+                        <p class="portal-kicker">RESULTS MANAGEMENT</p>
+                        <h2 id="importWorkspaceTitle">Upload Results</h2>
+                        <p>Import a subject's spreadsheet or text-based PDF, check every student match, then save it as a draft.</p>
+                    </div>
+                    <button class="academic-workspace-back" id="closeAcademicWorkspace" type="button">
+                        <i class="bx bx-arrow-back" aria-hidden="true"></i>
+                        <span>Back to dashboard</span>
+                    </button>
+                </div>
+
+                <div class="academic-import-step-card">
+                    <div class="academic-import-step-heading">
+                        <span class="academic-import-step-number">01</span>
+                        <div>
+                            <h3>Choose a results file</h3>
+                            <p>Supported formats: Excel (.xlsx, .xls), CSV, and text-based PDF. The original file stays in your browser.</p>
+                        </div>
+                    </div>
+                    <label class="academic-upload-dropzone" for="academicResultsFile">
+                        <span class="academic-upload-icon"><i class="bx bx-cloud-upload" aria-hidden="true"></i></span>
+                        <strong>Choose a file to import</strong>
+                        <span>Excel, CSV, or PDF · Maximum 15 MB</span>
+                        <input id="academicResultsFile" type="file" accept=".xlsx,.xls,.csv,.pdf,application/pdf">
+                    </label>
+                    <p class="academic-import-status" id="academicImportStatus" role="status" aria-live="polite">No file selected yet.</p>
+                </div>
+
+                <div class="academic-import-step-card" id="academicMappingPanel" hidden>
+                    <div class="academic-import-step-heading">
+                        <span class="academic-import-step-number">02</span>
+                        <div>
+                            <h3>Review the table structure</h3>
+                            <p>Choose the header row, identify student columns, and keep every assessment component found in the file.</p>
+                        </div>
+                    </div>
+
+                    <div class="academic-import-fields">
+                        <label class="academic-import-field" id="academicSheetField" hidden>
+                            <span>Worksheet</span>
+                            <select id="academicSheetSelect"></select>
+                        </label>
+                        <label class="academic-import-field">
+                            <span>Header row</span>
+                            <input id="academicHeaderRow" type="number" min="1" step="1" value="1">
+                        </label>
+                        <label class="academic-import-field academic-import-field-wide">
+                            <span>Subject name</span>
+                            <input id="academicSubjectName" type="text" maxlength="120" placeholder="e.g. Introduction to Accounting">
+                        </label>
+                        <label class="academic-import-field">
+                            <span>Student name column</span>
+                            <select id="academicNameColumn"></select>
+                        </label>
+                        <label class="academic-import-field">
+                            <span>NIM column</span>
+                            <select id="academicNimColumn"></select>
+                        </label>
+                        <label class="academic-import-field academic-import-field-wide">
+                            <span>Exam date <small>(optional)</small></span>
+                            <input id="academicExamDate" type="date">
+                        </label>
+                    </div>
+
+                    <div class="academic-assessment-editor">
+                        <div class="academic-assessment-editor-heading">
+                            <div>
+                                <h4>Assessment components</h4>
+                                <p>These names are read dynamically from the selected file. Uncheck columns that are not scores.</p>
+                            </div>
+                        </div>
+                        <div id="academicAssessmentColumns" class="academic-assessment-columns">
+                            <p class="academic-import-muted">Select a header row to detect assessment columns.</p>
+                        </div>
+                    </div>
+
+                    <div class="academic-review-summary" id="academicReviewSummary">
+                        Select the student name and NIM columns to preview the rows.
+                    </div>
+                    <div class="academic-review-table-wrap">
+                        <table class="academic-review-table" id="academicReviewTable">
+                            <caption class="academic-sr-only">Imported student results preview</caption>
+                        </table>
+                    </div>
+                    <div class="academic-import-actions">
+                        <button class="academic-secondary-button" id="resetAcademicImport" type="button">Choose another file</button>
+                        <button class="academic-primary-button" id="saveAcademicDrafts" type="button" disabled>
+                            <i class="bx bx-save" aria-hidden="true"></i>
+                            <span>Save as Draft</span>
+                        </button>
+                    </div>
+                    <p class="academic-import-footnote">Blank scores stay blank; they are never changed into zero. Every assessment is saved unpublished until an authorized publisher approves it.</p>
+                </div>
+
+                <div class="academic-import-step-card academic-import-history-card">
+                    <div class="academic-import-step-heading">
+                        <span class="academic-import-step-number">03</span>
+                        <div>
+                            <h3>Recent imports</h3>
+                            <p>Review saved drafts and previously published uploads.</p>
+                        </div>
+                    </div>
+                    <div id="academicImportHistory" class="academic-import-history">
+                        <p class="academic-import-muted">Loading import history…</p>
+                    </div>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <dialog class="academic-profile-dialog" id="profileDialog">
+        <form class="profile-details-form" id="profileDetailsForm">
+            <div class="profile-dialog-top">
+                <span class="login-mark"><i class="bx bx-user-circle"></i></span>
+                <button id="closeProfileDialog" type="button" aria-label="Close profile"><i class="bx bx-x"></i></button>
+            </div>
+            <p class="login-kicker">YOUR ACCOUNT</p>
+            <h2 id="profileDialogName">Student Name</h2>
+            <dl>
+                <div><dt>Username</dt><dd id="profileDialogUsername">—</dd></div>
+                <div><dt>NIM</dt><dd id="profileDialogNim">—</dd></div>
+                <div><dt>Role</dt><dd id="profileDialogRole">Student</dd></div>
+            </dl>
+
+            <label for="profileBirthDate">Date of Birth</label>
+            <input id="profileBirthDate" name="birthDate" type="date">
+
+            <label for="profileSlogan">Your Personal Slogan</label>
+            <textarea id="profileSlogan" name="slogan" rows="3" maxlength="120"
+                      placeholder="Write a short line that inspires you..."></textarea>
+            <small class="profile-field-hint">Maximum 120 characters. You can change this anytime.</small>
+
+            <p class="profile-save-message" id="profileSaveMessage" role="status" aria-live="polite"></p>
+            <button class="profile-save-button" id="saveProfileButton" type="submit">
+                Save Profile
+            </button>
+        </form>
+    </dialog>
+
+    <script type="module" src="academic.js"></script>
+</body>
+</html>

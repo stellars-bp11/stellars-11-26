@@ -23,6 +23,7 @@
 
     <!-- CSS -->
     <link rel="stylesheet" href="library.css">
+    <link rel="stylesheet" href="account.css">
 </head>
 
 <body>
@@ -67,45 +68,35 @@
          NAVBAR
     ========================================== -->
 
-    <header>
-        <nav>
-
-            <!-- LOGO -->
-            <a href="index.html" class="logo">
-                STELLARS
-            </a>
-
-            <!-- ADMIN -->
-            <button
-                class="admin-login-btn"
-                id="adminLoginBtn"
-                type="button"
-            >
-                <i class="bx bx-lock-alt"></i>
-                <span>Admin</span>
-            </button>
-
-            <!-- NAVIGATION -->
+    
+    <header class="site-header">
+        <nav class="site-nav" aria-label="Main navigation">
+            <a href="index.html" class="logo">Stellars</a>
             <ul class="nav-links">
-
-                <li>
-                    <a href="index.html">Home</a>
-                </li>
-
-                <li>
-                    <a href="lecturers.html">Lecturers</a>
-                </li>
-
-                <li>
-                    <a href="crewmates.html">Crewmates</a>
-                </li>
-
-                <li>
-                    <a href="library.html" class="active">Library</a>
-                </li>
-
+                <li><a href="index.html">Home</a></li>
+                <li><a href="lecturers.html">Lecturers</a></li>
+                <li><a href="crewmates.html">Crewmates</a></li>
+                <li><a href="library.html" class="active">Library</a></li>
+                <li><a href="academic.html">Academics</a></li>
             </ul>
-
+            
+            <div class="site-nav-actions"><div class="site-account-wrap">
+                    <button class="site-account-button" id="siteAccountButton" type="button"
+                            aria-label="Open account menu" aria-haspopup="true" aria-expanded="false">
+                        <span id="siteAccountAvatar">★</span>
+                    </button>
+                    <div class="site-account-menu" id="siteAccountMenu" hidden>
+                        <div class="site-account-heading">
+                            <strong id="siteAccountName">Welcome, Star!</strong>
+                            <span id="siteAccountMeta">Sign in to see your profile</span>
+                        </div>
+                        <button id="siteAccountLoginButton" type="button">Sign In</button>
+                        <a id="siteAccountPortalLink" href="academic.html">Academic Results</a>
+                        <a id="siteAccountProfileLink" href="academic.html?profile=1" hidden>My Profile</a>
+                        <button id="siteAccountLogout" type="button" hidden>Log Out</button>
+                    </div>
+                </div>
+            </div>
         </nav>
     </header>
 
@@ -340,87 +331,6 @@
 
 
     <!-- =========================================
-         ADMIN LOGIN MODAL
-    ========================================== -->
-
-    <div
-        class="admin-modal-overlay"
-        id="adminModalOverlay"
-    >
-
-        <div
-            class="admin-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="adminModalTitle"
-        >
-
-            <!-- HEADER -->
-
-            <div class="admin-modal-header">
-
-                <h3 id="adminModalTitle">
-                    Admin Login
-                </h3>
-
-                <button
-                    class="admin-modal-close"
-                    id="adminModalClose"
-                    type="button"
-                    aria-label="Close"
-                >
-                    <i class="bx bx-x"></i>
-                </button>
-
-            </div>
-
-
-            <!-- LOGIN FORM -->
-
-            <form id="adminLoginForm">
-
-                <label>
-                    <span>Email</span>
-                    <input
-                        type="email"
-                        id="adminEmail"
-                        placeholder="Admin email"
-                        autocomplete="email"
-                        required
-                    >
-                </label>
-
-                <label>
-                    <span>Password</span>
-                    <input
-                        type="password"
-                        id="adminPassword"
-                        placeholder="Admin password"
-                        autocomplete="current-password"
-                        required
-                    >
-                </label>
-
-                <button
-                    type="submit"
-                    class="admin-submit"
-                >
-                    Login
-                </button>
-
-                <p
-                    class="admin-status"
-                    id="adminStatus"
-                ></p>
-
-            </form>
-
-        </div>
-
-    </div>
-
-
-    <!-- =========================================
          POPUP SETELAH UPLOAD
     ========================================== -->
 
@@ -446,6 +356,8 @@
         type="module"
         src="library.js"
     ></script>
+
+    <script type="module" src="account.js"></script>
 
 </body>
 </html>

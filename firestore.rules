@@ -1,0 +1,198 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function profilePath() {
+      return /databases/$(database)/documents/users/$(request.auth.uid);
+    }
+
+    function hasProfile() {
+      return signedIn() && exists(profilePath());
+    }
+
+    function activeMember() {
+      return hasProfile() && get(profilePath()).data.isActive == true;
+    }
+
+    function currentRole() {
+      return get(profilePath()).data.role;
+    }
+
+    function isAdmin() {
+      return activeMember() && currentRole() in ['admin', 'superAdmin'];
+    }
+
+    function isSuperAdmin() {
+      return activeMember() && currentRole() == 'superAdmin';
+    }
+
+    function isStudent() {
+      return activeMember() && currentRole() == 'student';
+    }
+
+    function canPublish() {
+      return isAdmin() && (
+        currentRole() == 'superAdmin' ||
+        (currentRole() == 'admin' &&
+         get(profilePath()).data.canPublish == true)
+      );
+    }
+
+    // Student visibility is gated by a minimal publication manifest.
+    // Its status changes to "withdrawing" before any deletion batches begin.
+    function sourceImportIsPublished() {
+      let uploadId = resource.data.sourceUploadId;
+      let manifestPath = /databases/$(database)/documents/publishedImports/$(uploadId);
+      return uploadId is string &&
+        exists(manifestPath) &&
+        get(manifestPath).data.status == 'published';
+    }
+
+    function validAssessmentData() {
+      let data = request.resource.data;
+      return data.keys().hasAll([
+        'subjectId', 'subjectName', 'assessmentName',
+        'category', 'maxScore', 'isPublished'
+      ]) &&
+      data.subjectId is string &&
+      data.subjectName is string &&
+      data.assessmentName is string &&
+      data.category is string &&
+      data.maxScore is number &&
+      data.maxScore > 0 &&
+      data.maxScore <= 100 &&
+      data.isPublished is bool;
+    }
+
+    function validScoreData() {
+      let data = request.resource.data;
+      return data.keys().hasAll([
+        'studentId', 'subjectId', 'subjectName',
+        'assessmentId', 'assessmentName',
+        'score', 'maxScore', 'isPublished'
+      ]) &&
+      data.studentId is string &&
+      data.subjectId is string &&
+      data.subjectName is string &&
+      data.assessmentId is string &&
+      data.assessmentName is string &&
+      data.maxScore is number &&
+      data.maxScore > 0 &&
+      data.maxScore <= 100 &&
+      data.isPublished is bool &&
+      (data.score == null ||
+        (data.score is number &&
+         data.score >= 0 &&
+         data.score <= data.maxScore));
+    }
+
+    // Existing STELLARS Library access is retained.
+    match /memories/{memoryId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if false;
+      allow delete: if isSuperAdmin();
+    }
+
+    // Profiles and roles are provisioned by the trusted admin process.
+    function validSelfProfileUpdate() {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      return changed.hasOnly(['birthDate', 'slogan']) &&
+        request.resource.data.keys().hasAll(['birthDate', 'slogan']) &&
+        request.resource.data.birthDate is string &&
+        request.resource.data.birthDate.size() <= 10 &&
+        request.resource.data.slogan is string &&
+        request.resource.data.slogan.size() <= 120;
+    }
+
+    match /users/{userId} {
+      allow get: if (signedIn() && request.auth.uid == userId) || isAdmin();
+      allow list: if isAdmin();
+      allow update: if signedIn() &&
+        request.auth.uid == userId &&
+        resource.data.isActive == true &&
+        validSelfProfileUpdate();
+      allow create, delete: if false;
+    }
+
+    // Private NIM-to-UID index. Never expose this collection to students.
+    match /nimIndex/{nim} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    match /subjects/{subjectId} {
+      allow read: if activeMember();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /assessments/{assessmentId} {
+      allow get, list: if isAdmin() ||
+        (activeMember() && resource.data.isPublished == true);
+
+      allow create: if validAssessmentData() && (
+        (isAdmin() && request.resource.data.isPublished == false) ||
+        (canPublish() && request.resource.data.isPublished == true)
+      );
+
+      allow update: if validAssessmentData() && (
+        (isAdmin() &&
+         resource.data.isPublished == false &&
+         request.resource.data.isPublished == false) ||
+        canPublish()
+      );
+
+      allow delete: if canPublish() ||
+        (isAdmin() && resource.data.isPublished == false);
+    }
+
+    match /publishedImports/{uploadId} {
+      // Students can discover only active publication manifests. These contain
+      // no roster, NIM, uploader identity, or individual score information.
+      allow get, list: if isAdmin() ||
+        (isStudent() && resource.data.status == 'published');
+      allow create, update, delete: if canPublish();
+    }
+
+    match /scores/{scoreId} {
+      // Student score queries must be scoped to their UID, one source import,
+      // and published records. The manifest is checked independently.
+      allow get, list: if isAdmin() ||
+        (isStudent() &&
+         resource.data.studentId == request.auth.uid &&
+         resource.data.isPublished == true &&
+         sourceImportIsPublished());
+
+      allow create: if validScoreData() && (
+        (isAdmin() && request.resource.data.isPublished == false) ||
+        (canPublish() && request.resource.data.isPublished == true)
+      );
+
+      allow update: if validScoreData() && (
+        (isAdmin() &&
+         resource.data.isPublished == false &&
+         request.resource.data.isPublished == false) ||
+        canPublish()
+      );
+
+      allow delete: if canPublish() ||
+        (isAdmin() && resource.data.isPublished == false);
+    }
+
+    // Import staging is never visible to student accounts.
+    match /uploads/{uploadId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /activityLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+      allow update, delete: if false;
+    }
+  }
+}

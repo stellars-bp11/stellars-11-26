@@ -27,6 +27,7 @@
 
     <title>Stellars</title>
 
+    <link rel="stylesheet" href="account.css">
 </head>
 
 
@@ -83,18 +84,34 @@
                 Library
             </a>
 
+            <a href="academic.html">
+                Academics
+            </a>
+
         </div>
 
 
-        <!-- GET TO KNOW US -->
-        <a
-            href="https://www.instagram.com/ppbp.11?utm_source=ig_web_button_share_sheet&stkn=ZDNlZDc0MzIxNw=="
-            class="profile-button"
-            target="_blank"
-            rel="noopener noreferrer"
-        >
-            Get to Know Us
-        </a>
+        <!-- SOCIAL + ACCOUNT ACTIONS -->
+
+            <div class="site-nav-actions">
+                <div class="site-account-wrap">
+                    <button class="site-account-button" id="siteAccountButton" type="button"
+                            aria-label="Open account menu" aria-haspopup="true" aria-expanded="false">
+                        <span id="siteAccountAvatar">★</span>
+                    </button>
+                    <div class="site-account-menu" id="siteAccountMenu" hidden>
+                        <div class="site-account-heading">
+                            <strong id="siteAccountName">Welcome, Star!</strong>
+                            <span id="siteAccountMeta">Sign in to see your profile</span>
+                        </div>
+                        <button id="siteAccountLoginButton" type="button">Sign In</button>
+                        <a id="siteAccountPortalLink" href="academic.html">Academic Results</a>
+                        <a id="siteAccountProfileLink" href="academic.html?profile=1" hidden>My Profile</a>
+                        <button id="siteAccountLogout" type="button" hidden>Log Out</button>
+                    </div>
+                </div>
+            </div>
+
 
     </nav>
 
@@ -417,6 +434,7 @@
 
         })();
     </script>
+    <script type="module" src="account.js"></script>
 
 </body>
 

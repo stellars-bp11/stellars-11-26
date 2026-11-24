@@ -13,6 +13,7 @@
     >
 
     <link rel="stylesheet" href="crewmates.css">
+    <link rel="stylesheet" href="account.css">
 </head>
 
 <body>
@@ -42,33 +43,36 @@
 
 
     <!-- NAVBAR -->
-    <header>
-        <nav>
-
-            <div class="logo">
-                STELLARS
-            </div>
-
+    
+    <header class="site-header">
+        <nav class="site-nav" aria-label="Main navigation">
+            <a href="index.html" class="logo">Stellars</a>
             <ul class="nav-links">
-
-                <li>
-                    <a href="index.html">Home</a>
-                </li>
-
-                <li>
-                    <a href="lecturers.html">Lecturers</a>
-                </li>
-
-                <li>
-                    <a href="crewmates.html" class="active">Crewmates</a>
-                </li>
-
-                <li>
-                    <a href="library.html">Library</a>
-                </li>
-
+                <li><a href="index.html">Home</a></li>
+                <li><a href="lecturers.html">Lecturers</a></li>
+                <li><a href="crewmates.html" class="active">Crewmates</a></li>
+                <li><a href="library.html">Library</a></li>
+                <li><a href="academic.html">Academics</a></li>
             </ul>
-
+            
+            <div class="site-nav-actions">
+                <div class="site-account-wrap">
+                    <button class="site-account-button" id="siteAccountButton" type="button"
+                            aria-label="Open account menu" aria-haspopup="true" aria-expanded="false">
+                        <span id="siteAccountAvatar">★</span>
+                    </button>
+                    <div class="site-account-menu" id="siteAccountMenu" hidden>
+                        <div class="site-account-heading">
+                            <strong id="siteAccountName">Welcome, Star!</strong>
+                            <span id="siteAccountMeta">Sign in to see your profile</span>
+                        </div>
+                        <button id="siteAccountLoginButton" type="button">Sign In</button>
+                        <a id="siteAccountPortalLink" href="academic.html">Academic Results</a>
+                        <a id="siteAccountProfileLink" href="academic.html?profile=1" hidden>My Profile</a>
+                        <button id="siteAccountLogout" type="button" hidden>Log Out</button>
+                    </div>
+                </div>
+            </div>
         </nav>
     </header>
 
@@ -774,6 +778,8 @@
 
         })();
     </script>
+
+    <script type="module" src="account.js"></script>
 
 </body>
 </html>
