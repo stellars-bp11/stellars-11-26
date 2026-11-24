@@ -143,6 +143,66 @@
                 <span class="academic-grade-card-sparkle" aria-hidden="true">✦</span>
             </article>
 
+            <section class="academic-admin-results-panel" aria-labelledby="adminResultsTitle">
+                <div class="academic-admin-results-heading">
+                    <div>
+                        <p class="portal-kicker">STUDENT PERFORMANCE</p>
+                        <h2 id="adminResultsTitle">Academic Results</h2>
+                        <p>View imported scores for every student, including draft and published records.</p>
+                    </div>
+                    <button class="academic-secondary-button academic-results-refresh" id="refreshAdminResults" type="button">
+                        <i class="bx bx-refresh" aria-hidden="true"></i>
+                        <span>Refresh Results</span>
+                    </button>
+                </div>
+
+                <p class="academic-review-summary" id="adminResultsNotice" role="status" aria-live="polite">
+                    Loading academic results…
+                </p>
+
+                <div class="academic-admin-results-controls">
+                    <label class="academic-import-field">
+                        <span>Search student or assessment</span>
+                        <input id="adminResultsSearch" type="search" placeholder="Name, NIM, subject, or assessment">
+                    </label>
+                    <label class="academic-import-field">
+                        <span>Subject</span>
+                        <select id="adminResultsSubject">
+                            <option value="">All subjects</option>
+                        </select>
+                    </label>
+                    <label class="academic-import-field">
+                        <span>Publication status</span>
+                        <select id="adminResultsStatus">
+                            <option value="all">All results</option>
+                            <option value="published">Published</option>
+                            <option value="draft">Draft</option>
+                        </select>
+                    </label>
+                </div>
+
+                <p class="academic-admin-results-summary" id="adminResultsSummary">No results loaded.</p>
+
+                <div class="academic-review-table-wrap academic-admin-results-table-wrap">
+                    <table class="academic-review-table academic-admin-results-table">
+                        <caption class="academic-sr-only">Academic scores for all students</caption>
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>NIM</th>
+                                <th>Subject</th>
+                                <th>Assessment</th>
+                                <th>Score</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminResultsTableBody">
+                            <tr><td colspan="6">Loading results…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
             <section class="academic-import-workspace" id="academicImportWorkspace" hidden aria-labelledby="importWorkspaceTitle">
                 <div class="academic-import-heading">
                     <div>
