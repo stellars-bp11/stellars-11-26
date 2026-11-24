@@ -98,23 +98,69 @@
         </section>
 
         <section class="portal-student-view" id="studentView" hidden>
-            <div class="portal-section-heading">
-                <div>
-                    <p class="portal-kicker">YOUR ACADEMIC RECORD</p>
-                    <h2>My Results</h2>
-                    <p>Published scores from your subjects and assessments.</p>
-                </div>
-                <div class="portal-student-chip">
-                    <i class="bx bx-id-card" aria-hidden="true"></i>
-                    <span id="studentNimLabel">NIM —</span>
-                </div>
-            </div>
+            <div class="academic-personal-results-panel student-personal-results-panel">
+                <span class="admin-results-sparkle admin-results-sparkle-one" aria-hidden="true">✦</span>
+                <span class="admin-results-sparkle admin-results-sparkle-two" aria-hidden="true">✧</span>
 
-            <div class="results-notice" id="resultsNotice" role="status" aria-live="polite">
-                <i class="bx bx-info-circle" aria-hidden="true"></i>
-                <span>Loading your published results…</span>
+                <div class="academic-admin-results-heading">
+                    <div class="admin-results-title-copy">
+                        <p class="admin-results-kicker"><i class="bx bxs-star" aria-hidden="true"></i> YOUR PERSONAL SCOREBOARD</p>
+                        <h2>My Academic Results</h2>
+                        <p>Your learning journey, one milestone at a time. Only your published scores appear here.</p>
+                    </div>
+                    <div class="admin-results-header-actions">
+                        <div class="admin-results-nim-pill">
+                            <i class="bx bx-id-card" aria-hidden="true"></i>
+                            <span id="studentNimLabel">NIM —</span>
+                        </div>
+                        <button class="academic-results-refresh" id="refreshStudentResults" type="button">
+                            <i class="bx bx-refresh" aria-hidden="true"></i>
+                            <span>Refresh</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="admin-results-stats" aria-label="Your published results summary">
+                    <article class="admin-results-stat stat-subjects">
+                        <span class="admin-results-stat-icon"><i class="bx bx-book-open" aria-hidden="true"></i></span>
+                        <div><small>SUBJECTS</small><strong id="studentResultsSubjectCount">0</strong></div>
+                    </article>
+                    <article class="admin-results-stat stat-components">
+                        <span class="admin-results-stat-icon"><i class="bx bx-list-check" aria-hidden="true"></i></span>
+                        <div><small>COMPONENTS</small><strong id="studentResultsComponentCount">0</strong></div>
+                    </article>
+                    <article class="admin-results-stat stat-published">
+                        <span class="admin-results-stat-icon"><i class="bx bxs-check-circle" aria-hidden="true"></i></span>
+                        <div><small>PUBLISHED</small><strong id="studentResultsPublishedCount">0</strong></div>
+                    </article>
+                </div>
+
+                <p class="academic-review-summary" id="resultsNotice" role="status" aria-live="polite">
+                    Finding your published results…
+                </p>
+
+                <div class="academic-admin-results-controls student-results-controls">
+                    <label class="academic-import-field">
+                        <span>Find a subject or component</span>
+                        <input id="studentResultsSearch" type="search" placeholder="Try Accounting, Quiz, UAC…">
+                    </label>
+                    <label class="academic-import-field">
+                        <span>Subject</span>
+                        <select id="studentResultsSubject">
+                            <option value="">All subjects</option>
+                        </select>
+                    </label>
+                </div>
+
+                <p class="academic-admin-results-summary" id="studentResultsSummary">Your results will appear here.</p>
+                <div class="admin-results-cards" id="resultsContainer" aria-live="polite">
+                    <div class="admin-results-empty-state">
+                        <i class="bx bx-planet" aria-hidden="true"></i>
+                        <strong>Mapping your stars…</strong>
+                        <span>Loading your published academic records.</span>
+                    </div>
+                </div>
             </div>
-            <div class="academic-results-grid" id="resultsContainer"></div>
         </section>
 
         <section class="portal-admin-view" id="adminView" hidden>
@@ -143,7 +189,7 @@
                 <span class="academic-grade-card-sparkle" aria-hidden="true">✦</span>
             </article>
 
-            <section class="academic-admin-results-panel" aria-labelledby="adminResultsTitle">
+            <section class="academic-personal-results-panel" aria-labelledby="adminResultsTitle">
                 <span class="admin-results-sparkle admin-results-sparkle-one" aria-hidden="true">✦</span>
                 <span class="admin-results-sparkle admin-results-sparkle-two" aria-hidden="true">✧</span>
 
