@@ -22,22 +22,29 @@
     <div class="academic-background-overlay" aria-hidden="true"></div>
 
     <header class="academic-header">
-        <nav class="academic-navbar" aria-label="STELLARS account header">
+        <nav class="academic-navbar" aria-label="STELLARS main navigation">
             <div class="academic-brand-block">
                 <a class="academic-logo" href="index.html" aria-label="STELLARS home">Stellars</a>
                 <span class="academic-brand-motto">TOGETHER WE SHINE BEYOND THE LIMITS</span>
             </div>
-
+            <div class="academic-nav-links">
+                <a href="index.html">Home</a>
+                <a href="lecturers.html">Lecturers</a>
+                <a href="crewmates.html">Crewmates</a>
+                <a href="library.html">Library</a>
+                <a href="academic.html" aria-current="page">Academics</a>
+            </div>
             <div class="academic-nav-actions">
-                <div class="academic-header-stars" aria-hidden="true">
-                    <span>✦</span><span>✧</span><span>·</span>
-                </div>
-
+                <a class="academic-nav-pill" id="academicSignInLink"
+                   href="index.html?login=1&amp;return=academic.html">
+                    <i class="bx bx-log-in" aria-hidden="true"></i>
+                    <span>Sign In</span>
+                </a>
                 <div class="academic-profile-area" id="profileArea" hidden>
-                    <button class="academic-profile-button" id="profileMenuButton" type="button" aria-label="Open profile menu" aria-haspopup="true" aria-expanded="false">
+                    <button class="academic-profile-button" id="profileMenuButton" type="button"
+                            aria-label="Open profile menu" aria-haspopup="true" aria-expanded="false">
                         <span class="academic-avatar" id="profileAvatar">S</span>
                     </button>
-
                     <div class="academic-profile-menu" id="profileMenu" hidden>
                         <div class="profile-menu-heading">
                             <strong id="profileMenuName">Student</strong>
@@ -57,101 +64,23 @@
         </nav>
     </header>
 
-    <main class="academic-main" id="loginView">
-        <section class="academic-intro" aria-labelledby="academic-title">
+    <main class="academic-access-main" id="loginView">
+        <section class="academic-access-card" aria-labelledby="academic-access-title">
             <div class="academic-eyebrow">
-                <span class="eyebrow-star"><i class="bx bxs-star" aria-hidden="true"></i></span>
-                <span>STELLARS BP11 · 2026</span>
+                <span class="eyebrow-star"><i class="bx bx-lock-alt" aria-hidden="true"></i></span>
+                <span>STELLARS BP11 · ACADEMIC ACCESS</span>
             </div>
-
-            <h1 id="academic-title">Your journey,<br><span>your achievements.</span></h1>
-            <p class="academic-intro-copy">
-                A dedicated space to follow your academic progress.
-                Sign in to access your personal results and stay connected
-                with your learning journey.
+            <h1 id="academic-access-title">Your results,<br><span>your account.</span></h1>
+            <p class="academic-access-copy">
+                Academic results are private. Sign in to the main STELLARS website
+                first, then return here to see the results connected to your own account.
             </p>
-
-            <div class="academic-feature-list">
-                <div class="academic-feature">
-                    <span class="feature-icon"><i class="bx bx-lock-alt" aria-hidden="true"></i></span>
-                    <div>
-                        <strong>Personal access</strong>
-                        <small>Your academic information belongs to your account.</small>
-                    </div>
-                </div>
-                <div class="academic-feature">
-                    <span class="feature-icon"><i class="bx bx-trending-up" aria-hidden="true"></i></span>
-                    <div>
-                        <strong>Track your progress</strong>
-                        <small>Published results, organized by subject and assessment.</small>
-                    </div>
-                </div>
-            </div>
-
-            <div class="academic-orbit" aria-hidden="true">
-                <span class="orbit-ring orbit-ring-one"></span>
-                <span class="orbit-ring orbit-ring-two"></span>
-                <span class="orbit-core"><i class="bx bxs-star"></i></span>
-                <span class="orbit-dot orbit-dot-one"></span>
-                <span class="orbit-dot orbit-dot-two"></span>
-            </div>
-        </section>
-
-        <section class="academic-login-wrap" aria-labelledby="login-title">
-            <div class="academic-login-card">
-                <div class="login-card-heading">
-                    <div class="login-mark"><i class="bx bxs-graduation" aria-hidden="true"></i></div>
-                    <p class="login-kicker">WELCOME BACK, STAR</p>
-                    <h2 id="login-title">Sign in to continue</h2>
-                    <p class="login-subtitle">Enter the username and password provided by your class administrator.</p>
-                </div>
-
-                <form id="academicLoginForm" class="academic-login-form" novalidate>
-                    <label for="academicUsername">Username</label>
-                    <div class="academic-input-wrap">
-                        <i class="bx bx-user" aria-hidden="true"></i>
-                        <input
-                            id="academicUsername"
-                            name="username"
-                            type="text"
-                            placeholder="Enter your full name"
-                            autocomplete="username"
-                            autocapitalize="words"
-                            required
-                        >
-                    </div>
-
-                    <label for="academicPassword">Password</label>
-                    <div class="academic-input-wrap password-input-wrap">
-                        <i class="bx bx-lock-alt" aria-hidden="true"></i>
-                        <input
-                            id="academicPassword"
-                            name="password"
-                            type="password"
-                            placeholder="Enter your password"
-                            autocomplete="current-password"
-                            required
-                        >
-                        <button class="password-toggle" id="togglePassword" type="button" aria-label="Show password">
-                            <i class="bx bx-show" aria-hidden="true"></i>
-                        </button>
-                    </div>
-
-                    <p class="academic-form-message" id="academicFormMessage" role="status" aria-live="polite"></p>
-
-                    <button class="academic-submit-button" id="loginSubmitButton" type="submit">
-                        <span>Sign In</span>
-                        <i class="bx bx-right-arrow-alt" aria-hidden="true"></i>
-                    </button>
-                </form>
-
-                <div class="login-card-footer">
-                    <i class="bx bx-shield-quarter" aria-hidden="true"></i>
-                    <span>Access is provided by STELLARS administrators. Public registration is unavailable.</span>
-                </div>
-            </div>
-
-            <p class="academic-footer-note">TOGETHER WE SHINE BEYOND THE LIMITS</p>
+            <p class="academic-access-message" id="academicAccessMessage" role="status" aria-live="polite" hidden></p>
+            <a class="academic-access-button" href="index.html?login=1&amp;return=academic.html">
+                <i class="bx bx-log-in" aria-hidden="true"></i>
+                <span>Sign In to STELLARS</span>
+            </a>
+            <a class="academic-access-home" href="index.html">Back to STELLARS homepage</a>
         </section>
     </main>
 
