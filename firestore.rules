@@ -24,11 +24,11 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return activeMember() && currentRole() in ['admin', 'superAdmin'];
+      return activeMember() && currentRole() in ['admin', 'superAdmin', 'super_admin'];
     }
 
     function isSuperAdmin() {
-      return activeMember() && currentRole() == 'superAdmin';
+      return activeMember() && currentRole() in ['superAdmin', 'super_admin'];
     }
 
     function isStudent() {
@@ -37,7 +37,7 @@ service cloud.firestore {
 
     function canPublish() {
       return isAdmin() && (
-        currentRole() == 'superAdmin' ||
+        currentRole() in ['superAdmin', 'super_admin'] ||
         (currentRole() == 'admin' &&
          get(profilePath()).data.canPublish == true)
       );
