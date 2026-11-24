@@ -86,7 +86,7 @@ function setImportStatus(message, type = "info") {
 }
 
 function normalizeNim(value) {
-    return String(value ?? "").trim().replace(/\s+/g, "");
+    return String(value ?? "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
 }
 
 function normalizeName(value) {
@@ -371,14 +371,16 @@ function loadSelectedWorksheet(sheetName) {
             if (!sheet) throw new Error("The selected worksheet is unavailable.");
             currentGrid = XLSX.utils.sheet_to_json(sheet, {
                 header: 1,
-                raw: true,
+                raw: false,
                 defval: "",
                 blankrows: false
             });
             headerRowInput.value = "1";
             mappingPanel.hidden = false;
             if (!subjectInput.value.trim() || workbook.SheetNames.length > 1) {
-                subjectInput.value = fileBaseName(currentFile?.name || sheetName);
+                subjectInput.value = workbook.SheetNames.length > 1
+                    ? sheetName
+                    : fileBaseName(currentFile?.name || sheetName);
             }
             buildMappingFromGrid();
             setImportStatus(
@@ -641,7 +643,9 @@ function validateRows() {
         else if (!member) errors.push("NIM not found in active roster");
         else if (counts.get(nim) > 1) errors.push("Duplicate NIM in this file");
 
-        if (member && row.name && normalizeName(row.name) !== normalizeName(member.fullName)) {
+        if (member && !row.name) {
+            warning = true;
+        } else if (member && normalizeName(row.name) !== normalizeName(member.fullName)) {
             warning = true;
         }
 
@@ -665,7 +669,7 @@ function validateRows() {
 
         results.set(index, {
             state: errors.length ? "error" : warning ? "warning" : "matched",
-            label: errors.length ? errors[0] : warning ? "Name differs" : "Matched",
+            label: errors.length ? errors[0] : warning ? (!row.name ? "Name missing" : "Name differs") : "Matched",
             errors
         });
     }
