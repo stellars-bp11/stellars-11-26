@@ -156,6 +156,33 @@ Admin-only audit trail. Suggested fields include `actorUid`, `action`,
 5. An authorized publisher marks the reviewed records as published.
 6. Student accounts can read only their own published score records.
 
+
+## Browser importer behavior
+
+The Academic Results workspace supports Excel workbooks (`.xlsx`, `.xls`),
+CSV files, and PDFs that contain selectable text. Spreadsheet files are read
+with SheetJS Community Edition 0.20.3. PDF text extraction uses Mozilla PDF.js
+6.5.438. Scanned/image-only PDFs are not OCR-processed and must be converted
+to a text-based or spreadsheet source before automatic import.
+
+For a spreadsheet, the administrator selects one worksheet and identifies
+the header row, student-name column, and NIM column. Every other non-metadata
+column is detected as a potential assessment component. The administrator can
+exclude non-score columns and set each component's maximum score. A worksheet
+is imported as one subject; separate subject worksheets can be imported
+separately.
+
+Before saving, each included row is matched against active records in
+`nimIndex`. Missing or unmatched NIMs, duplicate NIMs, and invalid scores
+must be corrected or excluded. Name differences are shown as warnings for
+manual review. Empty score cells remain `null`.
+
+The original file is processed locally in the browser and is not uploaded to
+Firestore or Firebase Storage. Firestore stores the import metadata, subject,
+assessment components, and score documents. Imported scores remain
+`isPublished: false` until an authorized publisher publishes the import.
+Only `superAdmin` accounts and admins with `canPublish: true` can publish.
+
 The Firestore Security Rules in `firestore.rules` must also be copied into
 Firebase Console > Firestore Database > Rules. Committing that file to GitHub
 does not deploy the rules to Firebase automatically.
