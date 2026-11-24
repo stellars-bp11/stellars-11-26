@@ -94,6 +94,14 @@ const studentView = document.getElementById("studentView");
 const adminView = document.getElementById("adminView");
 const resultsNotice = document.getElementById("resultsNotice");
 const resultsContainer = document.getElementById("resultsContainer");
+const studentNimLabel = document.getElementById("studentNimLabel");
+const studentResultsSearch = document.getElementById("studentResultsSearch");
+const studentResultsSubject = document.getElementById("studentResultsSubject");
+const studentResultsSummary = document.getElementById("studentResultsSummary");
+const studentResultsSubjectCount = document.getElementById("studentResultsSubjectCount");
+const studentResultsComponentCount = document.getElementById("studentResultsComponentCount");
+const studentResultsPublishedCount = document.getElementById("studentResultsPublishedCount");
+const refreshStudentResultsButton = document.getElementById("refreshStudentResults");
 
 const academicWorkspace = document.getElementById("academicImportWorkspace");
 const academicWorkspaceLauncher = document.getElementById("openAcademicWorkspace");
@@ -115,6 +123,9 @@ const refreshAdminResultsButton = document.getElementById("refreshAdminResults")
 let adminResultRecords = [];
 let adminResultsLoading = false;
 let adminResultsControlsBound = false;
+let studentResultRecords = [];
+let studentResultsLoading = false;
+let studentResultsControlsBound = false;
 
 let academicWorkspaceShellBound = false;
 
@@ -253,6 +264,8 @@ function showProfile(profile, authUser) {
     }
 
     if (isStudent) {
+        if (studentNimLabel) studentNimLabel.textContent = "NIM " + nim;
+        bindStudentResultsControls();
         loadStudentResults(authUser.uid);
     } else {
         resultsContainer.replaceChildren();
@@ -303,15 +316,27 @@ function showResultsNotice(message, type = "info") {
     resultsNotice.hidden = false;
 }
 
+function bindStudentResultsControls() {
+    if (studentResultsControlsBound) return;
+    studentResultsControlsBound = true;
+
+    refreshStudentResultsButton?.addEventListener("click", () => loadStudentResults(currentAuthUser?.uid));
+    studentResultsSearch?.addEventListener("input", renderStudentResults);
+    studentResultsSubject?.addEventListener("change", renderStudentResults);
+}
+
 async function loadStudentResults(studentId) {
+    if (studentResultsLoading || !studentId) return;
+
+    studentResultsLoading = true;
+    if (refreshStudentResultsButton) refreshStudentResultsButton.disabled = true;
     resultsContainer.replaceChildren();
-    showResultsNotice("Loading your published results…");
+    showResultsNotice("Loading your published results…", "info");
 
     try {
         /*
-         * Security Rules must independently enforce:
-         * resource.data.studentId == request.auth.uid
-         * The query condition is not a substitute for Firestore Rules.
+         * Students can read only records where studentId matches their own UID
+         * and isPublished is true. Firestore Rules enforce this independently.
          */
         const scoresQuery = query(
             collection(db, "scores"),
@@ -320,77 +345,114 @@ async function loadStudentResults(studentId) {
         );
 
         const snapshot = await getDocs(scoresQuery);
-
-        if (snapshot.empty) {
-            showResultsNotice("Belum ada hasil yang dipublikasikan.");
-            return;
-        }
-
-        const records = snapshot.docs.map(scoreDoc => ({
-            id: scoreDoc.id,
-            ...scoreDoc.data()
-        }));
-
-        records.sort((a, b) => {
-            const subjectCompare = String(a.subjectName || "").localeCompare(
-                String(b.subjectName || ""), "id"
-            );
-            if (subjectCompare !== 0) return subjectCompare;
-            return String(a.assessmentName || "").localeCompare(
-                String(b.assessmentName || ""), "id"
-            );
+        studentResultRecords = snapshot.docs.map((scoreDoc) => {
+            const data = scoreDoc.data() || {};
+            return {
+                id: scoreDoc.id,
+                subjectName: data.subjectName || "Unnamed subject",
+                assessmentName: data.assessmentName || "Unnamed assessment",
+                score: data.score,
+                maxScore: data.maxScore ?? 100,
+                isPublished: true,
+                examDate: data.examDate || null,
+                publishedAt: data.publishedAt || null
+            };
         });
 
-        const groups = new Map();
-        for (const record of records) {
-            const subject = record.subjectName || "Mata Kuliah";
-            if (!groups.has(subject)) groups.set(subject, []);
-            groups.get(subject).push(record);
+        studentResultRecords.sort((a, b) => {
+            const subjectCompare = a.subjectName.localeCompare(b.subjectName, "id");
+            if (subjectCompare !== 0) return subjectCompare;
+            return a.assessmentName.localeCompare(b.assessmentName, "id");
+        });
+
+        const selectedSubject = studentResultsSubject?.value || "";
+        if (studentResultsSubject) {
+            const subjects = [...new Set(studentResultRecords.map((item) => item.subjectName))]
+                .sort((a, b) => a.localeCompare(b, "id"));
+            studentResultsSubject.replaceChildren();
+
+            const allOption = makeElement("option", "", "All subjects");
+            allOption.value = "";
+            studentResultsSubject.appendChild(allOption);
+
+            subjects.forEach((subject) => {
+                const option = makeElement("option", "", subject);
+                option.value = subject;
+                studentResultsSubject.appendChild(option);
+            });
+
+            studentResultsSubject.value = subjects.includes(selectedSubject) ? selectedSubject : "";
         }
 
-        for (const [subjectName, assessments] of groups) {
-            const card = makeElement("article", "academic-result-card");
-            card.append(makeElement("h3", "", subjectName));
-
-            const list = makeElement("div", "academic-result-list");
-
-            for (const assessment of assessments) {
-                const row = makeElement("div", "academic-result-row");
-                const nameBlock = makeElement("div", "academic-result-name");
-                nameBlock.append(
-                    makeElement("strong", "", assessment.assessmentName || "Assessment")
-                );
-
-                const dateLabel = formatDate(assessment.examDate || assessment.publishedAt);
-                if (dateLabel) nameBlock.append(makeElement("small", "", dateLabel));
-
-                const score = assessment.score;
-                const maxScore = assessment.maxScore ?? 100;
-                const scoreText = score === null || score === undefined
-                    ? "—"
-                    : formatScore(score) + " / " + formatScore(maxScore);
-
-                row.append(
-                    nameBlock,
-                    makeElement("span", "academic-result-score", scoreText)
-                );
-                list.append(row);
-            }
-
-            card.append(list);
-            resultsContainer.append(card);
+        if (studentResultsSubjectCount) {
+            studentResultsSubjectCount.textContent = String(new Set(studentResultRecords.map((item) => item.subjectName)).size);
+        }
+        if (studentResultsComponentCount) {
+            studentResultsComponentCount.textContent = String(studentResultRecords.length);
+        }
+        if (studentResultsPublishedCount) {
+            studentResultsPublishedCount.textContent = String(studentResultRecords.length);
         }
 
-        resultsNotice.hidden = true;
+        showResultsNotice(
+            studentResultRecords.length
+                ? "Your NIM-linked account is verified. These are your published results."
+                : "Your account is ready. No results have been published for you yet.",
+            "success"
+        );
+        renderStudentResults();
     } catch (error) {
         console.error("Unable to load student results:", error);
+        studentResultRecords = [];
+        if (studentResultsSubjectCount) studentResultsSubjectCount.textContent = "0";
+        if (studentResultsComponentCount) studentResultsComponentCount.textContent = "0";
+        if (studentResultsPublishedCount) studentResultsPublishedCount.textContent = "0";
         showResultsNotice(
-            "Hasil belum dapat dimuat. Pastikan profil, scores, dan Firestore Security Rules Academic Portal sudah disiapkan.",
+            error.code === "permission-denied"
+                ? "Access to your published results is not available. Check your student score access rules."
+                : "Your results could not be loaded. " + (error.message || "Please try again."),
             "error"
         );
+        renderPersonalScoreCards(
+            resultsContainer,
+            [],
+            "Your results are taking a break",
+            "Try refreshing in a moment. Your published scores will appear here."
+        );
+    } finally {
+        studentResultsLoading = false;
+        if (refreshStudentResultsButton) refreshStudentResultsButton.disabled = false;
     }
 }
 
+function renderStudentResults() {
+    if (!resultsContainer) return;
+
+    const search = String(studentResultsSearch?.value || "").trim().toLocaleLowerCase("id");
+    const subject = studentResultsSubject?.value || "";
+
+    const visibleRecords = studentResultRecords.filter((record) => {
+        if (subject && record.subjectName !== subject) return false;
+        if (!search) return true;
+        return [record.subjectName, record.assessmentName]
+            .some((value) => String(value).toLocaleLowerCase("id").includes(search));
+    });
+
+    renderPersonalScoreCards(
+        resultsContainer,
+        visibleRecords,
+        studentResultRecords.length ? "Nothing in this orbit" : "Your results are on their way",
+        studentResultRecords.length
+            ? "Try another subject or component."
+            : "Your lecturers' published scores will appear here once they are released."
+    );
+
+    if (studentResultsSummary) {
+        studentResultsSummary.textContent =
+            visibleRecords.length + " published component(s) shown · " +
+            new Set(visibleRecords.map((item) => item.subjectName)).size + " subject(s)";
+    }
+}
 
 function normalizeAcademicNim(value) {
     return String(value ?? "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
@@ -403,17 +465,22 @@ function setAdminResultsNotice(message, type = "info") {
     adminResultsNotice.hidden = false;
 }
 
-function renderAdminResultsEmpty(title, message) {
-    if (!adminResultsCards) return;
-    adminResultsCards.replaceChildren();
+function renderPersonalScoreCardsEmpty(container, title, message) {
+    if (!container) return;
+    container.replaceChildren();
     const empty = makeElement("div", "admin-results-empty-state");
+    const icon = makeElement("i", "bx bx-planet");
+    icon.setAttribute("aria-hidden", "true");
     empty.append(
-        makeElement("i", "bx bx-planet"),
+        icon,
         makeElement("strong", "", title),
         makeElement("span", "", message)
     );
-    empty.firstElementChild.setAttribute("aria-hidden", "true");
-    adminResultsCards.appendChild(empty);
+    container.appendChild(empty);
+}
+
+function renderAdminResultsEmpty(title, message) {
+    renderPersonalScoreCardsEmpty(adminResultsCards, title, message);
 }
 
 function bindAdminResultsControls() {
@@ -559,6 +626,95 @@ async function loadAdminResults({ silent = false } = {}) {
     }
 }
 
+function renderPersonalScoreCards(container, visibleRecords, emptyTitle, emptyMessage) {
+    if (!container) return;
+    container.replaceChildren();
+
+    if (!visibleRecords.length) {
+        renderPersonalScoreCardsEmpty(container, emptyTitle, emptyMessage);
+        return;
+    }
+
+    const grouped = new Map();
+    visibleRecords.forEach((record) => {
+        if (!grouped.has(record.subjectName)) grouped.set(record.subjectName, []);
+        grouped.get(record.subjectName).push(record);
+    });
+
+    grouped.forEach((records, subjectName) => {
+        const card = makeElement("article", "admin-score-subject-card");
+
+        const cardHead = makeElement("div", "admin-score-subject-head");
+        const subjectIcon = makeElement("span", "admin-score-subject-icon");
+        const icon = makeElement("i", "bx bx-book-heart");
+        icon.setAttribute("aria-hidden", "true");
+        subjectIcon.appendChild(icon);
+
+        const subjectCopy = makeElement("div", "admin-score-subject-copy");
+        subjectCopy.append(
+            makeElement("small", "", "YOUR SUBJECT"),
+            makeElement("h3", "", subjectName)
+        );
+
+        const itemCount = makeElement("span", "admin-score-subject-count",
+            records.length + (records.length === 1 ? " ITEM" : " ITEMS"));
+        cardHead.append(subjectIcon, subjectCopy, itemCount);
+        card.appendChild(cardHead);
+
+        const list = makeElement("div", "admin-score-items");
+        records.forEach((record) => {
+            const item = makeElement("article", "admin-score-item");
+            const top = makeElement("div", "admin-score-item-top");
+            const itemName = makeElement("strong", "admin-score-item-name", record.assessmentName);
+
+            const statusBadge = makeElement(
+                "span",
+                "admin-score-status " + (record.isPublished ? "is-published" : "is-draft"),
+                record.isPublished ? "Published" : "Draft"
+            );
+            top.append(itemName, statusBadge);
+
+            const hasScore = record.score !== null &&
+                record.score !== undefined &&
+                Number.isFinite(Number(record.score));
+            const maximum = Number(record.maxScore);
+            const safeMaximum = Number.isFinite(maximum) && maximum > 0 ? maximum : 100;
+            const scoreText = hasScore
+                ? formatScore(record.score) + " / " + formatScore(safeMaximum)
+                : "Not graded yet";
+
+            const scoreLine = makeElement("div", "admin-score-line");
+            scoreLine.append(
+                makeElement("span", "", "Your score"),
+                makeElement("strong", "", scoreText)
+            );
+
+            const meter = makeElement("div", "admin-score-meter");
+            meter.setAttribute("role", "img");
+            const percentage = hasScore
+                ? Math.max(0, Math.min(100, Number(record.score) / safeMaximum * 100))
+                : 0;
+            meter.setAttribute(
+                "aria-label",
+                hasScore ? Math.round(percentage) + "% of maximum score" : "No score entered"
+            );
+
+            const fill = makeElement(
+                "span",
+                "admin-score-meter-fill" + (record.isPublished ? " is-published" : " is-draft")
+            );
+            fill.style.width = percentage + "%";
+            meter.appendChild(fill);
+
+            item.append(top, scoreLine, meter);
+            list.appendChild(item);
+        });
+
+        card.appendChild(list);
+        container.appendChild(card);
+    });
+}
+
 function renderAdminResults() {
     if (!adminResultsCards) return;
 
@@ -576,88 +732,14 @@ function renderAdminResults() {
             .some((value) => String(value).toLocaleLowerCase("id").includes(search));
     });
 
-    adminResultsCards.replaceChildren();
-
-    if (!visibleRecords.length) {
-        renderAdminResultsEmpty(
-            adminResultRecords.length ? "Nothing in this orbit" : "Your results are on their way",
-            adminResultRecords.length
-                ? "Try another subject, component, or publication filter."
-                : "When your scores are imported using your registered NIM, they will appear here."
-        );
-    } else {
-        const grouped = new Map();
-        visibleRecords.forEach((record) => {
-            if (!grouped.has(record.subjectName)) grouped.set(record.subjectName, []);
-            grouped.get(record.subjectName).push(record);
-        });
-
-        grouped.forEach((records, subjectName) => {
-            const card = makeElement("article", "admin-score-subject-card");
-
-            const cardHead = makeElement("div", "admin-score-subject-head");
-            const subjectIcon = makeElement("span", "admin-score-subject-icon");
-            subjectIcon.appendChild(makeElement("i", "bx bx-book-heart"));
-            subjectIcon.firstElementChild.setAttribute("aria-hidden", "true");
-
-            const subjectCopy = makeElement("div", "admin-score-subject-copy");
-            subjectCopy.append(
-                makeElement("small", "", "YOUR SUBJECT"),
-                makeElement("h3", "", subjectName)
-            );
-
-            const itemCount = makeElement("span", "admin-score-subject-count",
-                records.length + (records.length === 1 ? " ITEM" : " ITEMS"));
-            cardHead.append(subjectIcon, subjectCopy, itemCount);
-            card.appendChild(cardHead);
-
-            const list = makeElement("div", "admin-score-items");
-            records.forEach((record) => {
-                const item = makeElement("article", "admin-score-item");
-                const top = makeElement("div", "admin-score-item-top");
-                const itemName = makeElement("strong", "admin-score-item-name", record.assessmentName);
-
-                const statusBadge = makeElement(
-                    "span",
-                    "admin-score-status " + (record.isPublished ? "is-published" : "is-draft"),
-                    record.isPublished ? "Published" : "Draft"
-                );
-                top.append(itemName, statusBadge);
-
-                const hasScore = record.score !== null &&
-                    record.score !== undefined &&
-                    Number.isFinite(Number(record.score));
-                const maximum = Number(record.maxScore);
-                const safeMaximum = Number.isFinite(maximum) && maximum > 0 ? maximum : 100;
-                const scoreText = hasScore
-                    ? formatScore(record.score) + " / " + formatScore(safeMaximum)
-                    : "Not graded yet";
-
-                const scoreLine = makeElement("div", "admin-score-line");
-                scoreLine.append(
-                    makeElement("span", "", "Your score"),
-                    makeElement("strong", "", scoreText)
-                );
-
-                const meter = makeElement("div", "admin-score-meter");
-                meter.setAttribute("role", "img");
-                const percentage = hasScore
-                    ? Math.max(0, Math.min(100, Number(record.score) / safeMaximum * 100))
-                    : 0;
-                meter.setAttribute("aria-label", hasScore ? Math.round(percentage) + "% of maximum score" : "No score entered");
-
-                const fill = makeElement("span", "admin-score-meter-fill" + (record.isPublished ? " is-published" : " is-draft"));
-                fill.style.width = percentage + "%";
-                meter.appendChild(fill);
-
-                item.append(top, scoreLine, meter);
-                list.appendChild(item);
-            });
-
-            card.appendChild(list);
-            adminResultsCards.appendChild(card);
-        });
-    }
+    renderPersonalScoreCards(
+        adminResultsCards,
+        visibleRecords,
+        adminResultRecords.length ? "Nothing in this orbit" : "Your results are on their way",
+        adminResultRecords.length
+            ? "Try another subject, component, or publication filter."
+            : "When your scores are imported using your registered NIM, they will appear here."
+    );
 
     const publishedCount = visibleRecords.filter((item) => item.isPublished).length;
     const draftCount = visibleRecords.length - publishedCount;
