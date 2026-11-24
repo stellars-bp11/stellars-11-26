@@ -66,6 +66,7 @@ const saveDraftButton = el("saveAcademicDrafts");
 const resetImportButton = el("resetAcademicImport");
 const historyContainer = el("academicImportHistory");
 const clearDeletedHistoryButton = el("clearDeletedAcademicHistory");
+const clearDeletedHistoryNotice = el("academicHistoryClearNotice");
 
 let activeProfile = null;
 let activeUser = null;
@@ -85,6 +86,13 @@ function setImportStatus(message, type = "info") {
     if (!importStatus) return;
     importStatus.textContent = message;
     importStatus.dataset.type = type;
+}
+
+function setHistoryClearNotice(message, type = "info") {
+    if (!clearDeletedHistoryNotice) return;
+    clearDeletedHistoryNotice.textContent = message;
+    clearDeletedHistoryNotice.dataset.type = type;
+    clearDeletedHistoryNotice.hidden = !message;
 }
 
 function normalizeNim(value) {
@@ -334,7 +342,14 @@ function bindWorkspaceEvents() {
     saveDraftButton?.addEventListener("click", saveCurrentDraft);
     resetImportButton?.addEventListener("click", resetCurrentImport);
 
-    clearDeletedHistoryButton?.addEventListener("click", clearDeletedHistory);
+    // Delegate from document so the control still works if the admin workspace
+    // mounts after this module is initialized.
+    document.addEventListener("click", (event) => {
+        const clearButton = event.target.closest("#clearDeletedAcademicHistory");
+        if (!clearButton) return;
+        event.preventDefault();
+        clearDeletedHistory(clearButton);
+    });
 
     historyContainer?.addEventListener("click", async (event) => {
         const publishButton = event.target.closest("[data-publish-upload]");
@@ -1237,62 +1252,60 @@ async function refreshImportHistory() {
     }
 }
 
-async function clearDeletedHistory() {
-    if (!activeUser || !hasAdminRole(activeProfile) || !clearDeletedHistoryButton) {
-        setImportStatus("This account does not have permission to clear deleted import history.", "error");
+async function clearDeletedHistory(button = clearDeletedHistoryButton) {
+    if (!activeUser || !hasAdminRole(activeProfile) || !button) {
+        setHistoryClearNotice("This account does not have permission to clear deleted history.", "error");
         return;
     }
+    if (button.dataset.busy === "true") return;
 
-    const button = clearDeletedHistoryButton;
-    const originalLabel = button.textContent.trim();
+    button.dataset.busy = "true";
     button.disabled = true;
-    button.textContent = "Checking…";
+    button.innerHTML = '<i class="bx bx-loader-alt bx-spin" aria-hidden="true"></i><span>Checking…</span>';
+    setHistoryClearNotice("Checking deleted import records…", "info");
 
     try {
         const deletedSnapshot = await getDocs(query(
             collection(db, "uploads"),
             where("status", "==", "deleted")
         ));
-
-        const removableDocs = deletedSnapshot.docs.filter((item) => {
-            const data = item.data() || {};
-            return data.deletionRequiresPublisher !== true || canPublish();
-        });
+        const removableDocs = deletedSnapshot.docs;
 
         if (!removableDocs.length) {
-            setImportStatus("There are no deleted import records to clear.", "info");
+            setHistoryClearNotice("No deleted import history to clear.", "info");
             return;
         }
 
         const confirmed = await showAcademicConfirmation({
             title: "Clear deleted history?",
-            message: "This will permanently remove " + removableDocs.length +
+            message: "This will remove " + removableDocs.length +
                 " deleted import record(s) from Recent Imports. It will not affect grades, assessment data, or active published results.",
             confirmLabel: "Clear history",
             danger: true
         });
-        if (!confirmed) return;
+        if (!confirmed) {
+            setHistoryClearNotice("No history was removed.", "info");
+            return;
+        }
 
-        button.textContent = "Clearing…";
+        button.innerHTML = '<i class="bx bx-loader-alt bx-spin" aria-hidden="true"></i><span>Clearing…</span>';
         const operations = removableDocs.map((item) => ({
             type: "delete",
             ref: item.ref
         }));
         await commitInChunks(operations);
 
-        setImportStatus(
-            removableDocs.length + " deleted import record(s) removed from Recent Imports.",
+        setHistoryClearNotice(
+            removableDocs.length + " deleted history record(s) removed.",
             "success"
         );
         await refreshImportHistory();
     } catch (error) {
         console.error("Could not clear deleted Academic import history:", error);
-        setImportStatus(
-            "Deleted import history could not be cleared. " + friendlyError(error),
-            "error"
-        );
+        setHistoryClearNotice("Could not clear deleted history: " + friendlyError(error), "error");
     } finally {
         button.disabled = false;
+        button.dataset.busy = "false";
         button.innerHTML = '<i class="bx bx-trash" aria-hidden="true"></i><span>Clear Deleted</span>';
     }
 }
