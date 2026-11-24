@@ -1,0 +1,129 @@
+/* Shared STELLARS sign-in dialog */
+.site-login-dialog {
+    width: min(440px, calc(100vw - 32px));
+    max-width: none;
+    max-height: min(92vh, 760px);
+    margin: auto;
+    padding: 0;
+    overflow: auto;
+    border: 1px solid rgba(220, 216, 245, 0.95);
+    border-radius: 24px;
+    color: #25213f;
+    background: #fff;
+    box-shadow: 0 28px 90px rgba(5, 7, 35, 0.35);
+}
+.site-login-dialog::backdrop {
+    background: rgba(7, 8, 28, 0.68);
+    backdrop-filter: blur(5px);
+}
+.site-login-form {
+    display: grid;
+    gap: 11px;
+    padding: 28px;
+    font-family: 'Ubuntu', sans-serif;
+}
+.site-login-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+.site-login-mark {
+    width: 43px;
+    height: 43px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    color: #fff;
+    background: linear-gradient(135deg, #8172ee, #38218e);
+    font-size: 22px;
+}
+.site-login-close {
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 50%;
+    color: #6f6a88;
+    background: #f2f0f8;
+    cursor: pointer;
+    font-size: 23px;
+}
+.site-login-kicker {
+    color: #7166b0;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.6px;
+}
+.site-login-form h2 {
+    color: #211d3d;
+    font-size: 27px;
+    line-height: 1.2;
+}
+.site-login-copy {
+    margin-bottom: 9px;
+    color: #77738d;
+    font-size: 13px;
+    line-height: 1.6;
+}
+.site-login-form label {
+    margin-top: 5px;
+    color: #3c3758;
+    font-size: 12px;
+    font-weight: 700;
+}
+.site-login-form input {
+    width: 100%;
+    min-height: 47px;
+    padding: 0 14px;
+    border: 1px solid #e3e0ef;
+    border-radius: 11px;
+    outline: none;
+    color: #24203f;
+    background: #fbfaff;
+    font: 14px 'Ubuntu', sans-serif;
+}
+.site-login-form input:focus {
+    border-color: #8275dc;
+    box-shadow: 0 0 0 3px rgba(130, 117, 220, 0.14);
+}
+.site-login-message {
+    min-height: 18px;
+    color: #a52f4b;
+    font-size: 12px;
+    line-height: 1.5;
+}
+.site-login-message[data-type="info"] {
+    color: #62559f;
+}
+.site-login-submit {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 17px;
+    border: 0;
+    border-radius: 12px;
+    color: #fff;
+    background: linear-gradient(115deg, #172c91, #6543ba);
+    box-shadow: 0 10px 24px rgba(58, 42, 143, 0.2);
+    cursor: pointer;
+    font: 700 13px 'Ubuntu', sans-serif;
+}
+.site-login-submit:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+.site-login-footnote {
+    margin-top: 7px;
+    color: #8a869e;
+    font-size: 10px;
+    line-height: 1.5;
+    text-align: center;
+}
+.site-account-menu > button#siteAccountLoginButton[hidden] {
+    display: none !important;
+}
+@media (max-width: 480px) {
+    .site-login-form { padding: 23px 20px; }
+    .site-login-form h2 { font-size: 24px; }
+}
