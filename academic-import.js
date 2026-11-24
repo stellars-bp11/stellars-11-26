@@ -219,7 +219,7 @@ function canDeleteUpload(uploadData) {
             : true;
     }
 
-    return ["ready", "failed"].includes(uploadData.status);
+    return ["processing", "ready", "failed"].includes(uploadData.status);
 }
 
 function categoryFromAssessmentName(name) {
@@ -1171,9 +1171,11 @@ async function refreshImportHistory() {
                 deleteButton.className = "academic-delete-button";
                 deleteButton.textContent = data.status === "deleting"
                     ? "Retry Delete"
-                    : data.status === "published"
-                        ? "Delete Published"
-                        : "Delete Draft";
+                    : data.status === "processing"
+                        ? "Recover Import"
+                        : data.status === "published"
+                            ? "Delete Published"
+                            : "Delete Draft";
                 deleteButton.dataset.deleteUpload = uploadDoc.id;
                 actions.appendChild(deleteButton);
             } else if (data.status === "published" && hasAdminRole(activeProfile)) {
@@ -1309,7 +1311,7 @@ async function deleteSavedUpload(uploadId, button) {
             throw new Error("This import has already been deleted.");
         }
 
-        if (!["ready", "failed", "published", "deleting"].includes(uploadData.status)) {
+        if (!["processing", "ready", "failed", "published", "deleting"].includes(uploadData.status)) {
             throw new Error("Only saved drafts, published imports, or interrupted deletions can be deleted.");
         }
 
@@ -1367,7 +1369,9 @@ async function deleteSavedUpload(uploadId, button) {
                 previousStatus: uploadData.status,
                 deletionRequiresPublisher: requiresPublisher,
                 deletionStartedAt: serverTimestamp(),
-                deletionStartedBy: activeUser.uid
+                deletionStartedBy: activeUser.uid,
+                deletionAssessmentTotal: Number(uploadData.deletionAssessmentTotal ?? (Number(uploadData.deletedAssessmentCount || 0) + assessmentsSnapshot.size)),
+                deletionScoreTotal: Number(uploadData.deletionScoreTotal ?? (Number(uploadData.deletedScoreCount || 0) + scoresSnapshot.size))
             });
         }
 
@@ -1418,8 +1422,8 @@ async function deleteSavedUpload(uploadId, button) {
             status: "deleted",
             deletedAt: serverTimestamp(),
             deletedBy: activeUser.uid,
-            deletedAssessmentCount: assessmentsSnapshot.size,
-            deletedScoreCount: scoresSnapshot.size,
+            deletedAssessmentCount: Number(uploadData.deletionAssessmentTotal ?? (Number(uploadData.deletedAssessmentCount || 0) + assessmentsSnapshot.size)),
+            deletedScoreCount: Number(uploadData.deletionScoreTotal ?? (Number(uploadData.deletedScoreCount || 0) + scoresSnapshot.size)),
             deletionRequiresPublisher: requiresPublisher
         });
 
