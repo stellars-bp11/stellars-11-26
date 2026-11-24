@@ -1210,3 +1210,236 @@ body.academic-page {
     outline: 3px solid rgba(207, 198, 255, 0.9);
     outline-offset: 3px;
 }
+
+
+/* =========================================================
+   QUIET ACADEMIC HEADER — BRAND + PROFILE AVATAR ONLY
+========================================================= */
+.academic-navbar {
+    min-height: 82px;
+}
+
+.academic-brand-block {
+    display: grid;
+    gap: 3px;
+}
+
+.academic-brand-motto {
+    color: rgba(236, 232, 255, .66);
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 1.65px;
+}
+
+.academic-nav-links,
+.academic-nav-pill {
+    display: none !important;
+}
+
+.academic-nav-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 18px;
+    margin-left: auto;
+}
+
+.academic-header-stars {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: rgba(224, 218, 255, .72);
+    font-size: 18px;
+    text-shadow: 0 0 14px rgba(205, 193, 255, .5);
+}
+
+.academic-header-stars span:nth-child(2) {
+    font-size: 25px;
+    opacity: .58;
+}
+
+.academic-header-stars span:nth-child(3) {
+    font-size: 26px;
+    opacity: .42;
+}
+
+.academic-profile-button {
+    width: 52px;
+    min-width: 52px;
+    height: 52px;
+    min-height: 52px;
+    padding: 4px;
+    border-radius: 50%;
+    justify-content: center;
+    background: rgba(255, 255, 255, .12);
+}
+
+.academic-avatar {
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
+    border-radius: 50%;
+}
+
+.portal-personal-slogan {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 22px;
+    padding: 9px 13px;
+    border: 1px solid rgba(220, 215, 255, .22);
+    border-radius: 999px;
+    color: #e7e2ff;
+    background: rgba(255, 255, 255, .08);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.25px;
+    text-transform: uppercase;
+}
+
+.portal-personal-slogan::before {
+    content: "✦";
+    color: #cfc5ff;
+    font-size: 12px;
+}
+
+.portal-welcome {
+    isolation: isolate;
+}
+
+.portal-welcome-sparkle {
+    position: absolute;
+    z-index: -1;
+    color: rgba(220, 213, 255, .58);
+    pointer-events: none;
+    text-shadow: 0 0 22px rgba(211, 199, 255, .55);
+}
+
+.portal-welcome-sparkle.sparkle-one {
+    top: 27px;
+    right: 54px;
+    font-size: 44px;
+}
+
+.portal-welcome-sparkle.sparkle-two {
+    right: 150px;
+    bottom: 35px;
+    font-size: 28px;
+    opacity: .55;
+}
+
+/* Editable fields in the profile dialog */
+.profile-details-form {
+    display: grid;
+    gap: 9px;
+}
+
+.profile-details-form > label {
+    margin-top: 10px;
+    color: #302d46;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.profile-details-form > input,
+.profile-details-form > textarea {
+    width: 100%;
+    padding: 12px 13px;
+    border: 1px solid #dedbed;
+    border-radius: 11px;
+    outline: none;
+    color: #302d46;
+    background: #faf9fe;
+    font-family: 'Roboto', sans-serif;
+    font-size: 13px;
+    resize: vertical;
+}
+
+.profile-details-form > input:focus,
+.profile-details-form > textarea:focus {
+    border-color: #7560ce;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(75, 42, 173, .10);
+}
+
+.profile-field-hint {
+    margin-top: -4px;
+    color: #89859a;
+    font-family: 'Roboto', sans-serif;
+    font-size: 10px;
+}
+
+.profile-save-message {
+    min-height: 17px;
+    margin-top: 3px;
+    color: #a52f4b;
+    font-family: 'Roboto', sans-serif;
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.profile-save-message[data-type="success"] {
+    color: #28734d;
+}
+
+.profile-save-button {
+    min-height: 45px;
+    margin-top: 2px;
+    border: 0;
+    border-radius: 11px;
+    color: #fff;
+    background: linear-gradient(115deg, var(--st-blue), var(--st-violet));
+    cursor: pointer;
+    font-family: 'Ubuntu', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.profile-save-button:disabled {
+    cursor: wait;
+    opacity: .65;
+}
+
+@media (max-width: 760px) {
+    .academic-navbar {
+        min-height: 72px;
+    }
+
+    .academic-nav-actions {
+        gap: 10px;
+    }
+
+    .academic-header-stars {
+        gap: 9px;
+        font-size: 15px;
+    }
+
+    .academic-profile-button {
+        width: 47px;
+        min-width: 47px;
+        height: 47px;
+        min-height: 47px;
+    }
+
+    .academic-avatar {
+        width: 39px;
+        height: 39px;
+        flex-basis: 39px;
+    }
+
+    .portal-welcome-sparkle.sparkle-one {
+        right: 22px;
+        font-size: 30px;
+    }
+
+    .portal-welcome-sparkle.sparkle-two {
+        right: 90px;
+    }
+}
+
+@media (max-width: 420px) {
+    .academic-brand-motto {
+        font-size: 6px;
+        letter-spacing: 1px;
+    }
+}
