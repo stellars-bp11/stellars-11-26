@@ -201,13 +201,13 @@ function showAcademicConfirmation({
 
 function canPublish() {
     if (!activeProfile || activeProfile.isActive !== true) return false;
-    if (activeProfile.role === "superAdmin") return true;
+    if (["superAdmin", "super_admin"].includes(activeProfile.role)) return true;
     return activeProfile.role === "admin" && activeProfile.canPublish === true;
 }
 
 function hasAdminRole(profile) {
     return !!profile && profile.isActive === true &&
-        ["admin", "superAdmin"].includes(profile.role);
+        ["admin", "superAdmin", "super_admin"].includes(profile.role);
 }
 
 function canDeleteUpload(uploadData) {
@@ -365,9 +365,6 @@ export function initAcademicImport(profile, user) {
 
     activeProfile = profile;
     activeUser = user;
-    if (clearDeletedHistoryButton) {
-        clearDeletedHistoryButton.hidden = !hasAdminRole(profile);
-    }
     bindWorkspaceEvents();
 
     refreshImportHistory();
