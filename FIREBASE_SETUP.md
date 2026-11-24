@@ -66,9 +66,12 @@ their respective collections. A saved draft is not visible to students.
 Publishing is available to `superAdmin` accounts and admins whose profile has
 `canPublish: true`.
 
-This importer uses the existing Academic collections and current Firestore
-Rules. No additional rule change is required for this first import workflow.
-Do not republish a different rule set unless the rules file itself is changed.
+This importer uses the existing Academic collections plus a minimal
+`publishedImports/{uploadId}` manifest for student visibility. The manifest is
+created only after all score and assessment batches are published, and it is
+moved to `withdrawing` before a published import is deleted. The updated
+`firestore.rules` must be deployed so student queries can read published
+manifests and only their own scores scoped to each source import.
 
 ## Firestore data schema
 
