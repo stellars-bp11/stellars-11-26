@@ -116,6 +116,87 @@ function friendlyError(error) {
     return code + (error?.message || "An unexpected error occurred.");
 }
 
+function showAcademicConfirmation({
+    title,
+    message,
+    confirmLabel = "Confirm",
+    cancelLabel = "Cancel",
+    danger = false,
+    requiredText = ""
+}) {
+    return new Promise((resolve) => {
+        const overlay = document.createElement("div");
+        overlay.className = "academic-modal-overlay";
+        overlay.innerHTML = `
+            <section class="academic-confirm-modal${danger ? " is-danger" : ""}" role="dialog" aria-modal="true" aria-labelledby="academicModalTitle" aria-describedby="academicModalMessage">
+                <div class="academic-confirm-icon" aria-hidden="true">
+                    <i class="bx ${danger ? "bx-error" : "bx-check-circle"}"></i>
+                </div>
+                <h2 id="academicModalTitle"></h2>
+                <p id="academicModalMessage"></p>
+                <label class="academic-confirm-input-wrap" hidden>
+                    <span>Type <strong></strong> to continue</span>
+                    <input class="academic-confirm-input" type="text" autocomplete="off" spellcheck="false">
+                </label>
+                <div class="academic-confirm-actions">
+                    <button type="button" class="academic-modal-cancel"></button>
+                    <button type="button" class="academic-modal-accept"></button>
+                </div>
+            </section>
+        `;
+
+        const modal = overlay.querySelector(".academic-confirm-modal");
+        const titleNode = overlay.querySelector("#academicModalTitle");
+        const messageNode = overlay.querySelector("#academicModalMessage");
+        const cancelButton = overlay.querySelector(".academic-modal-cancel");
+        const acceptButton = overlay.querySelector(".academic-modal-accept");
+        const inputWrap = overlay.querySelector(".academic-confirm-input-wrap");
+        const input = overlay.querySelector(".academic-confirm-input");
+        const requiredTextNode = inputWrap.querySelector("strong");
+
+        titleNode.textContent = title;
+        messageNode.textContent = message;
+        cancelButton.textContent = cancelLabel;
+        acceptButton.textContent = confirmLabel;
+        acceptButton.disabled = !!requiredText;
+        if (danger) acceptButton.classList.add("is-danger");
+        if (requiredText) {
+            inputWrap.hidden = false;
+            requiredTextNode.textContent = requiredText;
+            input.setAttribute("aria-label", "Type " + requiredText + " to confirm");
+            input.addEventListener("input", () => {
+                acceptButton.disabled = input.value !== requiredText;
+            });
+        }
+
+        let settled = false;
+        const finish = (confirmed) => {
+            if (settled) return;
+            settled = true;
+            document.removeEventListener("keydown", onKeyDown);
+            overlay.remove();
+            resolve(confirmed);
+        };
+        const onKeyDown = (event) => {
+            if (event.key === "Escape") finish(false);
+            if (event.key === "Enter" && !acceptButton.disabled) finish(true);
+        };
+
+        cancelButton.addEventListener("click", () => finish(false));
+        acceptButton.addEventListener("click", () => finish(true));
+        overlay.addEventListener("click", (event) => {
+            if (event.target === overlay) finish(false);
+        });
+        document.addEventListener("keydown", onKeyDown);
+        document.body.appendChild(overlay);
+        requestAnimationFrame(() => {
+            if (requiredText) input.focus();
+            else cancelButton.focus();
+            modal.classList.add("is-visible");
+        });
+    });
+}
+
 function canPublish() {
     if (!activeProfile || activeProfile.isActive !== true) return false;
     if (activeProfile.role === "superAdmin") return true;
@@ -1120,9 +1201,11 @@ async function publishSavedUpload(uploadId, button) {
         return;
     }
 
-    const confirmed = window.confirm(
-        "Publish all draft grades in this import? Students with matching accounts will be able to see their own published scores."
-    );
+    const confirmed = await showAcademicConfirmation({
+        title: "Publish academic results?",
+        message: "Students with matching accounts will be able to see their own published scores after publication.",
+        confirmLabel: "Publish results"
+    });
     if (!confirmed) return;
 
     const originalLabel = button.textContent;
@@ -1247,22 +1330,32 @@ async function deleteSavedUpload(uploadId, button) {
         }
 
         if (requiresPublisher) {
-            const confirmed = window.confirm(
-                "PERMANENT ACTION: This will remove the published assessment components and student scores from this import. Students will no longer be able to see these results. The import history will remain as a deleted audit record."
-            );
+            const confirmed = await showAcademicConfirmation({
+                title: "Delete published results?",
+                message: "This permanently removes the published assessment components and student scores for this import. Students will no longer see these results. The import history will remain as an audit record.",
+                confirmLabel: "Continue",
+                danger: true
+            });
             if (!confirmed) return;
 
-            const typedConfirmation = window.prompt(
-                'Type DELETE to confirm removal of "' + (uploadData.subjectName || uploadData.fileName || "this import") + '".'
-            );
-            if (typedConfirmation !== "DELETE") {
+            const typedConfirmation = await showAcademicConfirmation({
+                title: "Confirm permanent deletion",
+                message: 'Type DELETE to confirm removal of "' + (uploadData.subjectName || uploadData.fileName || "this import") + '".',
+                confirmLabel: "Delete permanently",
+                danger: true,
+                requiredText: "DELETE"
+            });
+            if (!typedConfirmation) {
                 setImportStatus("Deletion cancelled. The confirmation text did not match.", "info");
                 return;
             }
         } else {
-            const confirmed = window.confirm(
-                "Delete this draft and all assessment components and score records belonging to it? Students cannot see draft results. The import history will remain as a deleted audit record."
-            );
+            const confirmed = await showAcademicConfirmation({
+                title: "Delete this draft?",
+                message: "All assessment components and score records belonging to this draft will be removed. Students cannot see draft results. The import history will remain as an audit record.",
+                confirmLabel: "Delete draft",
+                danger: true
+            });
             if (!confirmed) return;
         }
 
