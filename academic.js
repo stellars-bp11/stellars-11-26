@@ -39,7 +39,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 import {
     getAuth,
-    signInWithEmailAndPassword,
     onAuthStateChanged,
     signOut,
     setPersistence,
@@ -67,8 +66,6 @@ const firebaseConfig = {
     measurementId: "G-DTHTZNT135"
 };
 
-const AUTH_ALIAS_DOMAIN = "class-web-7241e.firebaseapp.com";
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -76,12 +73,8 @@ const db = getFirestore(app);
 /* DOM references */
 const loginView = document.getElementById("loginView");
 const portalView = document.getElementById("portalView");
-const loginForm = document.getElementById("academicLoginForm");
-const usernameInput = document.getElementById("academicUsername");
-const passwordInput = document.getElementById("academicPassword");
-const togglePasswordButton = document.getElementById("togglePassword");
-const formMessage = document.getElementById("academicFormMessage");
-const loginSubmitButton = document.getElementById("loginSubmitButton");
+const academicSignInLink = document.getElementById("academicSignInLink");
+const academicAccessMessage = document.getElementById("academicAccessMessage");
 
 const profileArea = document.getElementById("profileArea");
 const profileMenuButton = document.getElementById("profileMenuButton");
@@ -104,25 +97,6 @@ const resultsContainer = document.getElementById("resultsContainer");
 
 let currentProfile = null;
 let currentAuthUser = null;
-let isSubmitting = false;
-
-/* Convert a full-name username into the internal Firebase email alias. */
-function usernameToAuthEmail(username) {
-    const normalized = String(username || "")
-        .normalize("NFKD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, ".")
-        .replace(/^\.+|\.+$/g, "");
-
-    if (!normalized) {
-        throw new Error("Username tidak valid.");
-    }
-
-    return normalized + "@" + AUTH_ALIAS_DOMAIN;
-}
-
 function roleLabel(role) {
     if (role === "superAdmin" || role === "super_admin") return "Super Admin";
     if (role === "admin") return "Admin";
@@ -140,30 +114,19 @@ function getInitials(name) {
         .join("") || "S";
 }
 
-function setLoginMessage(message, type = "error") {
-    if (!formMessage) return;
-    formMessage.textContent = message;
-    formMessage.dataset.type = type;
-}
-
-function setLoginBusy(busy) {
-    isSubmitting = busy;
-    if (!loginSubmitButton) return;
-    loginSubmitButton.disabled = busy;
-    loginSubmitButton.classList.toggle("is-loading", busy);
-    const label = loginSubmitButton.querySelector("span");
-    if (label) label.textContent = busy ? "Signing in…" : "Sign In";
-}
-
 function showLogin(message = "") {
     currentProfile = null;
     currentAuthUser = null;
     loginView.hidden = false;
     portalView.hidden = true;
     profileArea.hidden = true;
+    academicSignInLink.hidden = false;
     closeProfileMenu();
 
-    if (message) setLoginMessage(message);
+    if (academicAccessMessage) {
+        academicAccessMessage.textContent = message;
+        academicAccessMessage.hidden = !message;
+    }
 }
 
 function closeProfileMenu() {
@@ -216,6 +179,7 @@ function showProfile(profile, authUser) {
     loginView.hidden = true;
     portalView.hidden = false;
     profileArea.hidden = false;
+    academicSignInLink.hidden = true;
 
     const isStudent = profile.role === "student";
     const isAdmin = profile.role === "admin" ||
@@ -370,15 +334,12 @@ async function handleAuthState(user) {
         return;
     }
 
-    setLoginBusy(true);
-    setLoginMessage("Checking your account…", "info");
-
     try {
         const profileSnapshot = await getDoc(doc(db, "users", user.uid));
 
         if (!profileSnapshot.exists()) {
             await signOut(auth);
-            showLogin("Akun Firebase ditemukan, tetapi profil STELLARS belum terdaftar. Hubungi Super Admin.");
+            showLogin("Akun belum memiliki profil STELLARS. Hubungi administrator.");
             return;
         }
 
@@ -399,79 +360,15 @@ async function handleAuthState(user) {
         showProfile(profile, user);
     } catch (error) {
         console.error("Unable to load account profile:", error);
-        await signOut(auth);
         showLogin(
             error.code === "permission-denied"
-                ? "Login berhasil, tetapi akses profil belum disiapkan. Firestore Security Rules Academic Portal perlu dikonfigurasi terlebih dahulu."
-                : "Profil akun belum bisa dimuat. Periksa konfigurasi Firebase dan hubungi administrator."
+                ? "Akses profil belum diizinkan. Periksa Firestore Security Rules."
+                : "Profil akun belum bisa dimuat. Periksa koneksi dan coba lagi."
         );
-    } finally {
-        setLoginBusy(false);
     }
 }
 
-/* Password visibility */
-if (togglePasswordButton && passwordInput) {
-    togglePasswordButton.addEventListener("click", () => {
-        const showPassword = passwordInput.type === "password";
-        passwordInput.type = showPassword ? "text" : "password";
-
-        const icon = togglePasswordButton.querySelector("i");
-        if (icon) icon.className = showPassword ? "bx bx-hide" : "bx bx-show";
-
-        togglePasswordButton.setAttribute(
-            "aria-label",
-            showPassword ? "Hide password" : "Show password"
-        );
-    });
-}
-
-/* Username + password login */
-loginForm.addEventListener("submit", async event => {
-    event.preventDefault();
-    if (isSubmitting) return;
-
-    const username = usernameInput.value.trim();
-    const password = passwordInput.value;
-
-    if (!username || !password) {
-        setLoginMessage("Masukkan username dan password terlebih dahulu.");
-        return;
-    }
-
-    let emailAlias;
-    try {
-        emailAlias = usernameToAuthEmail(username);
-    } catch (error) {
-        setLoginMessage(error.message);
-        return;
-    }
-
-    setLoginBusy(true);
-    setLoginMessage("Signing in…", "info");
-
-    try {
-        await signInWithEmailAndPassword(auth, emailAlias, password);
-        passwordInput.value = "";
-    } catch (error) {
-        console.error("Academic Portal sign-in failed:", error);
-
-        const messageByCode = {
-            "auth/invalid-credential": "Username atau password tidak sesuai.",
-            "auth/user-not-found": "Akun tidak ditemukan. Periksa penulisan username.",
-            "auth/wrong-password": "Password tidak sesuai.",
-            "auth/too-many-requests": "Terlalu banyak percobaan. Coba lagi nanti.",
-            "auth/network-request-failed": "Koneksi bermasalah. Periksa internet lalu coba lagi."
-        };
-
-        setLoginMessage(
-            messageByCode[error.code] ||
-            "Login belum berhasil. Pastikan akun sudah dibuat oleh Super Admin."
-        );
-    } finally {
-        setLoginBusy(false);
-    }
-});
+/* Login is handled once from the main STELLARS website. */
 
 /* Profile menu */
 profileMenuButton.addEventListener("click", () => {
@@ -540,8 +437,7 @@ logoutButton.addEventListener("click", async () => {
     closeProfileMenu();
     try {
         await signOut(auth);
-        passwordInput.value = "";
-        setLoginMessage("Kamu sudah logout.", "info");
+        showLogin();
     } catch (error) {
         console.error("Logout failed:", error);
         alert("Logout belum berhasil. Coba lagi.");
