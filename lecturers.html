@@ -50,36 +50,36 @@
          NAVBAR
     ========================================== -->
 
-    <header>
-
-        <nav>
-
-            <div class="logo">
-                STELLARS
-            </div>
-
+    
+    <header class="site-header">
+        <nav class="site-nav" aria-label="Main navigation">
+            <a href="index.html" class="logo">Stellars</a>
             <ul class="nav-links">
-
-                <li>
-                    <a href="index.html">Home</a>
-                </li>
-
-                <li>
-                    <a href="lecturers.html" class="active">Lecturers</a>
-                </li>
-
-                <li>
-                    <a href="crewmates.html">Crewmates</a>
-                </li>
-
-                <li>
-                    <a href="library.html">Library</a>
-                </li>
-
+                <li><a href="index.html">Home</a></li>
+                <li><a href="lecturers.html" class="active">Lecturers</a></li>
+                <li><a href="crewmates.html">Crewmates</a></li>
+                <li><a href="library.html">Library</a></li>
             </ul>
-
+            
+            <div class="site-nav-actions">
+                <a href="https://www.instagram.com/ppbp.11?utm_source=ig_web_button_share_sheet&amp;stkn=ZDNlMzQwMzIxNw==" class="profile-button" target="_blank" rel="noopener noreferrer">Get to Know Us</a>
+                <div class="site-account-wrap">
+                    <button class="site-account-button" id="siteAccountButton" type="button"
+                            aria-label="Open account menu" aria-haspopup="true" aria-expanded="false">
+                        <span id="siteAccountAvatar">★</span>
+                    </button>
+                    <div class="site-account-menu" id="siteAccountMenu" hidden>
+                        <div class="site-account-heading">
+                            <strong id="siteAccountName">Welcome, Star!</strong>
+                            <span id="siteAccountMeta">Sign in to see your profile</span>
+                        </div>
+                        <a id="siteAccountPortalLink" href="academic.html">Sign in / Academic Portal</a>
+                        <a id="siteAccountProfileLink" href="academic.html?profile=1" hidden>My Profile</a>
+                        <button id="siteAccountLogout" type="button" hidden>Log Out</button>
+                    </div>
+                </div>
+            </div>
         </nav>
-
     </header>
 
 
@@ -602,6 +602,8 @@
 
         })();
     </script>
+
+    <script type="module" src="account.js"></script>
 
 </body>
 
