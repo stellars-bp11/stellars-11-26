@@ -383,7 +383,7 @@ async function searchArtwork() {
     elements.searchButton.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Searching…';
     elements.results.replaceChildren();
     elements.results.hidden = false;
-    setComposerMessage("Looking through the Apple Music catalog…", "info");
+    setComposerMessage("Searching for matching album artwork…", "info");
 
     try {
         const url = new URL("https://itunes.apple.com/search");
@@ -446,7 +446,7 @@ async function searchArtwork() {
                 };
                 setCoverPreview(
                     artworkUrl,
-                    result.collectionName || "Apple Music artwork selected",
+                    result.collectionName || "Album artwork selected",
                     `Matched with ${result.trackName || songTitle} · ${result.artistName || artistName}`
                 );
                 setComposerMessage("Artwork selected. You can replace it manually if it isn't the right cover.", "success");
