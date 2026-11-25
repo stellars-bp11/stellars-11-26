@@ -323,6 +323,8 @@ function renderSignedOutState() {
     elements.count.textContent = "Sign in to see today's songs";
     elements.empty.hidden = true;
     elements.authGate.hidden = false;
+    elements.authGate.querySelector("strong").textContent = "Sign in to see today's song wall";
+    elements.authGate.querySelector("p").textContent = "Today's submissions are shared with active STELLARS members.";
     elements.footnote.hidden = false;
     elements.mySongStatus.textContent = "Sign in with your STELLARS account to share a song with everyone.";
     elements.openButton.disabled = true;
@@ -631,6 +633,8 @@ onAuthStateChanged(auth, async user => {
             renderSignedOutState();
             elements.count.textContent = "Active membership required";
             elements.mySongStatus.textContent = "This account does not have an active STELLARS member profile.";
+            elements.authGate.querySelector("strong").textContent = "Active STELLARS membership required";
+            elements.authGate.querySelector("p").textContent = "Only active member accounts can view and share today's songs.";
             elements.signInButton.hidden = true;
             return;
         }
