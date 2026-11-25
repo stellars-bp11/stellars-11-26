@@ -261,13 +261,14 @@ function buildSongCard(song, uid) {
 
     copy.append(tag, title, artist, member, story);
 
-    if (song.storeUrl && isSafeHttpUrl(song.storeUrl)) {
+    const spotifySearchUrl = buildSpotifySearchUrl(song.songTitle, song.artistName);
+    if (spotifySearchUrl) {
         const link = document.createElement("a");
         link.className = "radio-song-link";
-        link.href = song.storeUrl;
+        link.href = spotifySearchUrl;
         link.target = "_blank";
         link.rel = "noopener noreferrer";
-        link.innerHTML = '<i class="bx bx-link-external" aria-hidden="true"></i> View on Apple Music';
+        link.innerHTML = '<i class="bx bx-link-external" aria-hidden="true"></i> See on Spotify';
         copy.append(link);
     }
 
@@ -286,6 +287,12 @@ function buildSongCard(song, uid) {
 
 function getInitials(name = "Star") {
     return String(name).trim().split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0].toUpperCase()).join("") || "S";
+}
+
+function buildSpotifySearchUrl(songTitle, artistName) {
+    const queryText = [songTitle, artistName].filter(Boolean).join(" ").trim();
+    if (!queryText) return "";
+    return "https://open.spotify.com/search/" + encodeURIComponent(queryText);
 }
 
 function isSafeHttpUrl(value) {
@@ -434,7 +441,7 @@ async function searchArtwork() {
                 selectedArtwork = {
                     url: artworkUrl,
                     source: "itunes",
-                    storeUrl: result.trackViewUrl || result.collectionViewUrl || "",
+                    storeUrl: buildSpotifySearchUrl(result.trackName || songTitle, result.artistName || artistName),
                     albumName: result.collectionName || ""
                 };
                 setCoverPreview(
