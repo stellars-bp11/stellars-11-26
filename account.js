@@ -472,11 +472,11 @@ registrationForm.addEventListener("submit", async event => {
         }
 
         const message = error.code === "auth/email-already-in-use"
-            ? "Akun untuk NIM ini sudah pernah dibuat. Coba login atau hubungi admin."
+            ? "Akun untuk NIM ini sudah pernah dibuat. Login dengan username lama."
             : error.code === "auth/weak-password"
                 ? "Password terlalu lemah. Gunakan minimal 8 karakter."
                 : error.code === "permission-denied"
-                    ? "Registrasi ditolak oleh aturan keamanan. Pastikan kode sudah diaktifkan admin dan Rules terbaru sudah di-deploy."
+                    ? "NIM ini kemungkinan sudah terhubung ke akun lama. Login dengan username dan password lama, lalu pilih Secure My Account."
                     : error.message || "Registrasi belum berhasil. Periksa data lalu coba lagi.";
         registrationMessage.textContent = message;
         registrationMessage.dataset.type = "error";
