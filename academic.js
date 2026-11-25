@@ -254,10 +254,10 @@ function showProfile(profile, authUser) {
     ]);
     const normalizedProfileName = String(fullName)
         .normalize("NFKD")
-        .replace(/[\\u0300-\\u036f]/g, "")
+        .replace(/[\u0300-\u036f]/g, "")
         .trim()
         .toLowerCase()
-        .replace(/\\s+/g, " ");
+        .split(" ").filter(Boolean).join(" ");
     if (accountResetPanel) {
         accountResetPanel.hidden = !(
             isAdmin &&
