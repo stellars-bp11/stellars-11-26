@@ -155,6 +155,12 @@ async function main() {
         return;
     }
 
+    // Update Auth first. If the Firestore batch fails afterwards, rerunning is safe:
+    // the script accepts either the old or corrected Auth displayName.
+    if (normalizeName(authDisplayName) !== normalizeName(NEW_NAME)) {
+        await auth.updateUser(uid, { displayName: NEW_NAME });
+    }
+
     const batch = db.batch();
     batch.update(profileDoc.ref, { fullName: NEW_NAME });
 
@@ -168,14 +174,10 @@ async function main() {
 
     await batch.commit();
 
-    if (normalizeName(authDisplayName) !== normalizeName(NEW_NAME)) {
-        await auth.updateUser(uid, { displayName: NEW_NAME });
-    }
-
     console.log("\nBERHASIL: nama akun disinkronkan.");
     console.log("- users.fullName       :", NEW_NAME);
     console.log("- nimIndex.fullName    :", indexesByUid.size, "dokumen diperbarui");
-    console.log("- activationCodes.name :", activationByNim.size, "dokumen diperbarui");
+    console.log("- activationCodes.fullName :", activationByNim.size, "dokumen diperbarui");
     console.log("- Auth displayName     :", NEW_NAME);
     console.log("- Firebase UID         : tetap");
     console.log("- NIM / login email    : tetap");
