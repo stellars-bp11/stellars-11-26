@@ -3596,3 +3596,348 @@ body.academic-page {
         font-size: 26px;
     }
 }
+
+
+/* =========================================================
+   ACADEMICS REBUILD — student and admin workspace
+   ========================================================= */
+
+.academic-portal-shell {
+    width: min(100% - 64px, 1320px);
+    padding: 44px 0 88px;
+}
+
+.portal-welcome {
+    min-height: 235px;
+    padding: clamp(30px, 4vw, 52px);
+    border: 1px solid rgba(220, 214, 255, 0.22);
+    border-radius: 28px;
+    background:
+        radial-gradient(ellipse at 85% 8%, rgba(192, 174, 255, 0.25), transparent 32%),
+        radial-gradient(ellipse at 5% 100%, rgba(89, 113, 255, 0.18), transparent 38%),
+        linear-gradient(115deg, rgba(14, 27, 92, 0.92), rgba(57, 34, 120, 0.88));
+    box-shadow: 0 24px 65px rgba(2, 5, 26, 0.25);
+}
+
+.portal-welcome h1 {
+    max-width: 780px;
+    font-size: clamp(36px, 4.5vw, 62px);
+    letter-spacing: -2.5px;
+}
+
+.portal-welcome > p {
+    max-width: 680px;
+    font-family: 'Roboto', sans-serif;
+    line-height: 1.7;
+}
+
+.portal-personal-slogan {
+    display: inline-block;
+    margin-top: 19px !important;
+    padding: 9px 13px;
+    border: 1px solid rgba(231, 225, 255, 0.16);
+    border-radius: 999px;
+    color: #ddd7ff !important;
+    background: rgba(255, 255, 255, 0.07);
+    font-size: 12px;
+}
+
+.portal-admin-view {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
+    gap: 24px;
+    margin-top: 34px;
+}
+
+.portal-admin-view > .portal-section-heading,
+.portal-admin-view > .academic-personal-results-panel,
+.portal-admin-view > .academic-import-workspace {
+    grid-column: 1 / -1;
+}
+
+.portal-section-heading {
+    margin: 0 0 2px;
+}
+
+.portal-section-heading h2 {
+    font-size: clamp(26px, 3vw, 36px);
+    letter-spacing: -1.2px;
+}
+
+.portal-section-heading p:not(.portal-kicker) {
+    color: rgba(232, 229, 255, 0.68);
+    font-family: 'Roboto', sans-serif;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.activation-manager-panel {
+    height: 100%;
+    margin: 0;
+    padding: clamp(22px, 2.8vw, 30px);
+    align-content: start;
+    border: 1px solid rgba(202, 190, 255, 0.23);
+    border-radius: 24px;
+    background:
+        radial-gradient(circle at 100% 0%, rgba(153, 130, 255, 0.24), transparent 40%),
+        linear-gradient(145deg, rgba(17, 27, 76, 0.92), rgba(45, 29, 89, 0.9));
+    box-shadow: 0 20px 52px rgba(2, 5, 25, 0.22);
+}
+
+.activation-manager-copy h3 {
+    color: #fff;
+    font-size: clamp(19px, 2vw, 23px);
+    letter-spacing: -0.6px;
+}
+
+.activation-manager-copy p {
+    color: rgba(235, 231, 255, 0.68);
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    line-height: 1.75;
+}
+
+.activation-workbook-picker {
+    min-height: 84px;
+    border: 1px dashed rgba(205, 195, 255, 0.4);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.055);
+}
+
+.activation-manager-status,
+.activation-manager-result,
+.activation-manager-footnote {
+    font-family: 'Roboto', sans-serif;
+    font-size: 11px;
+    line-height: 1.65;
+}
+
+.academic-grade-card {
+    width: 100%;
+    min-height: 100%;
+    margin: 0;
+    padding: clamp(24px, 3vw, 34px);
+    border: 1px solid rgba(228, 225, 255, 0.72);
+    border-radius: 24px;
+    background:
+        radial-gradient(circle at 100% 0%, rgba(207, 197, 255, 0.7), transparent 36%),
+        linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(244, 242, 255, 0.96));
+    box-shadow: 0 20px 52px rgba(2, 5, 25, 0.2);
+}
+
+.academic-grade-card-copy h3 {
+    font-size: clamp(20px, 2.2vw, 25px);
+    letter-spacing: -0.7px;
+}
+
+.academic-grade-card-copy > p:last-of-type {
+    max-width: 390px;
+    color: #716d87;
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    line-height: 1.75;
+}
+
+.academic-grade-card-button {
+    min-height: 43px;
+    border-radius: 12px;
+}
+
+.academic-personal-results-panel {
+    margin: 0;
+    padding: clamp(22px, 3vw, 36px);
+    border: 1px solid rgba(239, 237, 255, 0.82);
+    border-radius: 25px;
+    background:
+        radial-gradient(circle at 100% 0%, rgba(216, 208, 255, 0.5), transparent 32%),
+        linear-gradient(145deg, rgba(255, 255, 255, 0.99), rgba(247, 246, 255, 0.98));
+    box-shadow: 0 22px 58px rgba(2, 5, 25, 0.2);
+}
+
+.academic-admin-results-heading {
+    gap: 20px;
+}
+
+.admin-results-title-copy h2 {
+    color: #27223f;
+    font-size: clamp(24px, 3vw, 32px);
+    letter-spacing: -1.2px;
+}
+
+.admin-results-title-copy > p:last-child {
+    max-width: 600px;
+    color: #77728c;
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+.admin-results-stat {
+    border: 1px solid rgba(90, 73, 154, 0.09);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.78);
+    box-shadow: 0 8px 22px rgba(43, 32, 92, 0.055);
+}
+
+.academic-review-summary {
+    border-radius: 13px;
+}
+
+.admin-results-cards {
+    gap: 16px;
+}
+
+.academic-import-workspace {
+    margin-top: 0;
+    padding: clamp(20px, 3vw, 34px);
+    border: 1px solid rgba(208, 199, 255, 0.2);
+    border-radius: 26px;
+    background: rgba(12, 15, 39, 0.75);
+    box-shadow: 0 20px 54px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(16px);
+}
+
+.academic-import-heading h2 {
+    color: #fff;
+    font-size: clamp(25px, 3vw, 34px);
+    letter-spacing: -1px;
+}
+
+.academic-import-heading > div > p:last-child {
+    color: rgba(232, 229, 255, 0.68);
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+.academic-import-step-card {
+    border: 1px solid rgba(218, 211, 255, 0.16);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.055);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+}
+
+.academic-import-step-heading h3 {
+    color: #fff;
+}
+
+.academic-import-step-heading p,
+.academic-import-muted,
+.academic-import-footnote {
+    color: rgba(232, 229, 255, 0.65);
+    font-family: 'Roboto', sans-serif;
+    font-size: 11px;
+    line-height: 1.7;
+}
+
+.academic-import-field > span {
+    color: rgba(245, 243, 255, 0.88);
+}
+
+.academic-import-field input,
+.academic-import-field select {
+    border-color: rgba(212, 204, 255, 0.2);
+    color: #fff;
+    background: rgba(255, 255, 255, 0.075);
+}
+
+.academic-import-field option {
+    color: #25213b;
+    background: #fff;
+}
+
+.academic-upload-dropzone {
+    border-color: rgba(202, 190, 255, 0.35);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.055);
+}
+
+.academic-upload-dropzone strong {
+    color: #fff;
+}
+
+.academic-upload-dropzone > span:not(.academic-upload-icon) {
+    color: rgba(228, 223, 255, 0.6);
+}
+
+.academic-review-table-wrap {
+    border-color: rgba(205, 197, 255, 0.17);
+    border-radius: 16px;
+}
+
+.academic-review-table th {
+    color: #eeeaff;
+    background: rgba(105, 82, 196, 0.32);
+}
+
+.academic-review-table td {
+    color: #f4f1ff;
+    border-color: rgba(205, 197, 255, 0.1);
+}
+
+.academic-import-history {
+    border-color: rgba(205, 197, 255, 0.14);
+}
+
+.academic-import-history-row {
+    border-color: rgba(205, 197, 255, 0.12);
+}
+
+.academic-workspace-back,
+.academic-secondary-button {
+    border-color: rgba(213, 204, 255, 0.2);
+}
+
+@media (max-width: 900px) {
+    .academic-portal-shell {
+        width: min(100% - 40px, 760px);
+        padding-top: 32px;
+    }
+
+    .portal-admin-view {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 18px;
+    }
+
+    .portal-admin-view > .portal-section-heading,
+    .portal-admin-view > .academic-personal-results-panel,
+    .portal-admin-view > .academic-import-workspace {
+        grid-column: 1;
+    }
+}
+
+@media (max-width: 560px) {
+    .academic-portal-shell {
+        width: min(100% - 28px, 500px);
+        padding-top: 22px;
+    }
+
+    .portal-welcome {
+        min-height: 0;
+        padding: 25px 21px;
+        border-radius: 21px;
+    }
+
+    .portal-welcome h1 {
+        font-size: 35px;
+        letter-spacing: -1.6px;
+    }
+
+    .academic-admin-results-heading,
+    .academic-import-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .academic-personal-results-panel,
+    .academic-import-workspace {
+        padding: 19px 15px;
+        border-radius: 20px;
+    }
+
+    .admin-results-header-actions {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+}
