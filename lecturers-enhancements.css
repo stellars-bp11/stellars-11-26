@@ -666,3 +666,103 @@
 .lecturers-page footer {
     border-top-color: rgba(201, 188, 255, .17);
 }
+
+
+/* HERO REFINEMENT — STRONGER FACULTY TITLE */
+.lecturers-page .lecturers-hero {
+    min-height: 460px;
+    padding-top: 98px;
+    padding-bottom: 94px;
+    overflow: hidden;
+}
+.lecturers-page .lecturers-hero .eyebrow {
+    gap: 10px;
+    padding: 9px 13px;
+    border-color: rgba(201, 188, 255, .28);
+    border-radius: 999px;
+    color: #dcd3ff;
+    background: rgba(35, 29, 76, .46);
+    font: 9px "Silkscreen", monospace;
+    letter-spacing: 1.8px;
+}
+.lecturers-page .lecturers-hero .eyebrow::before {
+    content: "✦";
+    color: #c9bcff;
+    font-size: 12px;
+}
+.lecturers-page .lecturers-hero .hero-content h1 {
+    position: relative;
+    display: table;
+    margin: 24px 0 23px;
+    padding: 0 0 22px;
+    color: #fff;
+    background: linear-gradient(180deg, #fff 12%, #ded6ff 52%, #a997e8 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 10px 34px rgba(111, 85, 192, .42));
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(76px, 10vw, 126px);
+    font-style: italic;
+    font-weight: 600;
+    line-height: .96;
+    letter-spacing: -5px;
+    text-shadow: none;
+}
+.lecturers-page .lecturers-hero .hero-content h1::after {
+    content: "";
+    position: absolute;
+    left: 3px;
+    bottom: 0;
+    width: min(100%, 270px);
+    height: 4px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #7b64c3, #c9bcff 72%, transparent);
+    box-shadow: 0 0 20px rgba(201,188,255,.42);
+}
+.lecturers-page .lecturers-hero .hero-content > p:last-child {
+    max-width: 520px;
+    margin: 0;
+    color: rgba(246, 243, 255, .9);
+    font-size: clamp(15px, 1.5vw, 17px);
+    line-height: 1.85;
+}
+.lecturers-page .lecturers-hero .hero-content::after {
+    content: "01\A THE FACULTY";
+    white-space: pre;
+    top: 53%;
+    right: 0;
+    left: auto;
+    width: 158px;
+    height: 158px;
+    border-color: rgba(201, 188, 255, .4);
+    color: #e2dbff;
+    background: radial-gradient(circle, rgba(128, 111, 193, .2), rgba(35, 29, 76, .08) 68%, transparent 70%);
+    box-shadow: 0 0 0 12px rgba(201, 188, 255, .045), 0 0 55px rgba(144, 126, 218, .2);
+    text-align: center;
+    font: 9px/2.2 "Silkscreen", monospace;
+    letter-spacing: 1px;
+    transform: translateY(-50%) rotate(8deg);
+}
+@media (max-width: 760px) {
+    .lecturers-page .lecturers-hero {
+        min-height: 330px;
+        padding: 73px 24px 68px;
+    }
+    .lecturers-page .lecturers-hero .hero-content h1 {
+        margin: 20px 0 19px;
+        padding-bottom: 17px;
+        font-size: clamp(61px, 14vw, 88px);
+        letter-spacing: -3px;
+    }
+    .lecturers-page .lecturers-hero .hero-content h1::after {
+        width: 180px;
+    }
+    .lecturers-page .lecturers-hero .hero-content::after {
+        display: none;
+    }
+    .lecturers-page .lecturers-hero .hero-content > p:last-child {
+        max-width: 410px;
+        font-size: 14px;
+    }
+}
