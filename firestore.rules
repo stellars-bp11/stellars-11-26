@@ -82,9 +82,11 @@ service cloud.firestore {
       data.artworkUrl is string &&
       data.artworkUrl.size() > 0 &&
       data.artworkUrl.size() <= 2048 &&
+      data.artworkUrl.matches('^https://.*') &&
       data.artworkSource in ['itunes', 'upload'] &&
       data.storeUrl is string &&
       data.storeUrl.size() <= 2048 &&
+      (data.storeUrl == '' || data.storeUrl.matches('^https://.*')) &&
       data.story is string &&
       data.story.size() <= 240 &&
       data.createdAt is timestamp &&
