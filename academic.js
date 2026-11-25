@@ -260,7 +260,7 @@ function showProfile(profile, authUser) {
                 }
             });
 
-        import("./academic-import.js?v=fresh-roster-identity-20261125")
+        import("./academic-import.js?v=include-admin-roster-20261125")
             .then(({ initAcademicImport }) => {
                 initAcademicImport(profile, authUser);
             })
