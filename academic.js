@@ -841,6 +841,12 @@ document.addEventListener("keydown", event => {
     if (event.key === "Escape") closeProfileMenu();
 });
 
+/* Account security */
+document.getElementById("secureAccountButton").addEventListener("click", () => {
+    closeProfileMenu();
+    window.location.assign("index.html?security=1");
+});
+
 /* Profile dialog */
 openProfileButton.addEventListener("click", () => {
     closeProfileMenu();
