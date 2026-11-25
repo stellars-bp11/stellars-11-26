@@ -968,37 +968,7 @@ select,
     80% { transform: translateY(-3px) rotate(.8deg) scale(1.025); }
 }
 
-@media (hover: hover) and (pointer: fine) {
-    .quick-access-grid .quick-access-card:hover,
-    .home-identities .accountings .item:hover,
-    .home-history-section .history .entry:hover,
-    .crew-card:hover,
-    .crewmate-card:hover,
-    .lecturers-page .lecturer-card:hover,
-    .lecturers-page .featured-lecturer:hover,
-    .library-page .memory-card:hover,
-    .radio-page .radio-countdown-card:hover,
-    .radio-page .radio-prompt-card:hover,
-    .radio-page .radio-share-card:hover,
-    .radio-page .radio-song-card:hover,
-    .academic-page .academic-access-card:hover,
-    .academic-page .academic-grade-card:hover,
-    .academic-page .activation-manager-panel:hover,
-    .academic-page .academic-import-step-card:hover,
-    .academic-page .academic-import-history-card:hover,
-    .academic-page .admin-results-stat:hover,
-    .world-app .panel:hover,
-    .world-app .intro-stats > div:hover {
-        animation: stCartoonRattle .52s ease-in-out infinite;
-        box-shadow: 7px 7px 0 #2b2640 !important;
-        z-index: 2;
-    }
-
-    .radio-page .radio-song-card:hover,
-    .radio-page .radio-share-card:hover {
-        animation: stCardTeeter .55s ease-in-out infinite;
-    }
-}
+/* Infinite hover-rattle rules removed; cards now respond to pointer position. */
 
 /* Reduced-motion users get the bold card art, but no shaking. */
 @media (prefers-reduced-motion: reduce) {
@@ -1309,6 +1279,174 @@ select,
     .admin-results-stat,
     .intro-stats > div,
     .panel {
+        animation: none !important;
+        transition: none !important;
+        transform: none !important;
+    }
+}
+
+
+/* =========================================================
+   11. POINTER-REACTIVE CARDS
+   No idle animation and no automatic wobble. A card subtly
+   shifts away from the pointer while the pointer is inside it.
+========================================================= */
+
+/* These pages keep their cards still unless the pointer moves. */
+.academic-page .academic-login-card,
+.academic-page .academic-access-card,
+.academic-page .academic-grade-card,
+.academic-page .academic-personal-results-panel,
+.academic-page .student-personal-results-panel,
+.academic-page .activation-manager-panel,
+.academic-page .academic-import-step-card,
+.academic-page .academic-import-history-card,
+.academic-page .admin-results-stat,
+.academic-page .academic-result-card,
+.academic-page .academic-result-row,
+.library-page .memory-card,
+.crewmates-page .crew-card,
+.crewmates-page .crewmate-card,
+.lecturers-page .featured-lecturer,
+.lecturers-page .lecturer-card {
+    animation: none !important;
+    rotate: none !important;
+    transform-style: preserve-3d;
+    transition: transform .12s ease-out, box-shadow .18s ease !important;
+}
+
+.academic-page .academic-login-card,
+.academic-page .academic-access-card,
+.academic-page .academic-grade-card,
+.academic-page .academic-personal-results-panel,
+.academic-page .student-personal-results-panel,
+.academic-page .activation-manager-panel,
+.academic-page .academic-import-step-card,
+.academic-page .academic-import-history-card,
+.academic-page .admin-results-stat {
+    box-shadow: 0 8px 22px rgba(3, 5, 25, .16) !important;
+}
+
+.academic-page .academic-result-card {
+    box-shadow: 0 5px 14px rgba(3, 5, 25, .10) !important;
+}
+
+.academic-page .academic-result-row {
+    box-shadow: none !important;
+}
+
+.library-page .memory-card {
+    box-shadow: 0 8px 22px rgba(4, 6, 19, .18) !important;
+}
+
+.crewmates-page .crew-card,
+.crewmates-page .crewmate-card {
+    box-shadow: 0 9px 24px rgba(2, 5, 20, .20) !important;
+}
+
+.lecturers-page .featured-lecturer {
+    box-shadow: 0 14px 34px rgba(2, 5, 20, .22) !important;
+}
+
+.lecturers-page .lecturer-card {
+    box-shadow: 0 8px 22px rgba(2, 5, 20, .15) !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .academic-page .academic-login-card,
+.academic-page .academic-access-card,
+.academic-page .academic-grade-card,
+.academic-page .academic-personal-results-panel,
+.academic-page .student-personal-results-panel,
+.academic-page .activation-manager-panel,
+.academic-page .academic-import-step-card,
+.academic-page .academic-import-history-card,
+.academic-page .admin-results-stat,
+.academic-page .academic-result-card,
+.academic-page .academic-result-row,
+.library-page .memory-card,
+.crewmates-page .crew-card,
+.crewmates-page .crewmate-card,
+.lecturers-page .featured-lecturer,
+.lecturers-page .lecturer-card:hover:not(.st-pointer-reactive) {
+        transform: none !important;
+    }
+
+    .academic-page .academic-login-card,
+.academic-page .academic-access-card,
+.academic-page .academic-grade-card,
+.academic-page .academic-personal-results-panel,
+.academic-page .student-personal-results-panel,
+.academic-page .activation-manager-panel,
+.academic-page .academic-import-step-card,
+.academic-page .academic-import-history-card,
+.academic-page .admin-results-stat,
+.academic-page .academic-result-card,
+.academic-page .academic-result-row,
+.library-page .memory-card,
+.crewmates-page .crew-card,
+.crewmates-page .crewmate-card,
+.lecturers-page .featured-lecturer,
+.lecturers-page .lecturer-card.st-pointer-reactive {
+        animation: none !important;
+        transform:
+            perspective(900px)
+            translate3d(var(--st-repel-x, 0px), var(--st-repel-y, 0px), 0)
+            rotateX(var(--st-tilt-x, 0deg))
+            rotateY(var(--st-tilt-y, 0deg)) !important;
+    }
+}
+
+/* Reduced-motion preference always wins. */
+@media (prefers-reduced-motion: reduce) {
+    .academic-page .academic-login-card,
+.academic-page .academic-access-card,
+.academic-page .academic-grade-card,
+.academic-page .academic-personal-results-panel,
+.academic-page .student-personal-results-panel,
+.academic-page .activation-manager-panel,
+.academic-page .academic-import-step-card,
+.academic-page .academic-import-history-card,
+.academic-page .admin-results-stat,
+.academic-page .academic-result-card,
+.academic-page .academic-result-row,
+.library-page .memory-card,
+.crewmates-page .crew-card,
+.crewmates-page .crewmate-card,
+.lecturers-page .featured-lecturer,
+.lecturers-page .lecturer-card,
+    .academic-page .academic-login-card,
+.academic-page .academic-access-card,
+.academic-page .academic-grade-card,
+.academic-page .academic-personal-results-panel,
+.academic-page .student-personal-results-panel,
+.academic-page .activation-manager-panel,
+.academic-page .academic-import-step-card,
+.academic-page .academic-import-history-card,
+.academic-page .admin-results-stat,
+.academic-page .academic-result-card,
+.academic-page .academic-result-row,
+.library-page .memory-card,
+.crewmates-page .crew-card,
+.crewmates-page .crewmate-card,
+.lecturers-page .featured-lecturer,
+.lecturers-page .lecturer-card:hover,
+    .academic-page .academic-login-card,
+.academic-page .academic-access-card,
+.academic-page .academic-grade-card,
+.academic-page .academic-personal-results-panel,
+.academic-page .student-personal-results-panel,
+.academic-page .activation-manager-panel,
+.academic-page .academic-import-step-card,
+.academic-page .academic-import-history-card,
+.academic-page .admin-results-stat,
+.academic-page .academic-result-card,
+.academic-page .academic-result-row,
+.library-page .memory-card,
+.crewmates-page .crew-card,
+.crewmates-page .crewmate-card,
+.lecturers-page .featured-lecturer,
+.lecturers-page .lecturer-card.st-pointer-reactive {
         animation: none !important;
         transition: none !important;
         transform: none !important;
