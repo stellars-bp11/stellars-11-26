@@ -604,3 +604,123 @@
     font-family: inherit;
     cursor: pointer;
 }
+
+
+/* =========================================================
+   RADIO NAVBAR — ACCOUNT MENU + CLEAN HEADER EDGE
+   Radio intentionally keeps this shared account styling local
+   so the rest of the site's global stylesheet is not imported.
+========================================================= */
+.radio-page .site-header {
+    border-bottom: 0;
+}
+
+.radio-page .site-account-wrap {
+    position: relative;
+    z-index: 1100;
+    flex: 0 0 auto;
+    margin: 0;
+}
+
+.radio-page .site-account-button {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid rgba(255,255,255,.7);
+    border-radius: 50%;
+    color: #fff;
+    background: linear-gradient(145deg, #897af2, #38218e);
+    box-shadow: 0 7px 20px rgba(10, 8, 48, .24), inset 0 1px 0 rgba(255,255,255,.3);
+    cursor: pointer;
+    font: 700 15px 'Ubuntu', sans-serif;
+    letter-spacing: .4px;
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.radio-page .site-account-button:hover,
+.radio-page .site-account-button[aria-expanded="true"] {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(10, 8, 48, .32), 0 0 0 4px rgba(207,198,255,.16);
+}
+
+.radio-page .site-account-menu {
+    position: absolute;
+    top: calc(100% + 13px);
+    right: 0;
+    z-index: 1200;
+    display: grid;
+    gap: 4px;
+    width: min(270px, calc(100vw - 32px));
+    padding: 10px;
+    border: 1px solid rgba(226,222,246,.95);
+    border-radius: 17px;
+    color: #292541;
+    background: rgba(255,255,255,.98);
+    box-shadow: 0 18px 48px rgba(5,7,35,.28);
+}
+
+.radio-page .site-account-menu[hidden] {
+    display: none !important;
+}
+
+.radio-page .site-account-heading {
+    display: grid;
+    gap: 5px;
+    padding: 12px 12px 14px;
+    border-bottom: 1px solid #efedf6;
+}
+
+.radio-page .site-account-heading strong {
+    color: #292541;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.radio-page .site-account-heading span {
+    color: #77738d;
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.radio-page .site-account-menu > a,
+.radio-page .site-account-menu > button:not(.site-account-security-button) {
+    width: 100%;
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 10px;
+    color: #433b76;
+    background: transparent;
+    cursor: pointer;
+    font: 600 12px 'Ubuntu', sans-serif;
+    text-align: left;
+    text-decoration: none;
+}
+
+.radio-page .site-account-menu > a:hover,
+.radio-page .site-account-menu > button:not(.site-account-security-button):hover {
+    color: #302078;
+    background: #f1effb;
+}
+
+.radio-page .site-account-menu > button#siteAccountLogout {
+    color: #a52f4b;
+}
+
+.radio-page .site-account-menu > button#siteAccountLogout[hidden],
+.radio-page .site-account-menu > a[hidden],
+.radio-page .site-account-menu > button[hidden] {
+    display: none !important;
+}
+
+@media (max-width: 760px) {
+    .radio-page .site-account-button {
+        width: 40px;
+        height: 40px;
+    }
+}
