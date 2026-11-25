@@ -43,6 +43,16 @@ service cloud.firestore {
       );
     }
 
+    function isCurrentJakartaRadioDay(dayId) {
+      let jakartaNow = request.time + duration.value(7, "h");
+      let yearPart = string(jakartaNow.year());
+      let monthNumber = string(jakartaNow.month());
+      let dayNumber = string(jakartaNow.day());
+      let monthPart = monthNumber.size() == 1 ? "0" + monthNumber : monthNumber;
+      let dayPart = dayNumber.size() == 1 ? "0" + dayNumber : dayNumber;
+      return dayId == yearPart + "-" + monthPart + "-" + dayPart;
+    }
+
     function validRadioSong(dayId, memberId) {
       let data = request.resource.data;
       return data.keys().hasAll([
@@ -141,10 +151,12 @@ service cloud.firestore {
       allow read: if activeMember();
       allow create: if activeMember() &&
         request.auth.uid == memberId &&
+        isCurrentJakartaRadioDay(dayId) &&
         validRadioSong(dayId, memberId);
       allow update: if activeMember() &&
         request.auth.uid == memberId &&
         resource.data.uid == memberId &&
+        isCurrentJakartaRadioDay(dayId) &&
         request.resource.data.createdAt == resource.data.createdAt &&
         validRadioSong(dayId, memberId);
       allow delete: if activeMember() && request.auth.uid == memberId;
