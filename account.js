@@ -248,14 +248,16 @@ registrationForm.addEventListener("submit", async event => {
             normalizeStudentName(activation.fullName) !== normalizeStudentName(fullName)) {
             throw new Error("Kode tidak cocok dengan nama dan NIM ini, atau sudah pernah digunakan.");
         }
+        // Use the official name bound to the activation code as the canonical profile name.
+        const verifiedFullName = String(activation.fullName);
 
         const emailAlias = usernameToAuthEmail(nim);
         createdCredential = await createUserWithEmailAndPassword(auth, emailAlias, password);
-        await updateProfile(createdCredential.user, { displayName: fullName });
+        await updateProfile(createdCredential.user, { displayName: verifiedFullName });
 
         const batch = writeBatch(db);
         batch.set(doc(db, "users", createdCredential.user.uid), {
-            fullName,
+            fullName: verifiedFullName,
             username: nim,
             nim,
             role: "student",
@@ -267,12 +269,11 @@ registrationForm.addEventListener("submit", async event => {
         });
         batch.set(doc(db, "nimIndex", nim), {
             uid: createdCredential.user.uid,
-            fullName,
+            fullName: verifiedFullName,
             isActive: true
         });
         batch.update(activationRef, {
             status: "redeemed",
-            redeemedBy: createdCredential.user.uid,
             redeemedAt: serverTimestamp()
         });
         await batch.commit();
@@ -282,8 +283,8 @@ registrationForm.addEventListener("submit", async event => {
         registrationDialog.close();
         loginDialog.close();
 
-        avatar.textContent = initials(fullName);
-        nameLabel.textContent = fullName;
+        avatar.textContent = initials(verifiedFullName);
+        nameLabel.textContent = verifiedFullName;
         metaLabel.textContent = "Student";
         loginButton.hidden = true;
         profileLink.hidden = false;
