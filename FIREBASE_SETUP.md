@@ -153,3 +153,29 @@ Firestore.
 Scheduled Cloud Functions use Cloud Scheduler and may require the Firebase
 project to be on the Blaze (pay-as-you-go) plan. Review the billing setup in
 Firebase Console before deploying the scheduled cleanup.
+
+## STELLARS Pulse — Daily Random Poll
+
+STELLARS Pulse selects one question and four nominees per Jakarta calendar
+day. The daily selection is generated deterministically from the date and
+stored once at `pulseDays/{YYYY-MM-DD}`, so every member sees the same
+question and A–D candidates. The roster is read from the 45 names shown on
+the Crewmates page.
+
+Active members can read today's poll and votes. Each member can create only
+one vote document at `pulseDays/{dayKey}/votes/{firebaseUid}`. Poll creation
+and vote submission are restricted by Firestore Rules to 09:30–13:00
+Asia/Jakarta server time. Votes cannot be changed or deleted after submission.
+The Home page reveals the highest-vote nominee(s) after 13:00 WIB; ties are
+shown as shared winners.
+
+The poll document is initialized by the first active member who loads Home
+during the voting window. Firestore Rules enforce the server-side voting
+window even if a browser clock is changed.
+
+After updating `firestore.rules`, deploy the full rules file from the repository
+root with:
+
+```bash
+firebase deploy --only firestore:rules --project class-web-7241e
+```
