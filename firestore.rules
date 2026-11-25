@@ -48,8 +48,7 @@ service cloud.firestore {
         data.nim.matches('^[0-9]{5,24}$') &&
         data.status == 'available' &&
         data.createdAt is timestamp &&
-        data.createdBy == request.auth.uid &&
-        !exists(nimPath);
+        data.createdBy == request.auth.uid;
     }
 
     function validStudentProfileCreate(userId) {
@@ -95,8 +94,7 @@ service cloud.firestore {
     function validActivationCodeRedemption(codeHash) {
       let profilePath = /databases/$(database)/documents/users/$(request.auth.uid);
       let profile = getAfter(profilePath);
-      let nimIndexPath = /databases/$(database)/documents/nimIndex/$(resource.data.nim);
-      let nimIndex = getAfter(nimIndexPath);
+      let profileHasActivationHash = 'activationCodeHash' in profile.data.keys();
       return signedIn() &&
         resource.data.status == 'available' &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'redeemedBy', 'redeemedAt']) &&
@@ -104,15 +102,11 @@ service cloud.firestore {
         request.resource.data.redeemedBy == request.auth.uid &&
         request.resource.data.redeemedAt is timestamp &&
         existsAfter(profilePath) &&
-        profile.data.activationCodeHash == codeHash &&
+        (!profileHasActivationHash || profile.data.activationCodeHash == codeHash) &&
         profile.data.nim == resource.data.nim &&
         profile.data.fullName == resource.data.fullName &&
         profile.data.role == 'student' &&
-        profile.data.isActive == true &&
-        existsAfter(nimIndexPath) &&
-        nimIndex.data.uid == request.auth.uid &&
-        nimIndex.data.fullName == profile.data.fullName &&
-        nimIndex.data.isActive == true;
+        profile.data.isActive == true;
     }
 
     function validStudentNimIndexCreate(nim) {
