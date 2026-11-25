@@ -151,10 +151,11 @@ const securityClose = document.getElementById("siteAccountSecurityClose");
 const authReady = setPersistence(auth, browserLocalPersistence);
 const pageParams = new URLSearchParams(window.location.search);
 let shouldAutoOpenLogin = pageParams.get("login") === "1";
+let shouldAutoOpenSecurity = pageParams.get("security") === "1";
 const returnTarget = pageParams.get("return");
 
-// Consume the one-time login URL flags so they cannot reopen the dialog on logout.
-if (shouldAutoOpenLogin || returnTarget) {
+// Consume the one-time URL flags while retaining their in-memory actions.
+if (shouldAutoOpenLogin || shouldAutoOpenSecurity || returnTarget) {
     window.history.replaceState({}, "", window.location.pathname + window.location.hash);
 }
 
@@ -581,7 +582,7 @@ authReady
             logoutButton.hidden = true;
             securityMenuButton.hidden = true;
 
-            if (shouldAutoOpenLogin && !loginDialog.open) {
+            if ((shouldAutoOpenLogin || shouldAutoOpenSecurity) && !loginDialog.open) {
                 shouldAutoOpenLogin = false;
                 loginDialog.showModal();
             }
@@ -612,11 +613,29 @@ authReady
                     super_admin: "Super Admin"
                 };
                 metaLabel.textContent = roleNames[profile.role] || "Signed in";
-                securityMenuButton.hidden =
-                    !["student", "admin", "superAdmin", "super_admin"].includes(profile.role);
+                const canSecureAccount =
+                    ["student", "admin", "superAdmin", "super_admin"].includes(profile.role) &&
+                    profile.isActive === true;
+                securityMenuButton.hidden = !canSecureAccount;
+
+                if (shouldAutoOpenSecurity) {
+                    shouldAutoOpenSecurity = false;
+                    if (canSecureAccount) {
+                        openSecurityDialog();
+                    } else {
+                        alert("Akun ini belum memenuhi syarat untuk mengubah password. Hubungi admin STELLARS.");
+                    }
+                }
+            } else if (shouldAutoOpenSecurity) {
+                shouldAutoOpenSecurity = false;
+                alert("Profil akun STELLARS tidak ditemukan. Hubungi admin.");
             }
         } catch (error) {
             console.error("Could not load the STELLARS account profile:", error);
+            if (shouldAutoOpenSecurity) {
+                shouldAutoOpenSecurity = false;
+                alert("Profil akun belum berhasil dimuat. Muat ulang halaman lalu coba lagi.");
+            }
         }
     }))
     .catch(error => {
