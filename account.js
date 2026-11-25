@@ -80,27 +80,70 @@ const registrationDialog = document.createElement("dialog");
 registrationDialog.className = "site-login-dialog";
 registrationDialog.id = "siteRegistrationDialog";
 registrationDialog.setAttribute("aria-labelledby", "siteRegistrationTitle");
-registrationDialog.innerHTML = '<form id="siteRegistrationForm" class="site-login-form">' +
-    '<div class="site-login-top"><span class="site-login-mark" aria-hidden="true">✦</span>' +
-    '<button class="site-login-close" id="siteRegistrationClose" type="button" aria-label="Close registration">×</button></div>' +
-    '<p class="site-login-kicker">STELLARS BP11 · FIRST-TIME ACTIVATION</p>' +
-    '<h2 id="siteRegistrationTitle">Create your account.</h2>' +
-    '<p class="site-login-copy">For students who do not yet have a STELLARS account. If you already have an account, sign in first and choose Secure My Account.</p>' +
-    '<label for="siteRegistrationName">Full name</label>' +
-    '<input id="siteRegistrationName" name="fullName" type="text" autocomplete="name" placeholder="Enter your registered full name" maxlength="100" required>' +
-    '<label for="siteRegistrationNim">NIM</label>' +
-    '<input id="siteRegistrationNim" name="nim" type="text" inputmode="numeric" autocomplete="off" placeholder="Enter your NIM" maxlength="24" required>' +
-    '<label for="siteRegistrationCode">Personal activation code</label>' +
-    '<input id="siteRegistrationCode" name="activationCode" type="text" autocomplete="off" autocapitalize="characters" placeholder="XXXX-XXXX-XXXX-XXXX" maxlength="19" required>' +
-    '<label for="siteRegistrationPassword">Create password</label>' +
-    '<input id="siteRegistrationPassword" name="password" type="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters" required>' +
-    '<label for="siteRegistrationConfirm">Confirm password</label>' +
-    '<input id="siteRegistrationConfirm" name="confirmPassword" type="password" autocomplete="new-password" minlength="8" placeholder="Repeat your password" required>' +
-    '<p class="site-login-message" id="siteRegistrationMessage" role="status" aria-live="polite"></p>' +
-    '<button class="site-login-submit" id="siteRegistrationSubmit" type="submit"><span>Create Account</span><span aria-hidden="true">→</span></button>' +
-    '<button class="site-login-register-link" id="siteRegistrationBack" type="button">Back to Sign In</button>' +
-    '<p class="site-login-footnote">Your NIM is used to match academic results. It is not your password.</p>' +
-    '</form>';
+registrationDialog.innerHTML = `
+    <form id="siteRegistrationForm" class="site-login-form" novalidate>
+        <div class="site-login-top">
+            <span class="site-login-mark" aria-hidden="true">✦</span>
+            <button class="site-login-close" id="siteRegistrationClose" type="button" aria-label="Close registration">×</button>
+        </div>
+
+        <p class="site-login-kicker" id="siteRegistrationStepLabel">STEP 1 OF 2 · STUDENT VERIFICATION</p>
+        <h2 id="siteRegistrationTitle">Verify your student details.</h2>
+        <p class="site-login-copy" id="siteRegistrationCopy">
+            Enter the official name and NIM registered by STELLARS, together with your personal activation code.
+        </p>
+
+        <section class="site-registration-step" id="siteRegistrationIdentityStep">
+            <label for="siteRegistrationName">Full name</label>
+            <input id="siteRegistrationName" name="fullName" type="text"
+                   autocomplete="name" placeholder="Your registered full name"
+                   maxlength="100" required>
+
+            <label for="siteRegistrationNim">NIM</label>
+            <input id="siteRegistrationNim" name="nim" type="text"
+                   inputmode="numeric" autocomplete="off"
+                   placeholder="Your student number" maxlength="24" required>
+
+            <label for="siteRegistrationCode">Personal activation code</label>
+            <input id="siteRegistrationCode" name="activationCode" type="text"
+                   autocomplete="off" autocapitalize="characters" spellcheck="false"
+                   placeholder="XXXX-XXXX-XXXX-XXXX" maxlength="19" required>
+
+            <p class="site-register-field-note">
+                The code is personal and can only be used for the matching student name and NIM.
+            </p>
+        </section>
+
+        <section class="site-registration-step" id="siteRegistrationPasswordStep" hidden>
+            <div class="site-registration-summary" id="siteRegistrationVerifiedSummary" aria-live="polite"></div>
+
+            <label for="siteRegistrationPassword">Create password</label>
+            <input id="siteRegistrationPassword" name="password" type="password"
+                   autocomplete="new-password" minlength="8"
+                   placeholder="At least 8 characters">
+
+            <label for="siteRegistrationConfirm">Confirm password</label>
+            <input id="siteRegistrationConfirm" name="confirmPassword" type="password"
+                   autocomplete="new-password" minlength="8"
+                   placeholder="Repeat your password">
+        </section>
+
+        <p class="site-login-message" id="siteRegistrationMessage" role="status" aria-live="polite"></p>
+
+        <button class="site-login-submit" id="siteRegistrationSubmit" type="submit">
+            <span>Verify Student Details</span><span aria-hidden="true">→</span>
+        </button>
+        <button class="site-login-register-link" id="siteRegistrationEditDetails" type="button" hidden>
+            Back to student details
+        </button>
+        <button class="site-login-register-link" id="siteRegistrationBack" type="button">
+            Back to Sign In
+        </button>
+
+        <p class="site-login-footnote">
+            Your NIM identifies your academic records. It is not your password. Keep your password private.
+        </p>
+    </form>`;
 document.body.append(registrationDialog);
 
 const registrationForm = document.getElementById("siteRegistrationForm");
@@ -113,6 +156,16 @@ const registrationMessage = document.getElementById("siteRegistrationMessage");
 const registrationSubmit = document.getElementById("siteRegistrationSubmit");
 const registrationClose = document.getElementById("siteRegistrationClose");
 const registrationBack = document.getElementById("siteRegistrationBack");
+const registrationStepLabel = document.getElementById("siteRegistrationStepLabel");
+const registrationTitle = document.getElementById("siteRegistrationTitle");
+const registrationCopy = document.getElementById("siteRegistrationCopy");
+const registrationIdentityStep = document.getElementById("siteRegistrationIdentityStep");
+const registrationPasswordStep = document.getElementById("siteRegistrationPasswordStep");
+const registrationVerifiedSummary = document.getElementById("siteRegistrationVerifiedSummary");
+const registrationEditDetails = document.getElementById("siteRegistrationEditDetails");
+let verifiedActivation = null;
+let registrationBusy = false;
+
 const securityDialog = document.createElement("dialog");
 securityDialog.className = "site-login-dialog";
 securityDialog.id = "siteAccountSecurityDialog";
@@ -149,6 +202,7 @@ const securityClose = document.getElementById("siteAccountSecurityClose");
 
 
 const authReady = setPersistence(auth, browserLocalPersistence);
+let registrationInProgress = false;
 const pageParams = new URLSearchParams(window.location.search);
 let shouldAutoOpenLogin = pageParams.get("login") === "1";
 let shouldAutoOpenSecurity = pageParams.get("security") === "1";
@@ -195,11 +249,35 @@ function openLoginDialog() {
     loginUsername.focus();
 }
 
+function setRegistrationMessage(message, type = "") {
+    registrationMessage.textContent = message || "";
+    registrationMessage.dataset.type = message ? type : "";
+}
+
+function showRegistrationIdentityStep() {
+    verifiedActivation = null;
+    registrationIdentityStep.hidden = false;
+    registrationPasswordStep.hidden = true;
+    registrationEditDetails.hidden = true;
+    registrationStepLabel.textContent = "STEP 1 OF 2 · STUDENT VERIFICATION";
+    registrationTitle.textContent = "Verify your student details.";
+    registrationCopy.textContent =
+        "Enter the official name and NIM registered by STELLARS, together with your personal activation code.";
+    registrationSubmit.querySelector("span").textContent = "Verify Student Details";
+    registrationPassword.value = "";
+    registrationConfirm.value = "";
+    setRegistrationMessage("");
+}
+
+function resetRegistrationFlow() {
+    registrationForm.reset();
+    showRegistrationIdentityStep();
+}
+
 function openRegistrationDialog() {
     closeMenu();
     loginDialog.close();
-    registrationMessage.textContent = "";
-    registrationMessage.dataset.type = "";
+    resetRegistrationFlow();
     if (!registrationDialog.open) registrationDialog.showModal();
     registrationName.focus();
 }
@@ -364,83 +442,171 @@ registrationDialog.addEventListener("click", event => {
     if (event.target === registrationDialog) registrationDialog.close();
 });
 
+registrationCode.addEventListener("input", () => {
+    const compact = normalizeActivationCode(registrationCode.value)
+        .replace(/[^A-Z0-9]/g, "")
+        .slice(0, 16);
+    registrationCode.value = compact.match(/.{1,4}/g)?.join("-") || "";
+});
+
+registrationEditDetails.addEventListener("click", () => {
+    showRegistrationIdentityStep();
+    registrationName.focus();
+});
+
 registrationForm.addEventListener("submit", async event => {
     event.preventDefault();
-    if (registrationSubmit.disabled) return;
+    if (registrationBusy || registrationSubmit.disabled) return;
 
-    const fullName = registrationName.value.trim().replace(/\s+/g, " ");
-    const nim = registrationNim.value.trim();
-    const code = normalizeActivationCode(registrationCode.value);
+    // Stage 1: verify the activation code and its registered student identity.
+    if (!verifiedActivation) {
+        const fullName = registrationName.value.trim().replace(/\s+/g, " ");
+        const nim = registrationNim.value.trim();
+        const code = normalizeActivationCode(registrationCode.value);
+
+        if (!fullName || fullName.length > 100 || !/^\d{5,24}$/.test(nim)) {
+            setRegistrationMessage(
+                "Periksa kembali nama lengkap dan NIM. NIM harus terdiri dari 5–24 digit.",
+                "error"
+            );
+            return;
+        }
+
+        if (!/^[A-HJ-NP-Z2-9]{16}$/.test(code)) {
+            setRegistrationMessage(
+                "Kode aktivasi harus terdiri dari 16 karakter. Periksa kembali kode dari admin.",
+                "error"
+            );
+            return;
+        }
+
+        registrationBusy = true;
+        registrationSubmit.disabled = true;
+        registrationSubmit.querySelector("span").textContent = "Verifying…";
+        setRegistrationMessage("Memeriksa nama, NIM, dan kode aktivasi…", "info");
+
+        try {
+            await authReady;
+            const codeHash = await hashActivationCode(code);
+            const activationRef = doc(db, "activationCodes", codeHash);
+            const activationSnapshot = await getDoc(activationRef);
+
+            if (!activationSnapshot.exists()) {
+                throw new Error("Kode aktivasi tidak ditemukan. Pastikan admin sudah mendaftarkan kode tersebut.");
+            }
+
+            const activation = activationSnapshot.data() || {};
+            if (activation.status !== "available") {
+                throw new Error(
+                    activation.status === "redeemed"
+                        ? "Kode ini sudah pernah digunakan. Silakan Sign In dengan akun yang sudah dibuat."
+                        : "Kode aktivasi ini tidak lagi tersedia. Hubungi admin STELLARS."
+                );
+            }
+
+            const officialName = String(activation.fullName || "").trim();
+            const registeredNim = String(activation.nim || "").trim();
+
+            if (registeredNim !== nim ||
+                normalizeStudentName(officialName) !== normalizeStudentName(fullName)) {
+                throw new Error("Nama lengkap dan NIM tidak cocok dengan kode aktivasi ini. Periksa data yang diberikan admin.");
+            }
+
+            verifiedActivation = {
+                codeHash,
+                nim,
+                fullName: officialName
+            };
+
+            registrationVerifiedSummary.textContent =
+                "Student verified: " + officialName + " · NIM " + nim;
+            registrationIdentityStep.hidden = true;
+            registrationPasswordStep.hidden = false;
+            registrationEditDetails.hidden = false;
+            registrationStepLabel.textContent = "STEP 2 OF 2 · CREATE YOUR PASSWORD";
+            registrationTitle.textContent = "Secure your account.";
+            registrationCopy.textContent =
+                "Your student details are verified. Create a password that you will use whenever you sign in to STELLARS.";
+            registrationSubmit.querySelector("span").textContent = "Create Account";
+            setRegistrationMessage("Student details verified. You can now create your password.", "success");
+            registrationPassword.focus();
+        } catch (error) {
+            console.error("STELLARS student verification failed:", error);
+            setRegistrationMessage(
+                error.message || "Student verification failed. Check your details and try again.",
+                "error"
+            );
+        } finally {
+            registrationBusy = false;
+            registrationSubmit.disabled = false;
+            if (!verifiedActivation) {
+                registrationSubmit.querySelector("span").textContent = "Verify Student Details";
+            }
+        }
+        return;
+    }
+
+    // Stage 2: create the password and commit Auth/profile/NIM/code records atomically.
     const password = registrationPassword.value;
     const confirmPassword = registrationConfirm.value;
 
-    if (!fullName || !/^\d{5,24}$/.test(nim)) {
-        registrationMessage.textContent = "Periksa kembali nama lengkap dan NIM. NIM harus berupa 5–24 digit.";
-        registrationMessage.dataset.type = "error";
-        return;
-    }
-    if (!/^[A-HJ-NP-Z2-9]{16}$/.test(code)) {
-        registrationMessage.textContent = "Format kode aktivasi tidak valid. Periksa kembali kode dari admin.";
-        registrationMessage.dataset.type = "error";
-        return;
-    }
     if (password.length < 8) {
-        registrationMessage.textContent = "Password harus terdiri dari minimal 8 karakter.";
-        registrationMessage.dataset.type = "error";
+        setRegistrationMessage("Password harus terdiri dari minimal 8 karakter.", "error");
+        registrationPassword.focus();
         return;
     }
     if (password !== confirmPassword) {
-        registrationMessage.textContent = "Konfirmasi password belum sama.";
-        registrationMessage.dataset.type = "error";
+        setRegistrationMessage("Konfirmasi password belum sama.", "error");
+        registrationConfirm.focus();
         return;
     }
 
+    registrationBusy = true;
+    registrationInProgress = true;
     registrationSubmit.disabled = true;
-    registrationSubmit.querySelector("span").textContent = "Activating…";
-    registrationMessage.textContent = "Memeriksa kode aktivasi…";
-    registrationMessage.dataset.type = "info";
+    registrationEditDetails.disabled = true;
+    registrationSubmit.querySelector("span").textContent = "Creating account…";
+    setRegistrationMessage("Membuat akun STELLARS dan menghubungkan NIM kamu…", "info");
 
     let createdCredential = null;
     let profileCommitted = false;
 
     try {
         await authReady;
-        const codeHash = await hashActivationCode(code);
-        const activationRef = doc(db, "activationCodes", codeHash);
+
+        // Re-check the one-time code immediately before account creation.
+        const activationRef = doc(db, "activationCodes", verifiedActivation.codeHash);
         const activationSnapshot = await getDoc(activationRef);
-
         if (!activationSnapshot.exists()) {
-            throw new Error("Kode aktivasi tidak ditemukan. Pastikan kode yang dimasukkan benar.");
+            throw new Error("Kode aktivasi tidak lagi ditemukan. Kembali ke tahap pertama dan hubungi admin.");
         }
 
-        const activation = activationSnapshot.data();
+        const activation = activationSnapshot.data() || {};
         if (activation.status !== "available" ||
-            activation.nim !== nim ||
-            normalizeStudentName(activation.fullName) !== normalizeStudentName(fullName)) {
-            throw new Error("Kode tidak cocok dengan nama dan NIM ini, atau sudah pernah digunakan.");
+            String(activation.nim || "").trim() !== verifiedActivation.nim ||
+            normalizeStudentName(activation.fullName) !== normalizeStudentName(verifiedActivation.fullName)) {
+            throw new Error("Kode aktivasi sudah digunakan atau data mahasiswa berubah. Ulangi verifikasi dari tahap pertama.");
         }
-        // Use the official name bound to the activation code as the canonical profile name.
-        const verifiedFullName = String(activation.fullName);
 
-        const emailAlias = usernameToAuthEmail(nim);
+        const emailAlias = usernameToAuthEmail(verifiedActivation.nim);
         createdCredential = await createUserWithEmailAndPassword(auth, emailAlias, password);
-        await updateProfile(createdCredential.user, { displayName: verifiedFullName });
+        await updateProfile(createdCredential.user, { displayName: verifiedActivation.fullName });
 
         const batch = writeBatch(db);
         batch.set(doc(db, "users", createdCredential.user.uid), {
-            fullName: verifiedFullName,
-            username: nim,
-            nim,
+            fullName: verifiedActivation.fullName,
+            username: verifiedActivation.nim,
+            nim: verifiedActivation.nim,
             role: "student",
             isActive: true,
             birthDate: "",
             slogan: "",
-            activationCodeHash: codeHash,
+            activationCodeHash: verifiedActivation.codeHash,
             createdAt: serverTimestamp()
         });
-        batch.set(doc(db, "nimIndex", nim), {
+        batch.set(doc(db, "nimIndex", verifiedActivation.nim), {
             uid: createdCredential.user.uid,
-            fullName: verifiedFullName,
+            fullName: verifiedActivation.fullName,
             isActive: true
         });
         batch.update(activationRef, {
@@ -451,16 +617,19 @@ registrationForm.addEventListener("submit", async event => {
         await batch.commit();
         profileCommitted = true;
 
+        const createdName = verifiedActivation.fullName;
         registrationForm.reset();
+        verifiedActivation = null;
         registrationDialog.close();
         loginDialog.close();
 
-        avatar.textContent = initials(verifiedFullName);
-        nameLabel.textContent = verifiedFullName;
+        avatar.textContent = initials(createdName);
+        nameLabel.textContent = createdName;
         metaLabel.textContent = "Student";
         loginButton.hidden = true;
         profileLink.hidden = false;
         logoutButton.hidden = false;
+        securityMenuButton.hidden = false;
         portalLink.textContent = "Open Academic Results";
         portalLink.href = "academic.html";
 
@@ -468,30 +637,51 @@ registrationForm.addEventListener("submit", async event => {
             window.location.assign("academic.html");
         }
     } catch (error) {
+        console.error("STELLARS account creation failed:", error);
+
         if (createdCredential?.user && !profileCommitted) {
             try {
                 await deleteUser(createdCredential.user);
             } catch (cleanupError) {
-                console.error("Could not remove the incomplete Auth account after registration failed:", cleanupError);
-                try { await signOut(auth); } catch (_) {}
+                console.error("Could not remove incomplete Auth account:", cleanupError);
+                try { await signOut(auth); } catch (signOutError) {
+                    console.error("Could not sign out incomplete Auth session:", signOutError);
+                }
             }
         }
 
-        const message = error.code === "auth/email-already-in-use"
-            ? "Akun untuk NIM ini sudah pernah dibuat. Login dengan username lama."
-            : error.code === "auth/weak-password"
-                ? "Password terlalu lemah. Gunakan minimal 8 karakter."
-                : error.code === "permission-denied"
-                    ? "NIM ini kemungkinan sudah terhubung ke akun lama. Login dengan username dan password lama, lalu pilih Secure My Account."
-                    : error.message || "Registrasi belum berhasil. Periksa data lalu coba lagi.";
-        registrationMessage.textContent = message;
-        registrationMessage.dataset.type = "error";
+        let message = error.message || "Akun belum berhasil dibuat. Periksa data lalu coba lagi.";
+        if (error.code === "auth/email-already-in-use") {
+            message = "Akun untuk NIM ini sudah pernah dibuat. Silakan Sign In dengan akun tersebut.";
+        } else if (error.code === "auth/weak-password") {
+            message = "Password terlalu lemah. Gunakan minimal 8 karakter.";
+        } else if (error.code === "permission-denied") {
+            message = "Firestore menolak penyimpanan profil. NIM ini mungkin sudah terhubung ke akun lain, atau aturan keamanan perlu diperiksa. Jangan gunakan kode berulang kali; hubungi admin bila masalah berlanjut.";
+        } else if (error.code === "auth/network-request-failed") {
+            message = "Koneksi terputus saat membuat akun. Periksa internet sebelum mencoba kembali.";
+        }
+        setRegistrationMessage(message, "error");
+
+        if (/kode aktivasi|data mahasiswa berubah/i.test(message)) {
+            showRegistrationIdentityStep();
+            setRegistrationMessage(message, "error");
+        }
+
+        // The observer ignores temporary Auth changes during provisioning.
+        if (!profileCommitted && auth.currentUser) {
+            try { await signOut(auth); } catch (signOutError) {
+                console.error("Could not clear incomplete registration session:", signOutError);
+            }
+        }
     } finally {
+        registrationInProgress = false;
+        registrationBusy = false;
         registrationSubmit.disabled = false;
-        registrationSubmit.querySelector("span").textContent = "Create Account";
+        registrationEditDetails.disabled = false;
+        registrationSubmit.querySelector("span").textContent =
+            verifiedActivation ? "Create Account" : "Verify Student Details";
     }
 });
-
 
 loginDialog.addEventListener("click", event => {
     if (event.target === loginDialog) loginDialog.close();
@@ -571,6 +761,8 @@ logoutButton.addEventListener("click", async () => {
 
 authReady
     .then(() => onAuthStateChanged(auth, async user => {
+        if (registrationInProgress) return;
+
         if (!user) {
             avatar.textContent = "★";
             nameLabel.textContent = "Welcome, Star!";
