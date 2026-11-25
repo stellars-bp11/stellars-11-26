@@ -1,0 +1,93 @@
+/* STELLARS — LECTURERS POLISH PASS */
+.featured-lecturer {
+    overflow: hidden;
+    border: 1px solid rgba(214,208,255,.24);
+    border-radius: 28px;
+    background: linear-gradient(125deg,rgba(19,18,48,.88),rgba(37,24,79,.76));
+    box-shadow: 0 24px 60px rgba(2,5,20,.28), inset 0 1px 0 rgba(255,255,255,.08);
+}
+.featured-image { overflow: hidden; background: rgba(255,255,255,.06); }
+.featured-image img { transition: transform .65s ease; }
+.featured-lecturer:hover .featured-image img { transform: scale(1.025); }
+.featured-info { padding: clamp(26px,4vw,52px); }
+.featured-info h2 {
+    color: #fff;
+    letter-spacing: -.7px;
+    text-wrap: balance;
+}
+.featured-info > p:not(.eyebrow):not(.lecturer-field) {
+    color: rgba(245,243,255,.82);
+    line-height: 1.8;
+}
+.lecturer-field {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 4px 12px;
+    border: 1px solid rgba(201,188,255,.3);
+    border-radius: 999px;
+    color: #e3dcff;
+    background: rgba(139,92,246,.16);
+}
+.lecturer-directory { padding-top: clamp(54px,7vw,88px); }
+.lecturer-directory .section-heading { margin-bottom: 34px; }
+.lecturer-directory .section-heading h2 {
+    color: #fff;
+    letter-spacing: -.8px;
+    text-wrap: balance;
+}
+.lecturer-grid { align-items: stretch; gap: 22px; }
+.lecturer-card {
+    overflow: hidden;
+    border: 1px solid rgba(214,208,255,.5);
+    border-radius: 22px;
+    background: #fff;
+    box-shadow: 0 14px 34px rgba(2,5,20,.24);
+    transition: transform .28s ease, box-shadow .28s ease;
+}
+.lecturer-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 22px 42px rgba(2,5,20,.3),0 0 26px rgba(139,92,246,.2);
+}
+.lecturer-image { overflow: hidden; background: linear-gradient(145deg,#f6f3ff,#e9e4f8); }
+.lecturer-image img { transition: transform .55s ease; }
+.lecturer-card:hover .lecturer-image img { transform: scale(1.035); }
+.lecturer-info { display:flex; flex-direction:column; align-items:flex-start; gap:8px; padding:20px; }
+.lecturer-role {
+    display:inline-flex;
+    align-items:center;
+    min-height:25px;
+    margin:0;
+    padding:4px 10px;
+    border:1px solid #e3dcff;
+    border-radius:999px;
+    color:#5132a2;
+    background:#f1edff;
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:1px;
+    line-height:1.35;
+    text-transform:uppercase;
+}
+.lecturer-info h3 {
+    color:#28243b;
+    font-size:clamp(17px,1.5vw,21px);
+    line-height:1.3;
+    overflow-wrap:anywhere;
+}
+.lecturer-info > p:last-child { color:#858096; font-size:13px; }
+@media(max-width:700px) {
+    .featured-lecturer { border-radius:22px; }
+    .lecturer-directory { padding-top:56px; }
+    .lecturer-grid { gap:16px; }
+    .lecturer-info { padding:16px; }
+}
+@media(max-width:520px) {
+    .lecturer-grid { grid-template-columns:1fr; }
+    .lecturer-image { height:clamp(250px,78vw,360px); }
+    .lecturer-info h3 { font-size:20px; }
+}
+@media(prefers-reduced-motion:reduce) {
+    .featured-image img,.lecturer-card,.lecturer-image img { transition:none; }
+    .featured-lecturer:hover .featured-image img,.lecturer-card:hover,.lecturer-card:hover .lecturer-image img { transform:none; }
+}
