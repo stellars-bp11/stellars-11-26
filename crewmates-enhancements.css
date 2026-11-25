@@ -1,0 +1,191 @@
+/* =========================================================
+   STELLARS CREWMATES — POLISH PASS
+   Keeps the existing content and class structure intact.
+========================================================= */
+
+.crew-role-section {
+    scroll-margin-top: 110px;
+}
+
+.crew-role-section + .crew-role-section {
+    position: relative;
+}
+
+.crew-role-section + .crew-role-section::before {
+    content: "";
+    display: block;
+    width: min(100%, 1120px);
+    height: 1px;
+    margin: 0 auto 72px;
+    background: linear-gradient(90deg, transparent, rgba(214, 208, 255, .28), transparent);
+}
+
+.crew-role-section .section-heading {
+    position: relative;
+    margin-bottom: 32px;
+}
+
+.crew-role-section .section-heading h2 {
+    color: #fff;
+    letter-spacing: -.8px;
+    text-shadow: 0 4px 24px rgba(75, 42, 173, .28);
+}
+
+.crew-role-section .section-heading h2::after {
+    width: 112px;
+    height: 4px;
+    background: linear-gradient(90deg, #8b5cf6, #c9bcff 68%, transparent);
+}
+
+.crew-grid-2,
+.crew-grid-3 {
+    align-items: stretch;
+}
+
+.crew-card {
+    position: relative;
+    isolation: isolate;
+    border: 1px solid rgba(214, 208, 255, .62);
+    box-shadow: 0 14px 34px rgba(2, 5, 20, .26);
+}
+
+.crew-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    z-index: 2;
+    background: linear-gradient(90deg, #0f2182, #8b5cf6, #d6d0ff);
+    opacity: .85;
+}
+
+.crew-card:hover {
+    transform: translateY(-7px);
+    box-shadow: 0 22px 44px rgba(2, 5, 20, .32), 0 0 0 1px rgba(201, 188, 255, .55), 0 0 28px rgba(139, 92, 246, .22);
+}
+
+.crew-photo {
+    height: clamp(230px, 27vw, 320px);
+    background:
+        radial-gradient(ellipse at 50% 75%, rgba(139, 92, 246, .16), transparent 62%),
+        linear-gradient(145deg, #f7f5ff, #e9e5f8);
+}
+
+.crew-photo img {
+    object-position: center bottom;
+}
+
+.crew-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-height: 150px;
+    padding: 19px 21px 22px;
+}
+
+.crew-role {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    margin-bottom: 9px;
+    padding: 3px 10px;
+    color: #5132a2;
+    background: #f0ebff;
+    border: 1px solid #e2d9ff;
+    border-radius: 999px;
+    font-size: 10px;
+    letter-spacing: 1.2px;
+}
+
+.crew-info h3 {
+    margin-bottom: 10px;
+    font-size: clamp(17px, 1.5vw, 21px);
+    overflow-wrap: anywhere;
+}
+
+.crew-dob {
+    margin-top: auto;
+    color: #77738d;
+}
+
+.crew-quote {
+    width: 100%;
+    margin-top: 4px;
+    padding-top: 10px;
+    color: #68627b;
+    border-top: 1px solid #eeebf5;
+}
+
+@media (max-width: 900px) {
+    .crew-photo {
+        height: clamp(220px, 34vw, 290px);
+    }
+}
+
+@media (max-width: 768px) {
+    .crew-role-section + .crew-role-section::before {
+        margin-bottom: 52px;
+    }
+
+    .crew-role-section .section-heading {
+        margin-bottom: 26px;
+    }
+
+    .crew-grid-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .crew-grid-3 {
+        gap: 16px;
+    }
+
+    .crew-grid-3 > .crew-card {
+        flex: 0 1 calc((100% - 16px) / 2);
+        max-width: calc((100% - 16px) / 2);
+    }
+
+    .crew-photo {
+        height: 230px;
+    }
+
+    .crew-info {
+        min-height: 158px;
+        padding: 15px;
+    }
+}
+
+@media (max-width: 520px) {
+    .crew-grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .crew-grid-3 > .crew-card {
+        flex-basis: 100%;
+        max-width: 100%;
+    }
+
+    .crew-photo {
+        height: clamp(240px, 72vw, 330px);
+    }
+
+    .crew-info {
+        min-height: 0;
+        padding: 17px 18px 19px;
+    }
+
+    .crew-info h3 {
+        font-size: 20px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .crew-card,
+    .crew-photo img {
+        transition: none;
+    }
+    .crew-card:hover,
+    .crew-card:hover .crew-photo img {
+        transform: none;
+    }
+}
