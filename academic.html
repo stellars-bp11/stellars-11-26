@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Ubuntu:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="academic.css?v=activation-v1-20261125">
+    <link rel="stylesheet" href="academic.css?v=academics-rebuild-v1">
     <link rel="stylesheet" href="account.css?v=activation-v1-20261125">
     <link rel="stylesheet" href="responsive.css">
 </head>
@@ -37,7 +37,7 @@
             </div>
             <div class="academic-nav-actions">
                 <a class="academic-nav-pill" id="academicSignInLink"
-                   href="index.html?login=1&amp;return=academic.html">
+                   href="#loginView">
                     <i class="bx bx-log-in" aria-hidden="true"></i>
                     <span>Sign In</span>
                 </a>
@@ -69,25 +69,107 @@
         </nav>
     </header>
 
-    <main class="academic-access-main" id="loginView">
-        <section class="academic-access-card" aria-labelledby="academic-access-title">
+    
+    <main class="academic-login-shell" id="loginView">
+        <section class="academic-login-intro" aria-labelledby="academic-access-title">
             <div class="academic-eyebrow">
-                <span class="eyebrow-star"><i class="bx bx-lock-alt" aria-hidden="true"></i></span>
-                <span>STELLARS BP11 · ACADEMIC ACCESS</span>
+                <span class="eyebrow-star"><i class="bx bxs-star" aria-hidden="true"></i></span>
+                <span>STELLARS BP11 · ACADEMIC SPACE</span>
             </div>
-            <h1 id="academic-access-title">Your results,<br><span>your account.</span></h1>
-            <p class="academic-access-copy">
-                Academic results are private. Sign in to the main STELLARS website
-                first, then return here to see the results connected to your own account.
+            <p class="academic-login-overline">YOUR JOURNEY, YOUR PROGRESS</p>
+            <h1 id="academic-access-title">Every effort leaves a <span>mark.</span></h1>
+            <p class="academic-login-lead">
+                A private space to follow your academic journey, revisit every milestone,
+                and see the results you have earned.
             </p>
+            <div class="academic-login-highlights">
+                <article>
+                    <span><i class="bx bx-lock-alt" aria-hidden="true"></i></span>
+                    <div><strong>Personal and private</strong><small>Your academic records are connected to your own STELLARS account.</small></div>
+                </article>
+                <article>
+                    <span><i class="bx bx-line-chart" aria-hidden="true"></i></span>
+                    <div><strong>Progress in one place</strong><small>See published scores and assessment components by subject.</small></div>
+                </article>
+                <article>
+                    <span><i class="bx bx-planet" aria-hidden="true"></i></span>
+                    <div><strong>One account, one community</strong><small>Use the same STELLARS account across the website and Academics.</small></div>
+                </article>
+            </div>
+            <span class="academic-login-orbit" aria-hidden="true">✦</span>
+        </section>
+
+        <section class="academic-auth-card" aria-label="STELLARS account access">
+            <div class="academic-auth-brand">
+                <span class="academic-auth-brand-mark"><i class="bx bxs-star" aria-hidden="true"></i></span>
+                <span>STELLARS <small>BP11 ACADEMIC PORTAL</small></span>
+            </div>
+
+            <div id="academicSignInPanel">
+                <p class="academic-auth-kicker">WELCOME BACK</p>
+                <h2>Sign in to your account.</h2>
+                <p class="academic-auth-description">Use the username or NIM and password connected to your STELLARS account.</p>
+                <form id="academicSignInForm" class="academic-auth-form" novalidate>
+                    <label for="academicLoginUsername">Username or NIM</label>
+                    <input id="academicLoginUsername" name="username" type="text"
+                           autocomplete="username" autocapitalize="none"
+                           placeholder="Enter your username or NIM" required>
+                    <label for="academicLoginPassword">Password</label>
+                    <input id="academicLoginPassword" name="password" type="password"
+                           autocomplete="current-password" placeholder="Enter your password" required>
+                    <p class="academic-auth-message" id="academicSignInMessage" role="status" aria-live="polite"></p>
+                    <button class="academic-auth-submit" id="academicSignInSubmit" type="submit">
+                        <span>Sign In</span><i class="bx bx-right-arrow-alt" aria-hidden="true"></i>
+                    </button>
+                </form>
+                <div class="academic-auth-switch">
+                    <span>New student?</span>
+                    <button type="button" id="academicOpenRegister">Activate your account</button>
+                </div>
+                <p class="academic-auth-footnote">Already activated? Sign in with the same account you use on the STELLARS homepage.</p>
+            </div>
+
+            <div id="academicRegisterPanel" hidden>
+                <p class="academic-auth-kicker">FIRST-TIME ACTIVATION</p>
+                <h2>Create your STELLARS account.</h2>
+                <p class="academic-auth-description">Enter the official student details and the personal activation code issued by your administrator.</p>
+                <form id="academicRegisterForm" class="academic-auth-form" novalidate>
+                    <label for="academicRegisterName">Full name</label>
+                    <input id="academicRegisterName" name="fullName" type="text"
+                           autocomplete="name" maxlength="100"
+                           placeholder="Your registered full name" required>
+                    <label for="academicRegisterNim">NIM</label>
+                    <input id="academicRegisterNim" name="nim" type="text"
+                           inputmode="numeric" autocomplete="off" maxlength="24"
+                           placeholder="Your student number" required>
+                    <label for="academicRegisterCode">Personal activation code</label>
+                    <input id="academicRegisterCode" name="activationCode" type="text"
+                           autocomplete="off" autocapitalize="characters" maxlength="19"
+                           placeholder="XXXX-XXXX-XXXX-XXXX" required>
+                    <label for="academicRegisterPassword">Create password</label>
+                    <input id="academicRegisterPassword" name="password" type="password"
+                           autocomplete="new-password" minlength="8"
+                           placeholder="At least 8 characters" required>
+                    <label for="academicRegisterConfirm">Confirm password</label>
+                    <input id="academicRegisterConfirm" name="confirmPassword" type="password"
+                           autocomplete="new-password" minlength="8"
+                           placeholder="Repeat your password" required>
+                    <p class="academic-auth-message" id="academicRegisterMessage" role="status" aria-live="polite"></p>
+                    <button class="academic-auth-submit" id="academicRegisterSubmit" type="submit">
+                        <span>Create Account</span><i class="bx bx-right-arrow-alt" aria-hidden="true"></i>
+                    </button>
+                </form>
+                <div class="academic-auth-switch">
+                    <span>Already have an account?</span>
+                    <button type="button" id="academicBackToSignIn">Sign in instead</button>
+                </div>
+                <p class="academic-auth-footnote">Your NIM identifies your academic records. It is not your password. Use a password you keep private.</p>
+            </div>
+
             <p class="academic-access-message" id="academicAccessMessage" role="status" aria-live="polite" hidden></p>
-            <a class="academic-access-button" href="index.html?login=1&amp;return=academic.html">
-                <i class="bx bx-log-in" aria-hidden="true"></i>
-                <span>Sign In to STELLARS</span>
-            </a>
-            <a class="academic-access-home" href="index.html">Back to STELLARS homepage</a>
         </section>
     </main>
+
 
     <main class="academic-portal-shell" id="portalView" hidden>
         <section class="portal-welcome">
@@ -185,7 +267,7 @@
                 </div>
                 <div class="activation-manager-copy">
                     <h3 id="activationManagerTitle">Student Activation Codes</h3>
-                    <p>After the one-time account reset, import exactly 43 activation codes for students. Jasper Vladino Alvis and Quinetta Aulya Winata remain the two Super Admin accounts.</p>
+                    <p>Import activation codes for students who have not activated their STELLARS accounts yet. Existing members sign in with their current credentials and can use Secure My Account from the profile menu.</p>
                 </div>
                 <label class="activation-workbook-picker" for="activationWorkbookFile">
                     <i class="bx bx-file-blank" aria-hidden="true"></i>
@@ -202,26 +284,6 @@
                 <p class="activation-manager-status" id="activationManagerStatus" role="status" aria-live="polite">No activation workbook selected.</p>
                 <p class="activation-manager-result" id="activationManagerResult" aria-live="polite"></p>
                 <p class="activation-manager-footnote">Keep the returned Excel file private. Share each activation code only with the student whose name and NIM match that row.</p>
-            </section>
-
-            <section class="activation-manager-panel" id="accountResetPanel" aria-labelledby="accountResetTitle" hidden>
-                <div class="activation-manager-topline">
-                    <span class="activation-manager-icon"><i class="bx bx-shield-quarter" aria-hidden="true"></i></span>
-                    <span class="portal-kicker">SUPER ADMIN ONLY · ONE TIME</span>
-                </div>
-                <div class="activation-manager-copy">
-                    <h3 id="accountResetTitle">Reset Old STELLARS Accounts</h3>
-                    <p>This removes old student sign-in accounts, student profiles, student NIM links, and student activation codes. It keeps Jasper and Quinetta as the only Super Admins, including their existing sign-in accounts. The server refuses to run if academic score records exist. This cannot be undone.</p>
-                </div>
-                <label class="academic-import-field" for="accountResetConfirmation">
-                    <span>Type RESET STELLARS to confirm</span>
-                    <input id="accountResetConfirmation" type="text" autocomplete="off" spellcheck="false" placeholder="RESET STELLARS">
-                </label>
-                <button class="activation-import-button" id="accountResetButton" type="button" disabled>
-                    <span>Reset Old Student Accounts</span>
-                    <i class="bx bx-trash" aria-hidden="true"></i>
-                </button>
-                <p class="activation-manager-status" id="accountResetStatus" role="status" aria-live="polite">Only one of the two designated Super Admins can run this reset.</p>
             </section>
 
             <article class="academic-grade-card">
@@ -458,6 +520,6 @@
         </form>
     </dialog>
 
-    <script type="module" src="academic.js?v=activation-import-fix-20261125a"></script>
+    <script type="module" src="academic.js?v=academics-rebuild-v1"></script>
 </body>
 </html>
