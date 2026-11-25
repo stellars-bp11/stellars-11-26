@@ -567,3 +567,102 @@
     .lecturers-page .lecturer-grid > .lecturer-card { transition: none; }
     .lecturers-page .lecturer-grid > .lecturer-card:hover { transform: none; }
 }
+
+
+/* BRAND PALETTE ALIGNMENT — STELLARS NAVY / PURPLE / LAVENDER */
+.lecturers-page {
+    background: #15152d;
+}
+.lecturers-page .background-overlay {
+    background:
+        radial-gradient(ellipse 66% 54% at 84% 15%, rgba(117, 91, 184, .22), transparent 70%),
+        radial-gradient(ellipse 60% 60% at 14% 74%, rgba(63, 83, 153, .22), transparent 72%),
+        linear-gradient(180deg, rgba(14, 16, 39, .4), rgba(16, 18, 43, .84));
+}
+.lecturers-page .lecturers-hero .eyebrow {
+    border-color: rgba(201, 188, 255, .34);
+    color: #d8ceff;
+    background: rgba(27, 26, 58, .52);
+}
+.lecturers-page .lecturers-hero .hero-content h1 {
+    color: #f7f4ff;
+}
+.lecturers-page .lecturers-hero .hero-content::after {
+    border-color: rgba(201, 188, 255, .42);
+    color: #ded5ff;
+    background: radial-gradient(circle, rgba(128, 111, 193, .18), transparent 68%);
+    box-shadow: 0 0 0 13px rgba(201, 188, 255, .045);
+}
+.lecturers-page .featured-lecturer {
+    border-color: #d9d1ee;
+    background: #eeeaf8;
+}
+.lecturers-page .featured-image {
+    background: #ddd7ef;
+}
+.lecturers-page .featured-image img {
+    filter: saturate(.92);
+}
+.lecturers-page .featured-info {
+    color: #343047;
+    background:
+        linear-gradient(90deg, rgba(255,255,255,.28), transparent 30%),
+        #eeeaf8;
+}
+.lecturers-page .featured-info .eyebrow {
+    color: #725bad;
+}
+.lecturers-page .featured-info h2 {
+    color: #28233f;
+}
+.lecturers-page .featured-info .lecturer-field {
+    color: #59458f;
+    border-color: rgba(113, 89, 173, .28);
+    background: rgba(143, 112, 225, .10);
+}
+.lecturers-page .featured-info > p:last-child {
+    color: #68627b;
+}
+.lecturers-page .lecturer-directory {
+    border-color: rgba(201, 188, 255, .65);
+    background: #efecf8;
+}
+.lecturers-page .lecturer-directory .section-heading {
+    border-bottom-color: rgba(105, 91, 145, .2);
+}
+.lecturers-page .lecturer-directory .section-heading .eyebrow {
+    color: #7560b2;
+}
+.lecturers-page .lecturer-directory .section-heading h2 {
+    color: #28233f;
+}
+.lecturers-page .lecturer-grid > .lecturer-card {
+    border-color: #dfd8f0;
+    background: #fcfbff;
+}
+.lecturers-page .lecturer-grid > .lecturer-card::before {
+    border-color: rgba(255,255,255,.45);
+    color: #eee8ff;
+    background: rgba(35, 29, 72, .78);
+}
+.lecturers-page .lecturer-image {
+    background: linear-gradient(145deg, #e6e1f4, #f5f2fc);
+}
+.lecturers-page .lecturer-info {
+    color: #77718a;
+    background: #fcfbff;
+}
+.lecturers-page .lecturer-role {
+    border-color: #e0d8f2;
+    color: #604b9e;
+    background: #f0ecfa;
+}
+.lecturers-page .lecturer-info h3 {
+    color: #302a43;
+}
+.lecturers-page .lecturer-info > p:not(.lecturer-role) {
+    color: #817b91;
+}
+.lecturers-page footer {
+    border-top-color: rgba(201, 188, 255, .17);
+}
