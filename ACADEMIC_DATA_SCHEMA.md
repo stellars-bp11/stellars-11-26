@@ -21,6 +21,7 @@ Required fields:
 
 Optional fields:
 
+- `activationCodeHash` — SHA-256 hash of the one-time activation code used at registration; present for self-registered students.
 - `canPublish` — boolean. Only meaningful for an `admin`; grants publishing
   permission when true.
 
@@ -87,7 +88,7 @@ Private lookup index maintained by the trusted provisioning process.
 Only administrators can read this collection. Students must not be able to
 enumerate classmates' NIMs or account IDs.
 
-## 3. `subjects/{subjectId}`
+## 4. `subjects/{subjectId}`
 
 One document per subject.
 
@@ -99,7 +100,7 @@ One document per subject.
 }
 ```
 
-## 4. `assessments/{assessmentId}`
+## 5. `assessments/{assessmentId}`
 
 One document per assessment component for a subject. The `category` and
 `assessmentName` are dynamic strings derived from the uploaded file. Do not
@@ -123,7 +124,7 @@ but these examples are not an allowed-values list.
 }
 ```
 
-## 5. `scores/{scoreId}`
+## 6. `scores/{scoreId}`
 
 One student's result for one assessment. The `studentId` is the student's
 Firebase Authentication UID, not their name or NIM.
@@ -153,7 +154,7 @@ Rules:
 - A score is visible to the student only when `isPublished == true`.
 - The student dashboard first queries `publishedImports` with `status == "published"`, then queries scores by the student's own UID, the specific `sourceUploadId`, and `isPublished == true`.
 
-## 6. `uploads/{uploadId}`
+## 7. `uploads/{uploadId}`
 
 Admin-only import staging and review metadata. The original uploaded file is
 not stored in Firestore or Firebase Storage.
@@ -181,7 +182,7 @@ The related assessment and score documents are removed. The subject catalogue
 document is retained because it may be shared by other imports or used as a
 course-level record.
 
-## 7. `activityLogs/{logId}`
+## 8. `activityLogs/{logId}`
 
 Admin-only audit trail. Suggested fields include `actorUid`, `action`,
 `uploadId`, `createdAt`, and a short non-sensitive description.
