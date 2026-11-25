@@ -153,7 +153,7 @@ async function main() {
         console.log("Duplicate profiles using this NIM:", duplicateNimProfiles.length);
         console.log("Active eligible accounts with same first name:", sameFirstNameProfiles.length);
         console.log("Firebase Auth account exists:", authExists);
-        console.log("Firebase Auth alias is STELLARS alias:", authAliasIsStellarsAlias = authAliasIsStellarsAlias || authEmailIsStellarsAlias);
+        console.log("Firebase Auth alias is STELLARS alias:", authEmailIsStellarsAlias);
         console.log("Auth alias matches profile NIM:", authAliasMatchesNim);
         console.log("Auth alias matches username:", authAliasMatchesUsername);
         console.log("nimIndex documents pointing to this UID:", indexByUid.size);
