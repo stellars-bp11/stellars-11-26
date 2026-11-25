@@ -209,7 +209,12 @@ export function initActivationManager(profile, authUser) {
             if (records.length > 400) throw new Error("Maksimal 400 akun per satu kali unggah.");
 
             const hashes = await Promise.all(records.map(record => hashCode(record.code)));
-            const conflicts = await Promise.all(records.map(async (record, index) => {
+
+            // Reissue safely without a privileged Cloud Function:
+            // - unused ("available") codes may be replaced by an admin;
+            // - already redeemed codes remain untouched and are not reissued;
+            // - existing student profiles and Auth identities are never deleted.
+            const inspections = await Promise.all(records.map(async (record, index) => {
                 const [codeSnapshot, nimCodeSnapshot, nimIndexSnapshot] = await Promise.all([
                     getDoc(doc(db, "activationCodes", hashes[index])),
                     getDocs(query(
@@ -218,41 +223,116 @@ export function initActivationManager(profile, authUser) {
                     )),
                     getDoc(doc(db, "nimIndex", record.nim))
                 ]);
+
                 if (codeSnapshot.exists()) {
-                    return "Kode pada baris " + record.rowNumber + " sudah pernah didaftarkan.";
+                    const existingCode = codeSnapshot.data() || {};
+                    if (String(existingCode.nim || "").trim() !== record.nim ||
+                        normalizeFullName(existingCode.fullName) !== normalizeFullName(record.fullName)) {
+                        return { error: "Kode pada baris " + record.rowNumber + " sudah terhubung ke identitas lain." };
+                    }
+                    if (!["available", "redeemed"].includes(existingCode.status)) {
+                        return { error: "Status kode pada baris " + record.rowNumber + " tidak dikenal. Periksa dokumen lama sebelum melanjutkan." };
+                    }
                 }
-                if (!nimCodeSnapshot.empty) {
-                    return "NIM " + record.nim + " sudah memiliki kode aktivasi. Jangan membuat kode kedua untuk NIM yang sama.";
+
+                const nimCodeDocs = nimCodeSnapshot.docs;
+                const unsupportedStatus = nimCodeDocs.find(item =>
+                    !["available", "redeemed"].includes(String(item.data()?.status || ""))
+                );
+                if (unsupportedStatus) {
+                    return { error: "NIM " + record.nim + " memiliki kode lama dengan status tidak dikenal. Tidak ada data yang diubah." };
                 }
+
+                let existingStudent = false;
                 if (nimIndexSnapshot.exists()) {
-                    return "NIM " + record.nim + " masih terhubung ke akun aktif. Periksa apakah NIM tersebut milik salah satu Super Admin atau reset akun belum selesai.";
+                    const indexData = nimIndexSnapshot.data() || {};
+                    if (normalizeFullName(indexData.fullName) !== normalizeFullName(record.fullName) ||
+                        indexData.isActive !== true ||
+                        typeof indexData.uid !== "string" || !indexData.uid) {
+                        return { error: "NIM " + record.nim + " masih terhubung ke identitas berbeda atau tidak aktif." };
+                    }
+
+                    const profileSnapshot = await getDoc(doc(db, "users", indexData.uid));
+                    if (!profileSnapshot.exists()) {
+                        return { error: "NIM " + record.nim + " memiliki tautan akun lama tanpa profil. Perlu pemeriksaan admin sebelum impor." };
+                    }
+                    const profile = profileSnapshot.data() || {};
+                    if (profile.role !== "student" || profile.isActive !== true ||
+                        String(profile.nim || "").trim() !== record.nim ||
+                        normalizeFullName(profile.fullName) !== normalizeFullName(record.fullName)) {
+                        return { error: "NIM " + record.nim + " terhubung ke akun yang datanya tidak cocok. Tidak ada kode yang disimpan." };
+                    }
+                    existingStudent = true;
                 }
-                return "";
+
+                const hasRedeemedCode = nimCodeDocs.some(item => item.data()?.status === "redeemed");
+                const oldAvailableDocs = nimCodeDocs.filter(item =>
+                    item.data()?.status === "available" && item.id !== hashes[index]
+                );
+
+                if (hasRedeemedCode || (codeSnapshot.exists() && codeSnapshot.data()?.status === "redeemed")) {
+                    return {
+                        record,
+                        hash: hashes[index],
+                        action: "already-secured",
+                        oldAvailableDocs,
+                        existingStudent
+                    };
+                }
+
+                return {
+                    record,
+                    hash: hashes[index],
+                    action: codeSnapshot.exists() ? "already-available" : (oldAvailableDocs.length ? "reissued" : "created"),
+                    oldAvailableDocs,
+                    existingStudent
+                };
             }));
-            const conflict = conflicts.find(Boolean);
+
+            const conflict = inspections.find(item => item.error)?.error;
             if (conflict) throw new Error(conflict + " Tidak ada kode dari file ini yang disimpan.");
 
             const batch = writeBatch(db);
-            records.forEach((record, index) => {
-                batch.set(doc(db, "activationCodes", hashes[index]), {
-                    fullName: record.fullName,
-                    nim: record.nim,
-                    status: "available",
-                    createdAt: serverTimestamp(),
-                    createdBy: authUser.uid
+            const oldCodeIdsToDelete = new Set();
+            inspections.forEach(item => {
+                item.oldAvailableDocs.forEach(oldDoc => {
+                    if (!oldCodeIdsToDelete.has(oldDoc.id)) {
+                        batch.delete(oldDoc.ref);
+                        oldCodeIdsToDelete.add(oldDoc.id);
+                    }
                 });
+
+                if (item.action === "created" || item.action === "reissued") {
+                    batch.set(doc(db, "activationCodes", item.hash), {
+                        fullName: item.record.fullName,
+                        nim: item.record.nim,
+                        status: "available",
+                        createdAt: serverTimestamp(),
+                        createdBy: authUser.uid
+                    });
+                }
             });
-            await batch.commit();
+            if (inspections.some(item => item.action !== "already-secured" || item.oldAvailableDocs.length)) {
+                await batch.commit();
+            }
 
             const exportWorkbook = XLSX.utils.book_new();
             const outputRows = [
                 ["No", "Nama", "NIM", "Kode Aktivasi", "Status"],
-                ...records.map((record, index) => [
+                ...inspections.map((item, index) => [
                     index + 1,
-                    record.fullName,
-                    record.nim,
-                    record.code.match(/.{1,4}/g).join("-"),
-                    "TERDAFTAR DI FIRESTORE"
+                    item.record.fullName,
+                    item.record.nim,
+                    item.action === "already-secured"
+                        ? ""
+                        : item.record.code.match(/.{1,4}/g).join("-"),
+                    item.action === "already-secured"
+                        ? "AKUN SUDAH DISECURE — JANGAN BAGIKAN KODE BARU"
+                        : item.action === "reissued"
+                            ? "KODE LAMA DIGANTI"
+                            : item.action === "already-available"
+                                ? "KODE SUDAH TERDAFTAR"
+                                : "KODE BARU TERDAFTAR"
                 ])
             ];
             const outputSheet = XLSX.utils.aoa_to_sheet(outputRows);
@@ -262,11 +342,22 @@ export function initActivationManager(profile, authUser) {
             XLSX.utils.book_append_sheet(exportWorkbook, outputSheet, "Aktivasi");
             XLSX.writeFile(exportWorkbook, "STELLARS-Activation-Codes-Registered.xlsx");
 
+            const createdCount = inspections.filter(item => item.action === "created").length;
+            const reissuedCount = inspections.filter(item => item.action === "reissued").length;
+            const existingCount = inspections.filter(item => item.action === "already-available").length;
+            const securedCount = inspections.filter(item => item.action === "already-secured").length;
+            const availableCount = createdCount + reissuedCount + existingCount;
+
             setStatus(status,
-                records.length + " kode berhasil didaftarkan. Kode asli tetap hanya ada di file Excel admin.",
+                availableCount + " kode tersedia untuk aktivasi/secure account; " +
+                securedCount + " akun sudah menggunakan kode sebelumnya.",
                 "success");
             if (result) result.textContent =
-                "Berhasil: " + records.length + " kode terdaftar. Mahasiswa yang sudah punya akun harus login dengan akun lamanya lalu pilih Secure My Account untuk mengganti password. Mahasiswa yang belum punya akun dapat memakai First-time Activation.";
+                createdCount + " kode baru, " + reissuedCount + " kode lama yang belum dipakai diganti, " +
+                existingCount + " kode tetap dipertahankan, dan " + securedCount +
+                " akun yang sudah Secure My Account tidak diterbitkan kode baru. " +
+                "Mahasiswa yang sudah memiliki akun harus Sign In lalu gunakan Secure My Account bila perlu; " +
+                "mahasiswa yang belum memiliki akun dapat memakai First-time Activation.";
             fileInput.value = "";
         } catch (error) {
             console.error("STELLARS activation workbook import failed:", error);
