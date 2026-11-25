@@ -36,10 +36,43 @@ Example:
 }
 ```
 
-Profiles and roles are provisioned through a trusted process, not from the
-browser. A user must never be able to edit their own role.
+Student profiles are created through the one-time activation flow described
+below. Student self-registration is limited to the `student` role; admin and
+super-admin roles remain provisioned through a trusted administrator process.
+A user must never be able to edit their own role.
 
-## 2. `nimIndex/{nim}`
+## 2. Student activation codes
+
+Administrators import the activation workbook through the Academic Portal.
+Each row contains a full name, NIM, and a unique high-entropy activation code.
+The browser normalizes the code and stores only its SHA-256 hash as the
+`activationCodes/{codeHash}` document ID.
+
+Available activation documents contain:
+
+```js
+{
+  fullName: "Student Example",
+  nim: "1100000000",
+  status: "available",
+  createdAt: "Firestore Timestamp",
+  createdBy: "admin-firebase-uid"
+}
+```
+
+During registration, the student supplies the registered full name, NIM,
+activation code, and a self-created password. Firebase Authentication uses
+the NIM as the student's login identifier; the password is separate and is
+never derived from the NIM. A Firestore batch atomically creates the student
+profile and `nimIndex` entry while marking the activation code as redeemed
+and binding it to the new Authentication UID. Firestore Rules prevent code
+enumeration, unauthorised code creation, NIM duplication, and code reuse.
+
+The original activation code is not stored in Firestore. The administrator
+must keep the workbook private and distribute each code only to the matching
+student.
+
+## 3. `nimIndex/{nim}`
 
 Private lookup index maintained by the trusted provisioning process.
 
