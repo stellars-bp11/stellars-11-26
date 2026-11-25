@@ -44,6 +44,15 @@ function normalizeCode(value) {
     return String(value || "").toUpperCase().replace(/[\s-]/g, "");
 }
 
+function normalizeFullName(value) {
+    return String(value || "")
+        .normalize("NFKD")
+        .replace(/[\\u0300-\\u036f]/g, "")
+        .trim()
+        .toLowerCase()
+        .replace(/\\s+/g, " ");
+}
+
 function hashCode(code) {
     return crypto.subtle.digest("SHA-256", new TextEncoder().encode(code))
         .then(buffer => Array.from(new Uint8Array(buffer), byte => byte.toString(16).padStart(2, "0")).join(""));
@@ -147,22 +156,37 @@ export function initActivationManager(profile, authUser) {
                 );
             }
             if (!records.length) throw new Error("Tidak ada baris mahasiswa yang valid.");
+            if (records.length !== 43) {
+                throw new Error("Workbook baru harus berisi tepat 43 mahasiswa. Jasper Vladino Alvis dan Quinetta Aulya Winata adalah Super Admin, bukan akun siswa.");
+            }
+            const reservedSuperAdmins = new Set([
+                "jasper vladino alvis",
+                "quinetta aulya winata"
+            ]);
+            const includedAdmin = records.find(record => reservedSuperAdmins.has(normalizeFullName(record.fullName)));
+            if (includedAdmin) {
+                throw new Error(includedAdmin.fullName + " adalah Super Admin dan tidak boleh dimasukkan ke workbook aktivasi mahasiswa.");
+            }
             if (records.length > 400) throw new Error("Maksimal 400 akun per satu kali unggah.");
 
             const hashes = await Promise.all(records.map(record => hashCode(record.code)));
             const conflicts = await Promise.all(records.map(async (record, index) => {
-                const [codeSnapshot, nimCodeSnapshot] = await Promise.all([
+                const [codeSnapshot, nimCodeSnapshot, nimIndexSnapshot] = await Promise.all([
                     getDoc(doc(db, "activationCodes", hashes[index])),
                     getDocs(query(
                         collection(db, "activationCodes"),
                         where("nim", "==", record.nim)
-                    ))
+                    )),
+                    getDoc(doc(db, "nimIndex", record.nim))
                 ]);
                 if (codeSnapshot.exists()) {
                     return "Kode pada baris " + record.rowNumber + " sudah pernah didaftarkan.";
                 }
                 if (!nimCodeSnapshot.empty) {
                     return "NIM " + record.nim + " sudah memiliki kode aktivasi. Jangan membuat kode kedua untuk NIM yang sama.";
+                }
+                if (nimIndexSnapshot.exists()) {
+                    return "NIM " + record.nim + " masih terhubung ke akun aktif. Periksa apakah NIM tersebut milik salah satu Super Admin atau reset akun belum selesai.";
                 }
                 return "";
             }));
