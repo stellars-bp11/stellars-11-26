@@ -274,6 +274,7 @@ registrationForm.addEventListener("submit", async event => {
         });
         batch.update(activationRef, {
             status: "redeemed",
+            redeemedBy: createdCredential.user.uid,
             redeemedAt: serverTimestamp()
         });
         await batch.commit();
