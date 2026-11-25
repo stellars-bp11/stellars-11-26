@@ -405,18 +405,28 @@ securityForm.addEventListener("submit", async event => {
             }
 
             const codeHash = await hashActivationCode(code);
-            activationRef = doc(db, "activationCodes", codeHash);
-            const activationSnapshot = await getDoc(activationRef);
+            const candidateActivationRef = doc(db, "activationCodes", codeHash);
+            const activationSnapshot = await getDoc(candidateActivationRef);
             if (!activationSnapshot.exists()) {
-                throw new Error("Kode aktivasi tidak ditemukan. Pastikan admin sudah mendaftarkan workbook terbaru.");
+                throw new Error("Kode aktivasi tidak ditemukan. Pastikan kode yang dimasukkan benar.");
             }
 
             const activation = activationSnapshot.data();
-            if (activation.status !== "available" ||
-                activation.nim !== profileNim ||
-                normalizeStudentName(activation.fullName) !== normalizeStudentName(profile.fullName)) {
-                throw new Error("Kode tidak cocok dengan akun ini atau sudah pernah digunakan.");
+            const identityMatches =
+                String(activation.nim || "").trim() === profileNim &&
+                normalizeStudentName(activation.fullName) === normalizeStudentName(profile.fullName);
+            const unusedCode = activation.status === "available";
+            const alreadyOwnedByThisAccount =
+                activation.status === "redeemed" &&
+                activation.redeemedBy === currentUser.uid;
+
+            if (!identityMatches || (!unusedCode && !alreadyOwnedByThisAccount)) {
+                throw new Error("Kode tidak cocok dengan akun ini, atau sudah digunakan oleh akun lain.");
             }
+
+            // A code already redeemed by this exact UID is valid for securing
+            // that existing account; do not try to redeem it a second time.
+            if (unusedCode) activationRef = candidateActivationRef;
         }
 
         if (!currentUser.email) throw new Error("Identitas login akun tidak tersedia. Hubungi admin STELLARS.");
