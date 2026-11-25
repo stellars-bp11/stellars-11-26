@@ -301,3 +301,177 @@ exports.resetStellarsAccounts = onCall(
         };
     }
 );
+
+
+/**
+ * Correct a student's NIM after a Super Admin has verified and updated
+ * users/{uid}.nim to the official NIM. The Firebase UID and score ownership
+ * remain unchanged. This callable synchronizes the login alias, username,
+ * nimIndex, and the redeemed activation record for that same account.
+ */
+function studentAuthAliasFromNim(value) {
+    const normalized = String(value || "")
+        .normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ".")
+        .replace(/^\.+|\.+$/g, "");
+
+    if (!normalized) {
+        throw new HttpsError("invalid-argument", "NIM tidak valid untuk membentuk alias login.");
+    }
+    return normalized + STELLARS_AUTH_SUFFIX;
+}
+
+exports.repairStudentNim = onCall(
+    {
+        region: "asia-southeast2",
+        timeoutSeconds: 120,
+        memory: "256MiB"
+    },
+    async request => {
+        if (!request.auth) {
+            throw new HttpsError("unauthenticated", "Silakan login sebagai Super Admin STELLARS.");
+        }
+        if (request.data?.confirmation !== "SYNC_STUDENT_NIM") {
+            throw new HttpsError("failed-precondition", "Konfirmasi sinkronisasi tidak valid.");
+        }
+
+        const callerSnapshot = await db.collection("users").doc(request.auth.uid).get();
+        const caller = callerSnapshot.exists ? callerSnapshot.data() || {} : {};
+        if (caller.isActive !== true || !["superAdmin", "super_admin"].includes(caller.role)) {
+            throw new HttpsError("permission-denied", "Hanya Super Admin aktif yang boleh memperbaiki NIM akun.");
+        }
+
+        const newNim = String(request.data?.newNim || "").trim();
+        if (!/^\d{5,24}$/.test(newNim)) {
+            throw new HttpsError("invalid-argument", "Masukkan NIM baru yang benar (5–24 digit).");
+        }
+
+        // The profile's nim field was intentionally corrected first in
+        // Firestore. Locate exactly one active student with that NIM.
+        const targetSnapshot = await db.collection("users").where("nim", "==", newNim).get();
+        if (targetSnapshot.size !== 1) {
+            throw new HttpsError(
+                "failed-precondition",
+                "Harus ditemukan tepat satu profil dengan NIM tersebut. Periksa users.nim dan pastikan tidak ada NIM duplikat."
+            );
+        }
+
+        const targetDoc = targetSnapshot.docs[0];
+        const target = targetDoc.data() || {};
+        const targetUid = targetDoc.id;
+        if (targetUid === request.auth.uid) {
+            throw new HttpsError("failed-precondition", "NIM yang dimasukkan mengarah ke akun Super Admin, bukan akun siswa.");
+        }
+        if (target.role !== "student" || target.isActive !== true) {
+            throw new HttpsError("failed-precondition", "Profil dengan NIM tersebut bukan akun siswa aktif.");
+        }
+
+        const fullName = String(target.fullName || "").trim();
+        if (!fullName) {
+            throw new HttpsError("failed-precondition", "Profil siswa tidak memiliki nama lengkap.");
+        }
+
+        const [targetAuthUser, indexesByUid, redeemedCodes, newIndexSnapshot] = await Promise.all([
+            getAuth().getUser(targetUid),
+            db.collection("nimIndex").where("uid", "==", targetUid).get(),
+            db.collection("activationCodes").where("redeemedBy", "==", targetUid).get(),
+            db.collection("nimIndex").doc(newNim).get()
+        ]);
+
+        if (newIndexSnapshot.exists && String(newIndexSnapshot.data()?.uid || "") !== targetUid) {
+            throw new HttpsError("already-exists", "NIM baru sudah terhubung ke akun lain. Tidak ada data yang diubah.");
+        }
+
+        const matchingActivationCodes = redeemedCodes.docs.filter(codeDoc => {
+            const code = codeDoc.data() || {};
+            return code.status === "redeemed" &&
+                normalizeAccountName(code.fullName) === normalizeAccountName(fullName);
+        });
+        if (matchingActivationCodes.length !== 1) {
+            throw new HttpsError(
+                "failed-precondition",
+                "Harus ditemukan tepat satu kode aktivasi redeemed yang terhubung ke UID dan nama siswa ini. Tidak ada data yang diubah."
+            );
+        }
+
+        const activationDoc = matchingActivationCodes[0];
+        const activation = activationDoc.data() || {};
+        const oldNims = new Set([
+            String(target.username || "").trim(),
+            ...indexesByUid.docs.map(indexDoc => String(indexDoc.id).trim()),
+            String(activation.nim || "").trim()
+        ].filter(value => /^\d{5,24}$/.test(value)));
+
+        const expectedAliases = new Set([studentAuthAliasFromNim(newNim)]);
+        oldNims.forEach(oldNim => expectedAliases.add(studentAuthAliasFromNim(oldNim)));
+
+        const currentEmail = String(targetAuthUser.email || "").trim().toLowerCase();
+        if (!currentEmail.endsWith(STELLARS_AUTH_SUFFIX) || !expectedAliases.has(currentEmail)) {
+            throw new HttpsError(
+                "failed-precondition",
+                "Email alias Firebase Authentication tidak cocok dengan NIM lama maupun NIM baru. Hentikan proses dan periksa akun secara manual."
+            );
+        }
+
+        const newEmail = studentAuthAliasFromNim(newNim);
+        try {
+            const existingAuthUser = await getAuth().getUserByEmail(newEmail);
+            if (existingAuthUser.uid !== targetUid) {
+                throw new HttpsError("already-exists", "Alias login untuk NIM baru sudah dipakai akun lain.");
+            }
+        } catch (error) {
+            if (error instanceof HttpsError) throw error;
+            if (error.code !== "auth/user-not-found") throw error;
+        }
+
+        // Check any index document named after the previous username before
+        // changing Authentication. A collision aborts the entire operation.
+        const previousUsername = String(target.username || "").trim();
+        if (previousUsername && previousUsername !== newNim) {
+            const previousIndex = await db.collection("nimIndex").doc(previousUsername).get();
+            if (previousIndex.exists &&
+                String(previousIndex.data()?.uid || "") !== targetUid) {
+                throw new HttpsError(
+                    "already-exists",
+                    "NIM lama pada nimIndex ternyata milik akun lain. Tidak ada data yang diubah."
+                );
+            }
+        }
+
+        // Updating email first is retry-safe: if the Firestore batch later
+        // fails, a second call accepts either this new alias or the old one.
+        if (currentEmail !== newEmail) {
+            await getAuth().updateUser(targetUid, { email: newEmail });
+        }
+
+        const batch = db.batch();
+        batch.update(targetDoc.ref, { username: newNim });
+        batch.set(db.collection("nimIndex").doc(newNim), {
+            uid: targetUid,
+            fullName,
+            isActive: true
+        });
+        indexesByUid.docs.forEach(indexDoc => {
+            if (indexDoc.id !== newNim) batch.delete(indexDoc.ref);
+        });
+        batch.update(activationDoc.ref, { nim: newNim });
+        await batch.commit();
+
+        logger.info("STELLARS student NIM synchronization completed.", {
+            requestedBy: request.auth.uid,
+            targetUid,
+            removedOldNimIndexes: indexesByUid.docs.filter(indexDoc => indexDoc.id !== newNim).length
+        });
+
+        return {
+            success: true,
+            fullName,
+            nim: newNim,
+            loginAliasUpdated: currentEmail !== newEmail,
+            message: "NIM, username, login alias, nimIndex, and redeemed activation record are synchronized. The Firebase UID and academic score ownership were preserved."
+        };
+    }
+);
