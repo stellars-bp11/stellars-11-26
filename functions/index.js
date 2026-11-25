@@ -184,6 +184,15 @@ exports.resetStellarsAccounts = onCall(
         }
 
         const keepUids = new Set(keepProfiles.map(profile => profile.uid));
+        try {
+            await Promise.all(keepProfiles.map(profile => getAuth().getUser(profile.uid)));
+        } catch (error) {
+            throw new HttpsError(
+                "failed-precondition",
+                "Reset dibatalkan: kedua akun Super Admin harus masih tersedia di Firebase Authentication. Tidak ada akun mahasiswa yang dihapus."
+            );
+        }
+
         const allAuthUsers = await listAllAuthUsers();
         const oldStellarsAuthUsers = allAuthUsers.filter(user =>
             String(user.email || "").toLowerCase().endsWith(STELLARS_AUTH_SUFFIX) &&
