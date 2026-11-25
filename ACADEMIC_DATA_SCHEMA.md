@@ -229,16 +229,20 @@ is imported as one subject; separate subject worksheets can be imported
 separately.
 
 Before saving, each included row is matched against active records in
-`nimIndex`. A valid NIM is the primary identifier. If the NIM cell is blank,
-the importer may match by an exact normalized full name (case, accents,
-punctuation, and repeated spaces are normalized), but only when that name
-belongs to exactly one active account. Partial or fuzzy name matches are never
-used. A supplied but unrecognized NIM is not silently replaced by a name
-match; the administrator must verify it or clear the NIM cell intentionally.
-Duplicate student rows, ambiguous or unmatched names, duplicate NIMs, and
-invalid scores must be corrected or excluded. Name differences on a valid
-NIM match are shown as warnings for manual review. Empty score cells remain
-`null`.
+`nimIndex`. The administrator must map at least one identifier column:
+student name, NIM, or both. A valid NIM is the primary identifier when present.
+If the NIM cell is blank, the importer may match by an exact normalized full
+name (case, accents, punctuation, and repeated spaces are normalized), but
+only when that name belongs to exactly one active account. This supports
+NIM-only rows and name-only rows, including files that do not contain one of
+the two columns. Partial or fuzzy name matches are never used. A supplied but
+unrecognized NIM is not silently replaced by a name match; the administrator
+must verify it or clear the NIM cell intentionally. Duplicate student rows,
+ambiguous or unmatched names, duplicate NIMs, and invalid scores must be
+corrected or excluded. Name differences or missing values in a mapped name
+column on a valid NIM match are shown as warnings for manual review. When no
+name column is mapped, NIM-only matches do not receive a name warning. Empty
+score cells remain `null`.
 
 The original file is processed locally in the browser and is not uploaded to
 Firestore or Firebase Storage. Firestore stores the import metadata, subject,
