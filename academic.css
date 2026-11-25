@@ -3307,10 +3307,26 @@ body.academic-page {
     75% { content: "..."; }
 }
 
+/* Keep the page-opening loader animated like Home and Crewmates.
+   The general reduced-motion rule above this block applies !important
+   to every element, so explicitly scope the loader's own motion here. */
 @media (prefers-reduced-motion: reduce) {
-    #stellars-loader .orbit,
-    #stellars-loader .kelip,
+    #stellars-loader {
+        transition-duration: 0.4s !important;
+    }
+
+    #stellars-loader .orbit {
+        animation-duration: 3s !important;
+        animation-iteration-count: infinite !important;
+    }
+
+    #stellars-loader .kelip {
+        animation-duration: 2s !important;
+        animation-iteration-count: infinite !important;
+    }
+
     #stellars-loader .star-wrap svg.bintang {
-        animation-duration: 6s;
+        animation-duration: 1.6s !important;
+        animation-iteration-count: infinite !important;
     }
 }
