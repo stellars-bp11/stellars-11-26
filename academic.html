@@ -12,148 +12,161 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Ubuntu:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="academic.css?v=academic-shared-shell-v5">
+    <link rel="stylesheet" href="academic.css?v=main-design-restored-v1">
     <link rel="stylesheet" href="account.css?v=activation-v1-20261125">
     <link rel="stylesheet" href="responsive.css">
 </head>
 <body class="academic-page">
 
-    <video class="background-video" autoplay muted loop playsinline aria-hidden="true">
-        <source src="Videos/Bp1.mp4" type="video/mp4">
+    <video class="academic-background-video" autoplay muted loop playsinline aria-hidden="true">
+        <source src="Videos/Kling.mp4.mp4" type="video/mp4">
     </video>
-    <div class="background-overlay" aria-hidden="true"></div>
+    <div class="academic-background-overlay" aria-hidden="true"></div>
 
-    <header class="site-header">
-        <nav class="site-nav" aria-label="Main navigation">
-            <a href="index.html" class="logo">Stellars</a>
-            <ul class="nav-links">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="lecturers.html">Lecturers</a></li>
-                <li><a href="crewmates.html">Crewmates</a></li>
-                <li><a href="library.html">Library</a></li>
-                <li><a href="academic.html" class="active" aria-current="page">Academics</a></li>
-            </ul>
-            <div class="site-nav-actions">
-                <a class="profile-button" id="academicSignInLink" href="#loginView">Sign In</a>
-                <div class="site-account-wrap" id="profileArea" hidden>
-                    <button class="site-account-button" id="profileMenuButton" type="button"
+    <header class="academic-header">
+        <nav class="academic-navbar" aria-label="STELLARS main navigation">
+            <div class="academic-brand-block">
+                <a class="academic-logo" href="index.html" aria-label="STELLARS home">Stellars</a>
+            </div>
+            <div class="academic-nav-links">
+                <a href="index.html">Home</a>
+                <a href="lecturers.html">Lecturers</a>
+                <a href="crewmates.html">Crewmates</a>
+                <a href="library.html">Library</a>
+                <a href="academic.html" aria-current="page">Academics</a>
+            </div>
+            <div class="academic-nav-actions">
+                <a class="academic-nav-pill" id="academicSignInLink"
+                   href="#academicSignInForm">
+                    <i class="bx bx-log-in" aria-hidden="true"></i>
+                    <span>Sign In</span>
+                </a>
+                <div class="academic-profile-area" id="profileArea" hidden>
+                    <button class="academic-profile-button" id="profileMenuButton" type="button"
                             aria-label="Open profile menu" aria-haspopup="true" aria-expanded="false">
-                        <span id="profileAvatar">S</span>
+                        <span class="academic-avatar" id="profileAvatar">S</span>
                     </button>
-                    <div class="site-account-menu" id="profileMenu" hidden>
-                        <div class="site-account-heading">
+                    <div class="academic-profile-menu" id="profileMenu" hidden>
+                        <div class="profile-menu-heading">
                             <strong id="profileMenuName">Student</strong>
                             <span id="profileMenuNim">NIM not available</span>
                         </div>
-                        <button type="button" id="secureAccountButton">Secure My Account</button>
-                        <button type="button" id="openProfileButton">My Profile</button>
-                        <button type="button" id="logoutButton">Log Out</button>
+                        <button type="button" id="secureAccountButton">
+                            <i class="bx bx-lock-alt" aria-hidden="true"></i>
+                            <span>Secure My Account</span>
+                        </button>
+                        <button type="button" id="openProfileButton">
+                            <i class="bx bx-user-circle" aria-hidden="true"></i>
+                            <span>My Profile</span>
+                        </button>
+                        <button type="button" id="logoutButton" class="profile-logout">
+                            <i class="bx bx-log-out" aria-hidden="true"></i>
+                            <span>Log Out</span>
+                        </button>
                     </div>
                 </div>
             </div>
         </nav>
     </header>
 
-    <main class="academic-login-shell" id="loginView">
-        <section class="academic-login-intro" aria-labelledby="academic-access-title">
+    <main class="academic-access-main" id="loginView">
+        <section class="academic-access-card" aria-labelledby="academic-access-title">
             <div class="academic-eyebrow">
-                <span class="eyebrow-star"><i class="bx bxs-star" aria-hidden="true"></i></span>
-                <span>STELLARS BP11 · ACADEMIC SPACE</span>
+                <span class="eyebrow-star"><i class="bx bx-lock-alt" aria-hidden="true"></i></span>
+                <span>STELLARS BP11 · ACADEMIC ACCESS</span>
             </div>
-            <p class="academic-login-overline">YOUR JOURNEY, YOUR PROGRESS</p>
-            <h1 id="academic-access-title">Every effort leaves a <span>mark.</span></h1>
-            <p class="academic-login-lead">
-                A private space to follow your academic journey, revisit every milestone,
-                and see the results you have earned.
+            <h1 id="academic-access-title">Your results,<br><span>your account.</span></h1>
+            <p class="academic-access-copy">
+                Academic results are private and connected to your STELLARS account.
+                Sign in with your existing username or NIM, or activate your account for the first time.
             </p>
-            <div class="academic-login-highlights">
-                <article>
-                    <span><i class="bx bx-lock-alt" aria-hidden="true"></i></span>
-                    <div><strong>Personal and private</strong><small>Your academic records are connected to your own STELLARS account.</small></div>
-                </article>
-                <article>
-                    <span><i class="bx bx-line-chart" aria-hidden="true"></i></span>
-                    <div><strong>Progress in one place</strong><small>See published scores and assessment components by subject.</small></div>
-                </article>
-                <article>
-                    <span><i class="bx bx-planet" aria-hidden="true"></i></span>
-                    <div><strong>One account, one community</strong><small>Use the same STELLARS account across the website and Academics.</small></div>
-                </article>
-            </div>
-            <span class="academic-login-orbit" aria-hidden="true">✦</span>
-        </section>
-
-        <section class="academic-auth-card" aria-label="STELLARS account access">
-            <div class="academic-auth-brand">
-                <span class="academic-auth-brand-mark"><i class="bx bxs-star" aria-hidden="true"></i></span>
-                <span>STELLARS <small>BP11 ACADEMIC PORTAL</small></span>
-            </div>
-
-            <div id="academicSignInPanel">
-                <p class="academic-auth-kicker">WELCOME BACK</p>
-                <h2>Sign in to your account.</h2>
-                <p class="academic-auth-description">Use the username or NIM and password connected to your STELLARS account.</p>
-                <form id="academicSignInForm" class="academic-auth-form" novalidate>
+            <p class="academic-access-message" id="academicAccessMessage" role="status" aria-live="polite" hidden></p>
+            <div class="academic-access-auth" id="academicSignInPanel">
+                <form id="academicSignInForm" class="academic-login-form" novalidate>
                     <label for="academicLoginUsername">Username or NIM</label>
-                    <input id="academicLoginUsername" name="username" type="text"
-                           autocomplete="username" autocapitalize="none"
-                           placeholder="Enter your username or NIM" required>
+                    <div class="academic-input-wrap">
+                        <i class="bx bx-user" aria-hidden="true"></i>
+                        <input id="academicLoginUsername" name="username" type="text"
+                               autocomplete="username" autocapitalize="none"
+                               placeholder="Enter your username or NIM" required>
+                    </div>
+
                     <label for="academicLoginPassword">Password</label>
-                    <input id="academicLoginPassword" name="password" type="password"
-                           autocomplete="current-password" placeholder="Enter your password" required>
-                    <p class="academic-auth-message" id="academicSignInMessage" role="status" aria-live="polite"></p>
-                    <button class="academic-auth-submit" id="academicSignInSubmit" type="submit">
-                        <span>Sign In</span><i class="bx bx-right-arrow-alt" aria-hidden="true"></i>
+                    <div class="academic-input-wrap">
+                        <i class="bx bx-lock-alt" aria-hidden="true"></i>
+                        <input id="academicLoginPassword" name="password" type="password"
+                               autocomplete="current-password" placeholder="Enter your password" required>
+                    </div>
+
+                    <p class="academic-form-message" id="academicSignInMessage" role="status" aria-live="polite" hidden></p>
+                    <button class="academic-access-button" id="academicSignInSubmit" type="submit">
+                        <span>Sign In</span>
+                        <i class="bx bx-right-arrow-alt" aria-hidden="true"></i>
                     </button>
                 </form>
                 <div class="academic-auth-switch">
                     <span>New student?</span>
                     <button type="button" id="academicOpenRegister">Activate your account</button>
                 </div>
-                <p class="academic-auth-footnote">Already activated? Sign in with the same account you use on the STELLARS homepage.</p>
             </div>
 
-            <div id="academicRegisterPanel" hidden>
-                <p class="academic-auth-kicker">FIRST-TIME ACTIVATION</p>
-                <h2>Create your STELLARS account.</h2>
-                <p class="academic-auth-description">Enter the official student details and the personal activation code issued by your administrator.</p>
-                <form id="academicRegisterForm" class="academic-auth-form" novalidate>
+            <div class="academic-access-auth" id="academicRegisterPanel" hidden>
+                <form id="academicRegisterForm" class="academic-login-form" novalidate>
                     <label for="academicRegisterName">Full name</label>
-                    <input id="academicRegisterName" name="fullName" type="text"
-                           autocomplete="name" maxlength="100"
-                           placeholder="Your registered full name" required>
+                    <div class="academic-input-wrap">
+                        <i class="bx bx-user" aria-hidden="true"></i>
+                        <input id="academicRegisterName" name="fullName" type="text"
+                               autocomplete="name" maxlength="100"
+                               placeholder="Your registered full name" required>
+                    </div>
+
                     <label for="academicRegisterNim">NIM</label>
-                    <input id="academicRegisterNim" name="nim" type="text"
-                           inputmode="numeric" autocomplete="off" maxlength="24"
-                           placeholder="Your student number" required>
+                    <div class="academic-input-wrap">
+                        <i class="bx bx-id-card" aria-hidden="true"></i>
+                        <input id="academicRegisterNim" name="nim" type="text"
+                               inputmode="numeric" autocomplete="off" maxlength="24"
+                               placeholder="Your student number" required>
+                    </div>
+
                     <label for="academicRegisterCode">Personal activation code</label>
-                    <input id="academicRegisterCode" name="activationCode" type="text"
-                           autocomplete="off" autocapitalize="characters" maxlength="19"
-                           placeholder="XXXX-XXXX-XXXX-XXXX" required>
+                    <div class="academic-input-wrap">
+                        <i class="bx bx-key" aria-hidden="true"></i>
+                        <input id="academicRegisterCode" name="activationCode" type="text"
+                               autocomplete="off" autocapitalize="characters" maxlength="19"
+                               placeholder="XXXX-XXXX-XXXX-XXXX" required>
+                    </div>
+
                     <label for="academicRegisterPassword">Create password</label>
-                    <input id="academicRegisterPassword" name="password" type="password"
-                           autocomplete="new-password" minlength="8"
-                           placeholder="At least 8 characters" required>
+                    <div class="academic-input-wrap">
+                        <i class="bx bx-lock-alt" aria-hidden="true"></i>
+                        <input id="academicRegisterPassword" name="password" type="password"
+                               autocomplete="new-password" minlength="8"
+                               placeholder="At least 8 characters" required>
+                    </div>
+
                     <label for="academicRegisterConfirm">Confirm password</label>
-                    <input id="academicRegisterConfirm" name="confirmPassword" type="password"
-                           autocomplete="new-password" minlength="8"
-                           placeholder="Repeat your password" required>
-                    <p class="academic-auth-message" id="academicRegisterMessage" role="status" aria-live="polite"></p>
-                    <button class="academic-auth-submit" id="academicRegisterSubmit" type="submit">
-                        <span>Create Account</span><i class="bx bx-right-arrow-alt" aria-hidden="true"></i>
+                    <div class="academic-input-wrap">
+                        <i class="bx bx-shield-quarter" aria-hidden="true"></i>
+                        <input id="academicRegisterConfirm" name="confirmPassword" type="password"
+                               autocomplete="new-password" minlength="8"
+                               placeholder="Repeat your password" required>
+                    </div>
+
+                    <p class="academic-form-message" id="academicRegisterMessage" role="status" aria-live="polite" hidden></p>
+                    <button class="academic-access-button" id="academicRegisterSubmit" type="submit">
+                        <span>Create Account</span>
+                        <i class="bx bx-right-arrow-alt" aria-hidden="true"></i>
                     </button>
                 </form>
                 <div class="academic-auth-switch">
                     <span>Already have an account?</span>
                     <button type="button" id="academicBackToSignIn">Sign in instead</button>
                 </div>
-                <p class="academic-auth-footnote">Your NIM identifies your academic records. It is not your password. Use a password you keep private.</p>
+                <p class="academic-auth-footnote">Your NIM identifies your academic records. Keep your password private.</p>
             </div>
-
-            <p class="academic-access-message" id="academicAccessMessage" role="status" aria-live="polite" hidden></p>
+            <a class="academic-access-home" href="index.html">Back to STELLARS homepage</a>
         </section>
     </main>
-
 
     <main class="academic-portal-shell" id="portalView" hidden>
         <section class="portal-welcome">
@@ -251,7 +264,7 @@
                 </div>
                 <div class="activation-manager-copy">
                     <h3 id="activationManagerTitle">Student Activation Codes</h3>
-                    <p>Import or reissue activation codes for the 43 students. Unused codes are safely replaced, while codes already redeemed are preserved and not issued again. Existing members sign in with their current credentials and use Secure My Account when needed.</p>
+                    <p>Import the official 43-student activation workbook. Each activation code is matched to one student by registered full name and NIM. Jasper Vladino Alvis and Quinetta Aulya Winata remain the two Super Admin accounts.</p>
                 </div>
                 <label class="activation-workbook-picker" for="activationWorkbookFile">
                     <i class="bx bx-file-blank" aria-hidden="true"></i>
@@ -269,6 +282,8 @@
                 <p class="activation-manager-result" id="activationManagerResult" aria-live="polite"></p>
                 <p class="activation-manager-footnote">Keep the returned Excel file private. Share each activation code only with the student whose name and NIM match that row.</p>
             </section>
+
+            
 
             <article class="academic-grade-card">
                 <div class="academic-grade-card-icon" aria-hidden="true">
@@ -504,6 +519,6 @@
         </form>
     </dialog>
 
-    <script type="module" src="academic.js?v=academics-rebuild-v2"></script>
+    <script type="module" src="academic.js?v=academics-auth-flow-main-layout-v1"></script>
 </body>
 </html>
