@@ -238,6 +238,24 @@ function usernameToAuthEmail(username) {
     return normalized + "@class-web-7241e.firebaseapp.com";
 }
 
+// Public username alias for Vincent Farrelius.
+// The existing Firebase Auth account remains NIM-based; this only resolves
+// the displayed full name to that same account before sign-in.
+function loginUsernameToAuthEmail(username) {
+    const normalizedName = String(username || "")
+        .normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, " ");
+
+    const publicUsernameAliases = {
+        "vincent farrelius": "202612010180"
+    };
+
+    return usernameToAuthEmail(publicUsernameAliases[normalizedName] || username);
+}
+
 function closeMenu() {
     menu.hidden = true;
     button.setAttribute("aria-expanded", "false");
@@ -761,7 +779,7 @@ loginForm.addEventListener("submit", async event => {
 
     let emailAlias;
     try {
-        emailAlias = usernameToAuthEmail(username);
+        emailAlias = loginUsernameToAuthEmail(username);
     } catch (error) {
         loginMessage.textContent = error.message;
         loginMessage.dataset.type = "error";
