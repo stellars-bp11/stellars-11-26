@@ -270,6 +270,10 @@ export function initActivationManager(profile, authUser) {
                     item.data()?.status === "available" && item.id !== hashes[index]
                 );
 
+                if (hasRedeemedCode && !nimIndexSnapshot.exists()) {
+                    return { error: "NIM " + record.nim + " memiliki kode yang sudah redeemed, tetapi tautan akunnya tidak ditemukan. Perlu pemeriksaan admin." };
+                }
+
                 if (hasRedeemedCode || (codeSnapshot.exists() && codeSnapshot.data()?.status === "redeemed")) {
                     return {
                         record,
@@ -312,9 +316,10 @@ export function initActivationManager(profile, authUser) {
                     });
                 }
             });
-            if (inspections.some(item => item.action !== "already-secured" || item.oldAvailableDocs.length)) {
-                await batch.commit();
-            }
+            const hasWriteOperations =
+                inspections.some(item => item.action === "created" || item.action === "reissued") ||
+                oldCodeIdsToDelete.size > 0;
+            if (hasWriteOperations) await batch.commit();
 
             const exportWorkbook = XLSX.utils.book_new();
             const outputRows = [
