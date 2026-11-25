@@ -3278,3 +3278,13 @@ body.academic-page {
 .academic-access-auth[hidden] {
     display: none !important;
 }
+
+
+/* Preserve hidden view states when dashboard layout rules define display values. */
+#loginView[hidden],
+#portalView[hidden],
+#studentView[hidden],
+#adminView[hidden],
+#academicImportWorkspace[hidden] {
+    display: none !important;
+}
