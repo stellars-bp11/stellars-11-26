@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#17152b">
+  <title>STELLARS WORLD — Pixel Life Simulator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="world.css">
+</head>
+<body>
+  <div class="world-app">
+    <header class="world-header">
+      <a class="world-brand" href="index.html" aria-label="Back to STELLARS home">
+        <span class="brand-star">✦</span>
+        <span>STELLARS <small>WORLD</small></span>
+      </a>
+      <div class="world-header-center">
+        <span class="world-online-dot"></span>
+        <span>ONE TOWN · MANY STORIES</span>
+      </div>
+      <div class="world-header-actions">
+        <span class="preview-pill">LOCAL PREVIEW</span>
+        <a class="back-link" href="index.html">← Home</a>
+      </div>
+    </header>
+
+    <main class="world-main">
+      <section class="world-intro">
+        <div>
+          <p class="pixel-kicker">A LITTLE UNIVERSE TO LIVE IN</p>
+          <h1>Welcome to <span>Stellars Town</span></h1>
+          <p class="intro-copy">Build a life, find your people, and make this town yours.</p>
+        </div>
+        <div class="intro-stats">
+          <div><span class="stat-icon">⌂</span><strong>45</strong><small>STAR HOMES PLANNED</small></div>
+          <div><span class="stat-icon">✦</span><strong id="townLevel">01</strong><small>TOWN LEVEL</small></div>
+        </div>
+      </section>
+
+      <section class="game-layout" aria-label="Stellars Town game">
+        <aside class="game-sidebar left-sidebar">
+          <section class="panel player-panel">
+            <div class="panel-heading"><span>YOUR CHARACTER</span><span class="panel-spark">✦</span></div>
+            <div class="player-profile">
+              <div class="avatar-frame"><canvas id="avatarCanvas" width="72" height="80" aria-label="Your pixel character"></canvas></div>
+              <div class="profile-copy">
+                <strong id="playerName">Star Visitor</strong>
+                <span id="playerJob">New Resident</span>
+                <small>Resident of Stellars Town</small>
+              </div>
+            </div>
+            <div class="wallet-row">
+              <span>✧ STAR COINS</span>
+              <strong id="coinCount">100</strong>
+            </div>
+            <div class="xp-row">
+              <div class="xp-label"><span>EXPERIENCE</span><span id="xpLabel">0 / 100 XP</span></div>
+              <div class="xp-track"><span id="xpBar"></span></div>
+            </div>
+            <button class="pixel-button secondary-button" id="chooseJobButton" type="button">CHANGE PROFESSION</button>
+          </section>
+
+          <section class="panel town-panel">
+            <div class="panel-heading"><span>COMMUNITY PROJECT</span><span>⌂</span></div>
+            <strong class="project-title">Build the Town Square</strong>
+            <p>Every little job helps Stellars Town grow.</p>
+            <div class="project-track"><span id="townProgressBar"></span></div>
+            <div class="project-meta"><span>COMMUNITY PROGRESS</span><strong id="townProgressLabel">0%</strong></div>
+          </section>
+
+          <section class="panel task-panel">
+            <div class="panel-heading"><span>HOW TO PLAY</span><span>⌘</span></div>
+            <div class="instruction-row"><kbd>W A S D</kbd><span>Move around</span></div>
+            <div class="instruction-row"><kbd>↑ ↓ ← →</kbd><span>Move around</span></div>
+            <div class="instruction-row"><kbd>E</kbd><span>Interact nearby</span></div>
+            <div class="instruction-row"><kbd>CLICK</kbd><span>Walk to a tile</span></div>
+            <p class="task-hint" id="taskHint">Explore the town and find a place to work.</p>
+          </section>
+        </aside>
+
+        <section class="world-stage-column">
+          <div class="world-toolbar">
+            <div class="world-location"><span class="location-pin">⌖</span><div><strong>STELLARS TOWN</strong><small id="worldClock">A bright new day</small></div></div>
+            <div class="world-toolbar-right"><span class="weather-icon" id="weatherIcon">☀</span><span id="weatherLabel">Sunny</span><span class="toolbar-divider"></span><span class="world-coords" id="worldCoords">08 : 09</span></div>
+          </div>
+          <div class="game-frame">
+            <canvas id="worldCanvas" width="1000" height="650" aria-label="Isometric pixel-art town. Use WASD or arrow keys to move."></canvas>
+            <div class="canvas-tag">STELLARS DISTRICT <span>·</span> EST. 2026</div>
+            <div class="interaction-prompt" id="interactionPrompt" aria-live="polite">✦ Explore the town</div>
+            <div class="canvas-toast" id="canvasToast" role="status" aria-live="polite"></div>
+            <div class="mobile-controls" aria-label="Movement controls">
+              <div class="dpad">
+                <button type="button" data-move="up" aria-label="Move up">▲</button>
+                <div><button type="button" data-move="left" aria-label="Move left">◀</button><button type="button" data-move="down" aria-label="Move down">▼</button><button type="button" data-move="right" aria-label="Move right">▶</button></div>
+              </div>
+              <button class="mobile-interact" id="mobileInteract" type="button">E · INTERACT</button>
+            </div>
+          </div>
+          <div class="stage-footer">
+            <div><span class="legend-dot grass-dot"></span> Explore freely <span class="footer-separator">•</span> <span class="legend-dot building-dot"></span> Visit buildings <span class="footer-separator">•</span> <span class="legend-dot star-dot"></span> Grow together</div>
+            <span class="save-state" id="saveState">● LOCAL SAVE ON</span>
+          </div>
+        </section>
+
+        <aside class="game-sidebar right-sidebar">
+          <section class="panel map-panel">
+            <div class="panel-heading"><span>TOWN MAP</span><span>⌖</span></div>
+            <div class="mini-map">
+              <div class="map-block park-block">PARK</div>
+              <div class="map-block townhall-block">TOWN<br>SQUARE</div>
+              <div class="map-block cafe-block">CAFÉ</div>
+              <div class="map-block farm-block">FARM</div>
+              <div class="map-block home-block">HOMES</div>
+              <div class="map-block market-block">MARKET</div>
+              <div class="map-road road-a"></div><div class="map-road road-b"></div>
+              <span class="map-player">★</span>
+            </div>
+            <div class="map-caption"><span>✦ YOU ARE HERE</span><span>THE FIRST DISTRICT</span></div>
+          </section>
+
+          <section class="panel places-panel">
+            <div class="panel-heading"><span>PLACES TO DISCOVER</span><span>✧</span></div>
+            <button class="place-link" type="button" data-place="townhall"><span>🏛️</span><span><strong>Town Hall</strong><small>Community projects</small></span><b>›</b></button>
+            <button class="place-link" type="button" data-place="cafe"><span>☕</span><span><strong>Little Comet Café</strong><small>Serve the neighbours</small></span><b>›</b></button>
+            <button class="place-link" type="button" data-place="farm"><span>🌱</span><span><strong>Stellar Farm</strong><small>Grow and harvest</small></span><b>›</b></button>
+            <button class="place-link" type="button" data-place="fire"><span>🚒</span><span><strong>Fire Station</strong><small>Keep the town safe</small></span><b>›</b></button>
+            <button class="place-link" type="button" data-place="police"><span>🚓</span><span><strong>Police Station</strong><small>Town patrol</small></span><b>›</b></button>
+            <button class="place-link" type="button" data-place="market"><span>🪙</span><span><strong>Star Market</strong><small>Trade virtual goods</small></span><b>›</b></button>
+          </section>
+
+          <section class="panel world-note">
+            <span class="note-star">✦</span>
+            <p><strong>A town made by all of us.</strong><br>Every resident has a place here. Your story is part of the map.</p>
+          </section>
+        </aside>
+      </section>
+      <p class="prototype-note"><strong>Prototype notice:</strong> this preview saves progress on this browser only. Shared 45-player movement, homes, and town-building will be connected in the multiplayer phase.</p>
+    </main>
+  </div>
+
+  <dialog class="job-dialog" id="jobDialog" aria-labelledby="jobDialogTitle">
+    <div class="dialog-topline"><span>CHOOSE YOUR PATH</span><button id="closeJobDialog" type="button" aria-label="Close">×</button></div>
+    <p class="pixel-kicker">THERE'S A PLACE FOR EVERY STAR</p>
+    <h2 id="jobDialogTitle">What will you do in town?</h2>
+    <p class="dialog-description">Pick a profession. You can change it whenever you want.</p>
+    <div class="job-grid" id="jobGrid"></div>
+  </dialog>
+
+  <script type="module" src="world.js"></script>
+</body>
+</html>
