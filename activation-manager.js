@@ -266,9 +266,7 @@ export function initActivationManager(profile, authUser) {
                 }
 
                 const hasRedeemedCode = nimCodeDocs.some(item => item.data()?.status === "redeemed");
-                const oldAvailableDocs = nimCodeDocs.filter(item =>
-                    item.data()?.status === "available" && item.id !== hashes[index]
-                );
+                const allAvailableDocs = nimCodeDocs.filter(item => item.data()?.status === "available");
 
                 if (hasRedeemedCode && !nimIndexSnapshot.exists()) {
                     return { error: "NIM " + record.nim + " memiliki kode yang sudah redeemed, tetapi tautan akunnya tidak ditemukan. Perlu pemeriksaan admin." };
@@ -279,11 +277,12 @@ export function initActivationManager(profile, authUser) {
                         record,
                         hash: hashes[index],
                         action: "already-secured",
-                        oldAvailableDocs,
+                        oldAvailableDocs: allAvailableDocs,
                         existingStudent
                     };
                 }
 
+                const oldAvailableDocs = allAvailableDocs.filter(item => item.id !== hashes[index]);
                 return {
                     record,
                     hash: hashes[index],
