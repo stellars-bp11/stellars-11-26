@@ -337,3 +337,110 @@
     .library-page .memory-card { transition: none; }
     .library-page .memory-card:hover { transform: none; }
 }
+
+
+/* BRAND PALETTE ALIGNMENT — STELLARS NAVY / PURPLE / LAVENDER */
+.library-page {
+    background: #17152e;
+}
+.library-page .background-overlay {
+    background:
+        radial-gradient(ellipse 60% 52% at 12% 16%, rgba(116, 96, 184, .24), transparent 72%),
+        radial-gradient(ellipse 60% 50% at 88% 70%, rgba(70, 78, 153, .2), transparent 74%),
+        linear-gradient(180deg, rgba(17, 18, 42, .4), rgba(25, 23, 48, .80));
+}
+.library-page .library-hero .hero-content {
+    border-color: rgba(201, 188, 255, .25);
+    background: linear-gradient(135deg, rgba(31, 29, 58, .72), rgba(57, 48, 88, .46));
+}
+.library-page .library-hero .eyebrow {
+    color: #d8ceff;
+}
+.library-page .library-hero .hero-content h1 {
+    color: #f7f4ff;
+}
+.library-page .library-hero .hero-content::after {
+    border-color: rgba(201, 188, 255, .65);
+    color: #e2dbff;
+    background: rgba(54, 47, 91, .92);
+    box-shadow: 0 0 0 5px rgba(201, 188, 255, .08);
+}
+.library-page .library-section {
+    border-color: rgba(201, 188, 255, .72);
+    color: #343047;
+    background:
+        linear-gradient(rgba(118, 96, 174, .035) 1px, transparent 1px),
+        #efecf8;
+    background-size: 100% 34px;
+}
+.library-page .library-section .section-heading {
+    border-bottom-color: rgba(105, 91, 145, .2);
+}
+.library-page .library-section .section-heading .eyebrow {
+    color: #7560b2;
+}
+.library-page .library-section .section-heading h2 {
+    color: #2d2745;
+}
+.library-page .add-memory-btn {
+    border-color: #5943a0;
+    color: #fff;
+    background: linear-gradient(120deg, #4930a0, #7250c9);
+    box-shadow: 0 4px 0 #35236f;
+}
+.library-page .add-memory-btn:hover {
+    background: linear-gradient(120deg, #5b43b2, #8069d6);
+}
+.library-page .memory-card {
+    border-color: #e0d9f0;
+    background: #fff;
+    box-shadow: 0 8px 20px rgba(49, 39, 91, .1);
+}
+.library-page .memory-card:hover {
+    box-shadow: 0 18px 32px rgba(49, 39, 91, .16);
+}
+.library-page .memory-image {
+    background: #e8e3f5;
+}
+.library-page .memory-info {
+    color: #514a69;
+    background: #fff;
+}
+.library-page .memory-category {
+    border-color: #e1d9f3;
+    color: #6d58a9;
+    background: #f1edfa;
+}
+.library-page .memory-info h3 {
+    color: #302b43;
+}
+.library-page .memory-description {
+    color: #77718a;
+}
+.library-page .memory-like {
+    border-color: #e1daf0;
+    color: #7967b2;
+    background: #f3effb;
+}
+.library-page .memory-like.liked {
+    color: #fff;
+    background: #7659bf;
+    border-color: #7659bf;
+}
+.library-page .modal-overlay {
+    background: rgba(17, 14, 39, .80);
+}
+.library-page .modal {
+    border-color: #ded5f0;
+    color: #302b43;
+    background: #f2effa;
+}
+.library-page .modal-header {
+    border-bottom-color: #e1daf0;
+}
+.library-page .modal-header h3 {
+    color: #302b43;
+}
+.library-page footer {
+    border-top-color: rgba(201, 188, 255, .17);
+}
