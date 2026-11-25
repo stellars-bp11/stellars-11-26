@@ -123,6 +123,15 @@ exports.resetStellarsAccounts = onCall(
             throw new HttpsError("failed-precondition", "The reset confirmation phrase is missing.");
         }
 
+        const resetMarkerRef = db.collection("systemOperations").doc("initialStellarsAccountReset");
+        const resetMarkerSnapshot = await resetMarkerRef.get();
+        if (resetMarkerSnapshot.exists && resetMarkerSnapshot.data()?.status === "completed") {
+            throw new HttpsError(
+                "failed-precondition",
+                "Initial account reset has already been completed. This operation cannot be run again."
+            );
+        }
+
         const usersRef = db.collection("users");
         const usersSnapshot = await usersRef.get();
         const profilesByName = new Map();
@@ -242,6 +251,12 @@ exports.resetStellarsAccounts = onCall(
         });
 
         await commitInChunks(operations);
+        await resetMarkerRef.set({
+            status: "completed",
+            completedAt: new Date(),
+            completedBy: request.auth.uid,
+            keptSuperAdminUids: keepProfiles.map(profile => profile.uid)
+        });
 
         logger.warn("STELLARS account reset completed.", {
             requestedBy: request.auth.uid,
