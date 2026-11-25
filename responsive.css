@@ -827,3 +827,51 @@ nav.navbar .site-account-button:focus-visible,
     font-size: 10.5px;
   }
 }
+
+
+/* =========================================================
+   SHARED NAVBAR — TRUE THREE-ZONE ALIGNMENT
+   Left: brand | Center: navigation | Right: account actions
+========================================================= */
+@media (min-width: 701px) {
+    .site-header .site-nav {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        align-items: center;
+        gap: 20px;
+    }
+
+    .site-header .logo {
+        justify-self: start;
+    }
+
+    .site-header .nav-links {
+        justify-self: center;
+        margin: 0;
+    }
+
+    .site-header .site-nav-actions {
+        justify-self: end;
+    }
+}
+
+/* Keep the Home navbar's three zones balanced as well. */
+@media (min-width: 701px) {
+    .navbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        align-items: center;
+    }
+
+    .navbar > .logo {
+        justify-self: start;
+    }
+
+    .navbar > .links {
+        justify-self: center;
+    }
+
+    .navbar > .site-nav-actions {
+        justify-self: end;
+    }
+}
