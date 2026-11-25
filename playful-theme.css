@@ -812,3 +812,216 @@ select,
         letter-spacing: -.045em;
     }
 }
+
+
+/* =========================================================
+   8. PAGE PERSONALITIES — RADIO-INSPIRED BOX LANGUAGE
+   Same tactile outline family; each page gets its own flavor.
+========================================================= */
+
+/* HOME — floating destination tiles with small alternating tilts. */
+.home-page .quick-access-card,
+.quick-access-grid .quick-access-card {
+    border-width: 2.5px !important;
+    border-color: #2b2640 !important;
+    box-shadow: 5px 5px 0 #2b2640 !important;
+}
+.quick-access-grid > :nth-child(4n + 1) { rotate: -.65deg; }
+.quick-access-grid > :nth-child(4n + 2) { rotate: .55deg; }
+.quick-access-grid > :nth-child(4n + 3) { rotate: -.35deg; }
+.quick-access-grid > :nth-child(4n) { rotate: .75deg; }
+.home-identities .accountings .item {
+    border-top-width: 5px !important;
+}
+.home-identities .accountings .item:nth-child(3n + 1) { border-top-color: #a99bea !important; }
+.home-identities .accountings .item:nth-child(3n + 2) { border-top-color: #8b82d5 !important; }
+.home-identities .accountings .item:nth-child(3n) { border-top-color: #d7bd78 !important; }
+
+/* CREWMATES — collectible portrait cards with a vivid frame. */
+.crew-card,
+.crewmate-card {
+    border-width: 3px !important;
+    border-color: #2b2640 !important;
+    box-shadow: 5px 5px 0 #2b2640 !important;
+}
+.crew-grid-2 > :nth-child(odd),
+.crew-grid-3 > :nth-child(odd),
+.crewmates-grid > :nth-child(odd) { rotate: -.45deg; }
+.crew-grid-2 > :nth-child(even),
+.crew-grid-3 > :nth-child(even),
+.crewmates-grid > :nth-child(even) { rotate: .45deg; }
+.crew-card::before {
+    height: 6px !important;
+    opacity: 1 !important;
+}
+
+/* LECTURERS — faculty cards feel like framed illustrated profiles. */
+.lecturers-page .featured-lecturer {
+    border: 3px solid #2b2640 !important;
+    box-shadow: 7px 7px 0 #2b2640 !important;
+}
+.lecturers-page .lecturer-card {
+    border: 2.5px solid #2b2640 !important;
+    box-shadow: 4px 4px 0 #2b2640 !important;
+}
+.lecturers-page .lecturer-card:nth-child(3n + 1) { rotate: -.45deg; }
+.lecturers-page .lecturer-card:nth-child(3n + 2) { rotate: .4deg; }
+.lecturers-page .lecturer-card:nth-child(3n) { rotate: -.2deg; }
+.lecturers-page .lecturer-role {
+    border: 2px solid #2b2640;
+    border-radius: 8px;
+}
+
+/* LIBRARY — scrapbook/photo-print cards, slightly staggered. */
+.library-page .memory-card {
+    border: 3px solid #2b2640 !important;
+    border-radius: 17px !important;
+    box-shadow: 5px 5px 0 #2b2640 !important;
+}
+.library-page .memory-card:nth-child(odd) { rotate: -.55deg; }
+.library-page .memory-card:nth-child(even) { rotate: .55deg; }
+.library-page .memory-image {
+    padding: 7px 7px 0;
+    background: #fff8dc !important;
+}
+.library-page .memory-image img,
+.library-page .memory-image video {
+    border-radius: 10px 10px 3px 3px !important;
+}
+
+/* RADIO — preserve its signature dark share card + soft lilac feed cards. */
+.radio-page .radio-share-card {
+    border: 3px solid #2b2640 !important;
+    box-shadow: 6px 6px 0 #2b2640 !important;
+}
+.radio-page .radio-prompt-card,
+.radio-page .radio-countdown-card {
+    border: 2.5px solid #2b2640 !important;
+    box-shadow: 4px 4px 0 #2b2640 !important;
+}
+.radio-page .radio-song-card {
+    border: 2.5px solid #2b2640 !important;
+    border-left-width: 7px !important;
+    border-left-color: #9b8bd7 !important;
+    box-shadow: 4px 4px 0 #2b2640 !important;
+}
+.radio-page .radio-song-card:nth-child(3n + 2) { border-left-color: #c5a9e8 !important; }
+.radio-page .radio-song-card:nth-child(3n) { border-left-color: #d7bd78 !important; }
+.radio-page .radio-auth-gate,
+.radio-page .radio-empty-state {
+    border: 2.5px dashed #2b2640 !important;
+    box-shadow: 4px 4px 0 rgba(43, 38, 64, .72) !important;
+}
+
+/* ACADEMIC — scoreboard cards, modular panels and chunky result blocks. */
+.academic-page .academic-access-card,
+.academic-page .academic-grade-card,
+.academic-page .activation-manager-panel,
+.academic-page .academic-import-step-card,
+.academic-page .academic-import-history-card,
+.academic-page .admin-results-stat,
+.academic-page .academic-login-card {
+    border: 2.5px solid #2b2640 !important;
+    box-shadow: 5px 5px 0 #2b2640 !important;
+}
+.academic-page .academic-grade-card:nth-child(3n + 1) { border-top: 6px solid #a99bea !important; }
+.academic-page .academic-grade-card:nth-child(3n + 2) { border-top: 6px solid #8b82d5 !important; }
+.academic-page .academic-grade-card:nth-child(3n) { border-top: 6px solid #d7bd78 !important; }
+.academic-page .academic-result-row {
+    border: 2px dashed rgba(43, 38, 64, .55) !important;
+    border-radius: 12px;
+    box-shadow: 2px 2px 0 rgba(43, 38, 64, .18);
+}
+
+/* WORLD — chunky pixel panels, keeping the pixel-art layout. */
+.world-app .panel {
+    border: 2px solid #2b2640 !important;
+    box-shadow: 4px 4px 0 #2b2640 !important;
+}
+.world-app .game-sidebar .panel:nth-child(3n + 1) { border-top: 5px solid #a99bea !important; }
+.world-app .game-sidebar .panel:nth-child(3n + 2) { border-top: 5px solid #d7bd78 !important; }
+.world-app .game-sidebar .panel:nth-child(3n) { border-top: 5px solid #96cbb0 !important; }
+.world-app .intro-stats > div {
+    border: 2px solid #2b2640 !important;
+    box-shadow: 3px 3px 0 #2b2640 !important;
+}
+
+/* =========================================================
+   9. EXTRA WIGGLE — stronger motion on hover, not all the time
+========================================================= */
+@keyframes stCartoonRattle {
+    0%, 100% { transform: translate(0, 0) rotate(0) scale(1); }
+    12% { transform: translate(-2px, -1px) rotate(-1.1deg) scale(1.015); }
+    24% { transform: translate(2px, 0) rotate(1.1deg) scale(1.02); }
+    36% { transform: translate(-2px, 1px) rotate(-.9deg) scale(1.015); }
+    48% { transform: translate(2px, -1px) rotate(.9deg) scale(1.02); }
+    60% { transform: translate(-1px, 0) rotate(-.7deg) scale(1.01); }
+    72% { transform: translate(1px, 1px) rotate(.7deg) scale(1.015); }
+    84% { transform: translate(-1px, 0) rotate(-.4deg) scale(1.005); }
+}
+
+@keyframes stCardTeeter {
+    0%, 100% { transform: translateY(-3px) rotate(0) scale(1.02); }
+    20% { transform: translateY(-5px) rotate(-1.5deg) scale(1.035); }
+    40% { transform: translateY(-2px) rotate(1.4deg) scale(1.025); }
+    60% { transform: translateY(-6px) rotate(-1deg) scale(1.04); }
+    80% { transform: translateY(-3px) rotate(.8deg) scale(1.025); }
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .quick-access-grid .quick-access-card:hover,
+    .home-identities .accountings .item:hover,
+    .home-history-section .history .entry:hover,
+    .crew-card:hover,
+    .crewmate-card:hover,
+    .lecturers-page .lecturer-card:hover,
+    .lecturers-page .featured-lecturer:hover,
+    .library-page .memory-card:hover,
+    .radio-page .radio-countdown-card:hover,
+    .radio-page .radio-prompt-card:hover,
+    .radio-page .radio-share-card:hover,
+    .radio-page .radio-song-card:hover,
+    .academic-page .academic-access-card:hover,
+    .academic-page .academic-grade-card:hover,
+    .academic-page .activation-manager-panel:hover,
+    .academic-page .academic-import-step-card:hover,
+    .academic-page .academic-import-history-card:hover,
+    .academic-page .admin-results-stat:hover,
+    .world-app .panel:hover,
+    .world-app .intro-stats > div:hover {
+        animation: stCartoonRattle .52s ease-in-out infinite;
+        box-shadow: 7px 7px 0 #2b2640 !important;
+        z-index: 2;
+    }
+
+    .radio-page .radio-song-card:hover,
+    .radio-page .radio-share-card:hover {
+        animation: stCardTeeter .55s ease-in-out infinite;
+    }
+}
+
+/* Reduced-motion users get the bold card art, but no shaking. */
+@media (prefers-reduced-motion: reduce) {
+    .quick-access-grid .quick-access-card,
+    .home-identities .accountings .item,
+    .home-history-section .history .entry,
+    .crew-card,
+    .crewmate-card,
+    .lecturers-page .lecturer-card,
+    .lecturers-page .featured-lecturer,
+    .library-page .memory-card,
+    .radio-page .radio-countdown-card,
+    .radio-page .radio-prompt-card,
+    .radio-page .radio-share-card,
+    .radio-page .radio-song-card,
+    .academic-page .academic-access-card,
+    .academic-page .academic-grade-card,
+    .academic-page .activation-manager-panel,
+    .academic-page .academic-import-step-card,
+    .academic-page .academic-import-history-card,
+    .academic-page .admin-results-stat,
+    .world-app .panel,
+    .world-app .intro-stats > div {
+        animation: none !important;
+    }
+}
