@@ -594,3 +594,13 @@
     .radio-primary-button, .radio-toast { transition: none; }
     .radio-primary-button:hover { transform: none; }
 }
+
+/* Keep the owner's edit action visually consistent with its text-link style. */
+.radio-edit-entry {
+    padding: 0;
+    border: 0;
+    color: #7663be;
+    background: transparent;
+    font-family: inherit;
+    cursor: pointer;
+}
