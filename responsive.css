@@ -742,3 +742,88 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+
+/* =========================================================
+   STELLARS NAVBAR POLISH — TRUE CENTER ALIGNMENT
+   Keep the brand and account controls balanced on desktop,
+   and center the complete navigation row on small screens.
+========================================================= */
+
+.site-header .site-nav,
+nav.navbar,
+.academic-header .academic-navbar {
+  isolation: isolate;
+}
+
+.site-header .nav-links a[aria-current="page"],
+nav.navbar .links a[aria-current="page"],
+.academic-header .academic-nav-links a[aria-current="page"] {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.17);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.10);
+}
+
+.site-header .nav-links a:focus-visible,
+nav.navbar .links a:focus-visible,
+.academic-header .academic-nav-links a:focus-visible,
+.site-header .site-account-button:focus-visible,
+nav.navbar .site-account-button:focus-visible,
+.academic-header .academic-nav-actions a:focus-visible,
+.academic-header .academic-profile-button:focus-visible {
+  outline: 2px solid rgba(230, 224, 255, 0.95);
+  outline-offset: 3px;
+}
+
+@media (min-width: 761px) {
+  .site-header .site-nav,
+  nav.navbar,
+  .academic-header .academic-navbar {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  }
+
+  .site-header .nav-links,
+  nav.navbar > .links,
+  .academic-header .academic-nav-links {
+    justify-self: center;
+  }
+
+  .site-header .site-nav-actions,
+  nav.navbar .site-nav-actions,
+  .academic-header .academic-nav-actions {
+    justify-self: end;
+  }
+}
+
+@media (max-width: 760px) {
+  .site-header .nav-links,
+  nav.navbar > .links,
+  .academic-header .academic-nav-links {
+    justify-content: safe center;
+    margin-left: auto;
+    margin-right: auto;
+    scroll-padding-inline: 12px;
+  }
+
+  .site-header .nav-links a,
+  nav.navbar > .links a,
+  .academic-header .academic-nav-links a {
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 420px) {
+  .site-header .nav-links,
+  nav.navbar > .links,
+  .academic-header .academic-nav-links {
+    gap: 1px;
+  }
+
+  .site-header .nav-links a,
+  nav.navbar > .links a,
+  .academic-header .academic-nav-links a {
+    padding-left: 8px;
+    padding-right: 8px;
+    font-size: 10.5px;
+  }
+}
