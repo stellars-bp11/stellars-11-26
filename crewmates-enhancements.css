@@ -189,3 +189,277 @@
         transform: none;
     }
 }
+
+
+/* =========================================================
+   CREWMATES — YEARBOOK / PEOPLE DIRECTORY ART DIRECTION
+   Kept page-scoped; existing roster, dates, quotes and photos stay intact.
+========================================================= */
+.crewmates-page {
+    background: #111326;
+}
+.crewmates-page .background-overlay {
+    background:
+        radial-gradient(ellipse 58% 52% at 18% 14%, rgba(112, 99, 184, .28), transparent 72%),
+        radial-gradient(ellipse 52% 48% at 88% 58%, rgba(47, 119, 126, .2), transparent 72%),
+        linear-gradient(180deg, rgba(9, 12, 28, .35), rgba(13, 17, 34, .78));
+}
+.crewmates-page .library-hero {
+    min-height: 470px;
+    justify-content: flex-start;
+    padding: 96px max(7vw, 28px) 105px;
+    text-align: left;
+}
+.crewmates-page .library-hero .hero-content {
+    width: min(920px, 100%);
+    max-width: 920px;
+    padding: 34px 0;
+}
+.crewmates-page .library-hero .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 13px;
+    border: 1px solid rgba(211, 202, 255, .28);
+    border-radius: 5px;
+    color: #d7ccff;
+    background: rgba(25, 27, 54, .54);
+    font-size: 10px;
+    letter-spacing: 2px;
+}
+.crewmates-page .library-hero .hero-content h1 {
+    margin: 20px 0 15px;
+    font-size: clamp(62px, 9vw, 108px);
+    letter-spacing: -4px;
+    text-shadow: 0 12px 42px rgba(5, 8, 28, .38);
+}
+.crewmates-page .library-hero .hero-content > p:last-child {
+    max-width: 520px;
+    margin: 0;
+    color: rgba(245, 244, 255, .86);
+    font-size: 17px;
+    line-height: 1.7;
+}
+.crewmates-page .library-hero .hero-content::after {
+    content: "45\A CREWMATES";
+    white-space: pre;
+    top: 52%;
+    left: auto;
+    right: 2%;
+    width: 174px;
+    height: 174px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(221, 212, 255, .4);
+    border-radius: 50%;
+    color: #f5e9b9;
+    background: radial-gradient(circle, rgba(128, 111, 193, .32), rgba(28, 31, 62, .2) 68%, transparent 70%);
+    box-shadow: 0 0 0 12px rgba(221, 212, 255, .035), 0 0 55px rgba(144, 126, 218, .2);
+    text-align: center;
+    font: 16px/2 "Press Start 2P", monospace;
+    letter-spacing: 0;
+    transform: translateY(-50%);
+}
+.crewmates-page .crew-role-section {
+    width: min(1320px, calc(100% - 64px));
+    margin: 0 auto 42px;
+    padding: 30px;
+    border: 1px solid rgba(211, 204, 246, .17);
+    border-radius: 21px;
+    background: linear-gradient(135deg, rgba(25, 28, 54, .86), rgba(30, 27, 55, .72));
+    box-shadow: 0 18px 50px rgba(2, 5, 19, .2);
+    backdrop-filter: blur(12px);
+}
+.crewmates-page .crew-role-section + .crew-role-section::before {
+    display: none;
+}
+.crewmates-page .crew-role-section .section-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 0 0 23px;
+    text-align: left;
+}
+.crewmates-page .crew-role-section .section-heading .eyebrow {
+    margin-bottom: 7px;
+    color: #bdb1f0;
+    letter-spacing: 2px;
+}
+.crewmates-page .crew-role-section .section-heading h2 {
+    margin: 0;
+    color: #fff;
+    font-size: clamp(27px, 3vw, 38px);
+    letter-spacing: -1px;
+    text-shadow: none;
+}
+.crewmates-page .crew-role-section .section-heading h2::after {
+    left: 0;
+    bottom: -10px;
+    width: 62px;
+    height: 3px;
+    background: linear-gradient(90deg, #9e8be8, #d9d0ff);
+}
+.crewmates-page .crew-card {
+    overflow: hidden;
+    border: 1px solid rgba(230, 225, 246, .8);
+    border-radius: 15px;
+    background: #f7f5fb;
+    box-shadow: 0 12px 28px rgba(5, 6, 24, .22);
+}
+.crewmates-page .crew-card::before {
+    height: 4px;
+    background: linear-gradient(90deg, #8d7bd0, #ddc68e, #80b8ad);
+}
+.crewmates-page .crew-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 38px rgba(2, 5, 20, .3);
+}
+.crewmates-page .crew-photo {
+    height: clamp(230px, 25vw, 300px);
+    background: linear-gradient(145deg, #e9e5f2, #f6f0df);
+}
+.crewmates-page .crew-photo img {
+    object-position: center bottom;
+}
+.crewmates-page .crew-info {
+    min-height: 152px;
+    padding: 17px 19px 19px;
+    color: #29263c;
+}
+.crewmates-page .crew-role {
+    color: #5c4d91;
+    background: #eae5fa;
+    border-color: #ded5f2;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+}
+.crewmates-page .crew-info h3 {
+    color: #29263c;
+    font-size: clamp(16px, 1.35vw, 19px);
+}
+.crewmates-page .crew-dob {
+    color: #77718a;
+    font-size: 11px;
+}
+.crewmates-page .crew-quote {
+    color: #625c72;
+    border-color: #e8e2f1;
+    font-size: 12px;
+    line-height: 1.55;
+}
+.crewmates-page .library-section.crewmates-section {
+    width: min(1320px, calc(100% - 64px));
+    margin: 58px auto 92px;
+    padding: 38px;
+    border: 1px solid rgba(215, 207, 247, .2);
+    border-radius: 24px;
+    background: linear-gradient(145deg, rgba(248, 246, 255, .97), rgba(233, 230, 247, .95));
+    box-shadow: 0 24px 60px rgba(3, 5, 19, .26);
+}
+.crewmates-page .crewmates-section .section-heading {
+    margin-bottom: 28px;
+    text-align: left;
+}
+.crewmates-page .crewmates-section .section-heading .eyebrow {
+    color: #7565ad;
+    letter-spacing: 2px;
+}
+.crewmates-page .crewmates-section .section-heading h2 {
+    color: #26213f;
+    font-size: clamp(34px, 4.2vw, 48px);
+    letter-spacing: -1.4px;
+}
+.crewmates-page .crewmates-section .section-heading h2::after {
+    left: 0;
+    width: 72px;
+    background: linear-gradient(90deg, #7665bb, #b9a9ec);
+}
+.crewmates-page .crewmates-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 17px;
+}
+.crewmates-page .crewmate-card {
+    overflow: hidden;
+    border: 1px solid #e7e1f0;
+    border-radius: 13px;
+    background: #fff;
+    box-shadow: 0 8px 22px rgba(48, 40, 86, .08);
+    transition: transform .22s ease, box-shadow .22s ease;
+}
+.crewmates-page .crewmate-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 15px 28px rgba(48, 40, 86, .14);
+}
+.crewmates-page .crewmate-photo {
+    height: clamp(168px, 17vw, 220px);
+    padding: 0;
+    background: linear-gradient(145deg, #ece8f6, #f5f0e6);
+}
+.crewmates-page .crewmate-photo img {
+    object-fit: cover;
+    object-position: center 25%;
+}
+.crewmates-page .crewmate-info {
+    min-height: 126px;
+    padding: 14px 14px 16px;
+    color: #28243c;
+}
+.crewmates-page .crewmate-card h3 {
+    color: #28243c;
+    font-size: 14px;
+    line-height: 1.35;
+}
+.crewmates-page .crewmate-dob {
+    color: #817b91;
+    font-size: 10px;
+}
+.crewmates-page .crewmate-quote {
+    color: #69647a;
+    font-size: 11px;
+    line-height: 1.5;
+}
+.crewmates-page footer {
+    margin-top: 0;
+    border-top: 1px solid rgba(220, 213, 255, .16);
+    background: rgba(12, 14, 31, .78);
+}
+@media (max-width: 980px) {
+    .crewmates-page .crewmates-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .crewmates-page .crew-role-section { width: calc(100% - 40px); padding: 24px; }
+    .crewmates-page .library-section.crewmates-section { width: calc(100% - 40px); padding: 28px; }
+}
+@media (max-width: 700px) {
+    .crewmates-page .library-hero { min-height: 360px; padding: 68px 24px 72px; }
+    .crewmates-page .library-hero .hero-content h1 { font-size: clamp(52px, 13vw, 76px); letter-spacing: -2.5px; }
+    .crewmates-page .library-hero .hero-content > p:last-child { font-size: 15px; }
+    .crewmates-page .library-hero .hero-content::after { display: none; }
+    .crewmates-page .crew-role-section { width: calc(100% - 28px); margin-bottom: 18px; padding: 19px; border-radius: 16px; }
+    .crewmates-page .crew-role-section .section-heading { margin-bottom: 20px; }
+    .crewmates-page .crew-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .crewmates-page .crew-grid-3 { gap: 12px; }
+    .crewmates-page .crew-grid-3 > .crew-card { flex-basis: calc((100% - 12px) / 2); max-width: calc((100% - 12px) / 2); }
+    .crewmates-page .crew-photo { height: clamp(170px, 36vw, 230px); }
+    .crewmates-page .crew-info { min-height: 142px; padding: 13px; }
+    .crewmates-page .crew-info h3 { font-size: 15px; }
+    .crewmates-page .library-section.crewmates-section { width: calc(100% - 28px); margin: 30px auto 60px; padding: 21px; border-radius: 18px; }
+    .crewmates-page .crewmates-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .crewmates-page .crewmate-photo { height: clamp(150px, 42vw, 205px); }
+    .crewmates-page .crewmate-info { min-height: 0; padding: 12px; }
+}
+@media (max-width: 420px) {
+    .crewmates-page .crew-grid-2 { grid-template-columns: 1fr; }
+    .crewmates-page .crew-grid-3 > .crew-card { flex-basis: 100%; max-width: 100%; }
+    .crewmates-page .crew-photo { height: 260px; }
+    .crewmates-page .crew-info { min-height: 0; padding: 16px; }
+    .crewmates-page .crewmates-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+    .crewmates-page .crewmate-photo { height: 148px; }
+    .crewmates-page .crewmate-info { padding: 10px; }
+    .crewmates-page .crewmate-card h3 { font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .crewmates-page .crew-card,
+    .crewmates-page .crewmate-card { transition: none; }
+    .crewmates-page .crew-card:hover,
+    .crewmates-page .crewmate-card:hover { transform: none; }
+}
