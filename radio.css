@@ -612,6 +612,9 @@
    so the rest of the site's global stylesheet is not imported.
 ========================================================= */
 .radio-page .site-header {
+    position: relative;
+    z-index: 1250;
+    overflow: visible;
     border-bottom: 0;
 }
 
