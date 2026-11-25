@@ -62,7 +62,7 @@ exports.clearExpiredRadioSongs = onSchedule(
  *
  * Keeps only Jasper Vladino Alvis and Quinetta Aulya Winata as active
  * Super Admins. Deletes all other STELLARS Auth users, their user profiles,
- * student NIM index entries, and previous activation codes.
+ * student NIM index entries, and previous student activation codes.
  *
  * It refuses to run if score documents already exist. It never deletes
  * academic scores, assessments, uploads, published-import manifests, or
@@ -224,8 +224,23 @@ exports.resetStellarsAccounts = onCall(
             }
         });
 
+        const keepAdminNims = new Set(
+            keepProfiles
+                .map(profile => String(profile.data.nim || "").trim())
+                .filter(Boolean)
+        );
+        const keepAdminNames = new Set(RESET_SUPER_ADMINS);
+        let deletedActivationCodes = 0;
+
         activationCodesSnapshot.forEach(codeDoc => {
+            const codeData = codeDoc.data() || {};
+            const isSuperAdminCode =
+                keepAdminNims.has(String(codeData.nim || "").trim()) ||
+                keepAdminNames.has(normalizeAccountName(codeData.fullName));
+            if (isSuperAdminCode) return;
+
             operations.push({ type: "delete", ref: codeDoc.ref });
+            deletedActivationCodes += 1;
         });
 
         keepProfiles.forEach(profile => {
@@ -264,7 +279,7 @@ exports.resetStellarsAccounts = onCall(
             deletedAuthUsers: oldStellarsAuthUsers.length,
             deletedUserProfiles: usersSnapshot.size - keepProfiles.length,
             deletedNimIndexes: nimIndexSnapshot.docs.filter(doc => !keepUids.has(String(doc.data()?.uid || ""))).length,
-            deletedActivationCodes: activationCodesSnapshot.size
+            deletedActivationCodes
         });
 
         return {
@@ -273,7 +288,7 @@ exports.resetStellarsAccounts = onCall(
             deletedAuthUsers: oldStellarsAuthUsers.length,
             deletedUserProfiles: usersSnapshot.size - keepProfiles.length,
             deletedNimIndexes: nimIndexSnapshot.docs.filter(doc => !keepUids.has(String(doc.data()?.uid || ""))).length,
-            deletedActivationCodes: activationCodesSnapshot.size,
+            deletedActivationCodes,
             message: "Old STELLARS student accounts and activation codes have been reset. The two Super Admin accounts were preserved."
         };
     }
