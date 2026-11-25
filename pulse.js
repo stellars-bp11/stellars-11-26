@@ -56,6 +56,8 @@ let activeDayKey = getJakartaDayKey();
 let activePoll = null;
 let currentVotes = [];
 let ownVote = null;
+let votePending = false;
+let pendingCandidateId = "";
 let unsubscribePoll = null;
 let unsubscribeVotes = null;
 let creatingPollFor = "";
@@ -263,15 +265,15 @@ function renderVoting(poll) {
     candidates.forEach((candidate, index) => {
         const button = makeElement("button", "pulse-candidate-button");
         button.type = "button";
-        button.disabled = !!ownVote;
+        button.disabled = !!ownVote || votePending;
         button.setAttribute("aria-label", "Vote for " + candidate.name);
 
         const letter = makeElement("span", "pulse-option-letter", labels[index]);
         const name = makeElement("strong", "pulse-option-name", candidate.name);
-        const action = makeElement("span", "pulse-option-action", ownVote ? (ownVote.candidateId === candidate.id ? "YOUR VOTE" : "VOTING LOCKED") : "CAST VOTE");
+        const action = makeElement("span", "pulse-option-action", ownVote ? (ownVote.candidateId === candidate.id ? "YOUR VOTE" : "VOTING LOCKED") : (votePending ? (pendingCandidateId === candidate.id ? "SUBMITTING…" : "PLEASE WAIT") : "CAST VOTE"));
         button.append(letter, name, action);
         if (ownVote?.candidateId === candidate.id) button.classList.add("is-voted");
-        if (ownVote) button.classList.add("is-disabled");
+        if (ownVote || votePending) button.classList.add("is-disabled");
 
         button.addEventListener("click", () => castVote(candidate));
         options.append(button);
@@ -453,7 +455,13 @@ function startVoteListener() {
         // During voting, each member can read only their own vote document.
         const ownVoteRef = doc(db, "pulseDays", activeDayKey, "votes", currentUser.uid);
         unsubscribeVotes = onSnapshot(ownVoteRef, snapshot => {
-            ownVote = snapshot.exists() ? snapshot.data() : null;
+            if (snapshot.exists()) {
+                ownVote = snapshot.data();
+                votePending = false;
+                pendingCandidateId = "";
+            } else if (!votePending) {
+                ownVote = null;
+            }
             renderPulse();
         }, error => {
             console.error("STELLARS Pulse own-vote listener failed:", error);
@@ -556,7 +564,11 @@ async function castVote(candidate) {
         renderPulse();
         return;
     }
-    if (ownVote) return;
+    if (ownVote || votePending) return;
+
+    votePending = true;
+    pendingCandidateId = candidate.id;
+    renderPulse();
 
     const buttons = el.panel.querySelectorAll(".pulse-candidate-button");
     buttons.forEach(button => { button.disabled = true; });
@@ -571,6 +583,8 @@ async function castVote(candidate) {
             createdAt: serverTimestamp()
         });
     } catch (error) {
+        votePending = false;
+        pendingCandidateId = "";
         console.error("Could not cast STELLARS Pulse vote:", error);
         currentPollError = error?.code === "permission-denied"
             ? "Your vote was not accepted. Voting is open from 09:30 to 13:00 WIB, and each account gets one vote."
