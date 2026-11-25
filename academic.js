@@ -248,7 +248,7 @@ function showProfile(profile, authUser) {
         bindAdminResultsControls();
         loadAdminResults();
 
-        import("./activation-manager.js")
+        import("./activation-manager.js?v=account-security-v3-20261125")
             .then(({ initActivationManager }) => {
                 initActivationManager(profile, authUser);
             })
