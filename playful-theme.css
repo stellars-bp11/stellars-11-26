@@ -471,3 +471,264 @@ select[aria-invalid="true"] {
     border-color: #e11d48 !important;
     background: #ffe3e8 !important;
 }
+
+
+/* =========================================================
+   7. EXTRA CARTOON MOTION — BOUNCY BOXES & SPARKLES
+   One-shot entrance, playful hover wobble, tactile press.
+========================================================= */
+
+@keyframes stBoxPopIn {
+    0% {
+        opacity: 0;
+        transform: translateY(24px) scale(.88) rotate(-1.8deg);
+    }
+    58% {
+        opacity: 1;
+        transform: translateY(-7px) scale(1.045) rotate(.8deg);
+    }
+    78% {
+        transform: translateY(2px) scale(.985) rotate(-.35deg);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1) rotate(0);
+    }
+}
+
+@keyframes stBoxExcited {
+    0%   { transform: translateY(0) rotate(0) scale(1); }
+    24%  { transform: translateY(-8px) rotate(-1.8deg) scale(1.045); }
+    48%  { transform: translateY(-3px) rotate(1.3deg) scale(1.025); }
+    72%  { transform: translateY(-7px) rotate(-.7deg) scale(1.035); }
+    100% { transform: translateY(-4px) rotate(0) scale(1.025); }
+}
+
+@keyframes stStickerWiggle {
+    0%, 100% { transform: rotate(0) scale(1); }
+    22%      { transform: rotate(-9deg) scale(1.12); }
+    48%      { transform: rotate(7deg) scale(1.08); }
+    72%      { transform: rotate(-4deg) scale(1.04); }
+}
+
+@keyframes stStarPop {
+    0%, 100% { transform: scale(1) rotate(0); opacity: .9; }
+    50%      { transform: scale(1.28) rotate(22deg); opacity: 1; }
+}
+
+/* Cards get a springy entrance when a page first opens. */
+.outer-space-card,
+.quick-access-card,
+.home-identities .accountings .item,
+.home-history-section .history .entry,
+.crew-card,
+.crewmate-card,
+.lecturer-card,
+.featured-lecturer,
+.memory-card,
+.radio-countdown-card,
+.radio-prompt-card,
+.radio-share-card,
+.radio-song-card,
+.radio-auth-gate,
+.radio-empty-state,
+.academic-login-card,
+.academic-access-card,
+.academic-grade-card,
+.academic-personal-results-panel,
+.student-personal-results-panel,
+.activation-manager-panel,
+.academic-import-step-card,
+.academic-import-history-card,
+.admin-module-card,
+.admin-results-stat,
+.intro-stats > div,
+.panel {
+    animation: stBoxPopIn .68s cubic-bezier(.2, .85, .28, 1.18) both;
+}
+
+/* Small stagger makes grids feel like cards popping onto a board. */
+.quick-access-grid > :nth-child(2),
+.crew-grid-2 > :nth-child(2),
+.crew-grid-3 > :nth-child(2),
+.crewmates-grid > :nth-child(2),
+.lecturer-grid > :nth-child(2),
+.library-grid > :nth-child(2),
+.radio-feed-grid > :nth-child(2),
+.admin-results-cards > :nth-child(2),
+.academic-results-grid > :nth-child(2) {
+    animation-delay: .07s;
+}
+
+.quick-access-grid > :nth-child(3),
+.crew-grid-2 > :nth-child(3),
+.crew-grid-3 > :nth-child(3),
+.crewmates-grid > :nth-child(3),
+.lecturer-grid > :nth-child(3),
+.library-grid > :nth-child(3),
+.radio-feed-grid > :nth-child(3),
+.admin-results-cards > :nth-child(3),
+.academic-results-grid > :nth-child(3) {
+    animation-delay: .14s;
+}
+
+.quick-access-grid > :nth-child(4),
+.crew-grid-2 > :nth-child(4),
+.crew-grid-3 > :nth-child(4),
+.crewmates-grid > :nth-child(4),
+.lecturer-grid > :nth-child(4),
+.library-grid > :nth-child(4),
+.radio-feed-grid > :nth-child(4),
+.admin-results-cards > :nth-child(4),
+.academic-results-grid > :nth-child(4) {
+    animation-delay: .21s;
+}
+
+.quick-access-grid > :nth-child(n+5),
+.crew-grid-2 > :nth-child(n+5),
+.crew-grid-3 > :nth-child(n+5),
+.crewmates-grid > :nth-child(n+5),
+.lecturer-grid > :nth-child(n+5),
+.library-grid > :nth-child(n+5),
+.radio-feed-grid > :nth-child(n+5),
+.admin-results-cards > :nth-child(n+5),
+.academic-results-grid > :nth-child(n+5) {
+    animation-delay: .28s;
+}
+
+/* Hover triggers a comic-style bounce and a deeper offset shadow. */
+.outer-space-card:hover,
+.quick-access-card:hover,
+.home-identities .accountings .item:hover,
+.home-history-section .history .entry:hover,
+.crew-card:hover,
+.crewmate-card:hover,
+.lecturer-card:hover,
+.featured-lecturer:hover,
+.memory-card:hover,
+.radio-countdown-card:hover,
+.radio-prompt-card:hover,
+.radio-share-card:hover,
+.radio-song-card:hover,
+.academic-access-card:hover,
+.academic-grade-card:hover,
+.academic-import-step-card:hover,
+.academic-import-history-card:hover,
+.admin-results-stat:hover,
+.panel:hover {
+    animation: stBoxExcited .58s cubic-bezier(.2, .85, .35, 1.15) both;
+    box-shadow: 6px 6px 0 var(--st-cartoon-ink) !important;
+}
+
+/* Decorative stars and sparkles get a little life. */
+.brand-star,
+.panel-spark,
+.share-card-decoration,
+.academic-grade-card-sparkle,
+.admin-results-sparkle,
+.home-hero-eyebrow span {
+    transform-origin: center;
+    animation: stStickerWiggle 2.8s ease-in-out infinite;
+}
+
+.radio-orbit-art .orbit-star,
+.share-card-icon,
+.empty-note-icon {
+    animation: stStarPop 2.2s ease-in-out infinite;
+}
+
+/* Buttons bounce more quickly than cards. */
+.home-hero-button:hover,
+.academic-primary-button:hover,
+.academic-secondary-button:hover,
+.academic-access-button:hover,
+.academic-grade-card-button:hover,
+.academic-submit-button:hover,
+.activation-import-button:hover,
+.profile-save-button:hover,
+.add-memory-btn:hover,
+.btn-utama:hover,
+.btn-kedua:hover,
+.radio-primary-button:hover,
+.radio-search-button:hover,
+.radio-upload-button:hover,
+.radio-text-button:hover,
+.radio-cancel-button:hover,
+.site-login-submit:hover,
+.pixel-button:hover,
+.secondary-button:hover {
+    animation: stStickerWiggle .34s ease-in-out;
+}
+
+/* Avoid entrance animations on focused / frequently updated form controls. */
+input,
+textarea,
+select,
+.site-account-menu,
+.academic-profile-menu,
+.academic-profile-dialog,
+.radio-dialog,
+.modal,
+.modal-overlay {
+    animation: none;
+}
+
+/* Honor reduced-motion settings for the new decorative motion. */
+@media (prefers-reduced-motion: reduce) {
+    .outer-space-card,
+    .quick-access-card,
+    .home-identities .accountings .item,
+    .home-history-section .history .entry,
+    .crew-card,
+    .crewmate-card,
+    .lecturer-card,
+    .featured-lecturer,
+    .memory-card,
+    .radio-countdown-card,
+    .radio-prompt-card,
+    .radio-share-card,
+    .radio-song-card,
+    .radio-auth-gate,
+    .radio-empty-state,
+    .academic-login-card,
+    .academic-access-card,
+    .academic-grade-card,
+    .academic-personal-results-panel,
+    .student-personal-results-panel,
+    .activation-manager-panel,
+    .academic-import-step-card,
+    .academic-import-history-card,
+    .admin-module-card,
+    .admin-results-stat,
+    .intro-stats > div,
+    .panel,
+    .brand-star,
+    .panel-spark,
+    .share-card-decoration,
+    .academic-grade-card-sparkle,
+    .admin-results-sparkle,
+    .home-hero-eyebrow span,
+    .radio-orbit-art .orbit-star,
+    .share-card-icon,
+    .empty-note-icon,
+    .home-hero-button,
+    .academic-primary-button,
+    .academic-secondary-button,
+    .academic-access-button,
+    .academic-grade-card-button,
+    .activation-import-button,
+    .profile-save-button,
+    .add-memory-btn,
+    .btn-utama,
+    .btn-kedua,
+    .radio-primary-button,
+    .radio-search-button,
+    .radio-upload-button,
+    .radio-text-button,
+    .radio-cancel-button,
+    .site-login-submit,
+    .pixel-button,
+    .secondary-button {
+        animation: none !important;
+    }
+}
