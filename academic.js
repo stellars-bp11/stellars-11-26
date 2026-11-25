@@ -273,7 +273,7 @@ function showProfile(profile, authUser) {
         bindAdminResultsControls();
         loadAdminResults();
 
-        import("./activation-manager.js?v=account-reset-v1-20261125")
+        import("./activation-manager.js?v=account-reset-v2-header-20261125")
             .then(({ initActivationManager }) => {
                 initActivationManager(profile, authUser);
             })
