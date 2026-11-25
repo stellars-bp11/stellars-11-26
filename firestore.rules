@@ -160,6 +160,11 @@ service cloud.firestore {
       );
     }
 
+    function isPulseVotingClosed() {
+      let jakartaNow = request.time + duration.value(7, "h");
+      return jakartaNow.hours() >= 13;
+    }
+
     function pulseRosterIds() {
       return ['quinetta-aulya-winata', 'darren-leinad-cahaya', 'vianney-yovella-kristanto', 'levinne-emerson-mulia', 'delfina-calista-ciu-putri', 'kelly-patricia-ongkodjojo', 'felicia-zefanya', 'nicke-amelia-trijono', 'tesalonika-uli-putri-silalahi', 'ersya-fely', 'shareen-tesalonika-setiawan', 'marsha-setiawan', 'anita-lestari-elisabet', 'anjelie', 'johanna-avrilla-hapsari-putri', 'kevano-mareto', 'vincent-farellius', 'elmarsha-hannabella', 'kioko-rei', 'raisya-thalita-jasmine', 'ellie-margaretta', 'jasper-vladino-alvis', 'adeline-nadia-nicola', 'andre-praditya-pratama', 'carmella-wibowo-widhianto', 'chairine-aretha-nathania', 'danniel', 'eilien-ardelia', 'grace-abigail-wijaya', 'gracielle-fellisca-tjoa', 'hosea-bowie-immanuel', 'jean-romeo-junior-sembiring', 'keely-michiko-mulyanto', 'maresha-majesty-wales', 'maya-caroline', 'pande-kadek-redita-julia-dewi', 'patricia-devina', 'putu-adelia-nariswari', 'reynard-christian', 'samantha-angel', 'stevander-rusli', 'stephanie-felita-widodo', 'chantika-anastasia', 'vivian-renata-chandra', 'zalika-afarin-azura'];
     }
@@ -214,7 +219,12 @@ service cloud.firestore {
       allow update, delete: if false;
 
       match /votes/{memberId} {
-        allow get, list: if activeMember() && isCurrentJakartaRadioDay(dayId);
+        allow get: if activeMember() &&
+          isCurrentJakartaRadioDay(dayId) &&
+          ((request.auth.uid == memberId && isPulseVotingOpen()) || isPulseVotingClosed());
+        allow list: if activeMember() &&
+          isCurrentJakartaRadioDay(dayId) &&
+          isPulseVotingClosed();
         allow create: if activeMember() &&
           request.auth.uid == memberId &&
           isCurrentJakartaRadioDay(dayId) &&
