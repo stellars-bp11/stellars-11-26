@@ -29,6 +29,7 @@
 
     <link rel="stylesheet" href="account.css">
     <link rel="stylesheet" href="responsive.css">
+    <link rel="stylesheet" href="home-enhancements.css">
 </head>
 
 
@@ -122,18 +123,34 @@
          HERO
     ========================================== -->
 
-    <header>
+    <header class="home-hero">
 
         <!-- HERO CONTENT -->
-        <div class="left">
+        <div class="left home-hero-content">
+
+            <span class="home-hero-eyebrow">BP11 <span aria-hidden="true">✦</span> STELLARS</span>
 
             <h1>
                 What's Up <span>Stars!</span>
             </h1>
 
-            <p>
+            <p class="home-hero-tagline">
                 Together We Shine Beyond The Limits
             </p>
+
+            <div class="home-hero-actions">
+                <a class="home-hero-button home-hero-button-primary" href="crewmates.html">
+                    Meet the Crewmates <i class="bx bx-right-arrow-alt" aria-hidden="true"></i>
+                </a>
+                <a class="home-hero-button home-hero-button-secondary" href="#about-stellars">
+                    Discover Our Story
+                </a>
+            </div>
+
+            <div class="home-hero-note">
+                <span class="home-hero-note-line"></span>
+                <span>A little universe made of many stories</span>
+            </div>
 
         </div>
 
@@ -162,7 +179,7 @@
          MAIN CONTENT
     ========================================== -->
 
-    <main>
+    <main class="home-main">
 
         <section class="home-quick-access" aria-labelledby="quick-access-title">
             <div class="quick-access-heading">
@@ -215,9 +232,12 @@
              MANAGEMENT MANIACS
         ====================================== -->
 
-        <h2 class="separator">
-            Beyond What?!! Beyond The Limits!!
-        </h2>
+        <section class="home-identities" aria-labelledby="home-identities-title">
+            <div class="home-section-heading">
+                <span class="home-section-kicker">OUR CLASS, OUR ENERGY</span>
+                <h2 id="home-identities-title">Different minds. One constellation.</h2>
+                <p>Different personalities, different ways of thinking, and one shared journey. This is the energy that makes Stellars, Stellars.</p>
+            </div>
 
 
         <div class="accountings">
@@ -291,13 +311,18 @@
 
 
 
+        </section>
+
         <!-- =====================================
              SEJARAH (HISTORY)
         ====================================== -->
 
-        <h2 class="separator">
-            Where We Run
-        </h2>
+        <section class="home-history-section" aria-labelledby="home-history-title">
+            <div class="home-section-heading">
+                <span class="home-section-kicker">THE PLACES THAT SHAPE US</span>
+                <h2 id="home-history-title">Our journey, so far.</h2>
+                <p>Every place adds a new chapter. Every chapter leaves us with something to carry forward.</p>
+            </div>
 
 
         <div class="history">
@@ -418,23 +443,36 @@
 
 
 
+        </section>
+
         <!-- =====================================
              TENTANG KITA
         ====================================== -->
 
-        <h2 class="separator">
-            About Stellars!
-        </h2>
+        <section class="about-section" id="about-stellars" aria-labelledby="about-stellars-title">
+            <div class="about-shell">
+                <div class="about-heading">
+                    <span class="home-section-kicker">A LITTLE ABOUT US</span>
+                    <h2 id="about-stellars-title">More than a name.<br><span>It's our constellation.</span></h2>
+                    <p class="about-lead">STELLARS is our little universe—a group of BP11 learners brought together by one journey, while each carrying a story, personality, and ambition of their own.</p>
+                </div>
 
+                <div class="about-story">
+                    <p>Like stars in a constellation, we do not have to shine in the same way to belong together. We learn from different perspectives, find our rhythm as a team, and make room for everyone to grow.</p>
+                    <p>From our days at Unika Atma Jaya and BCA Learning Institute to the moments we share at Rumah Talenta BCA, this space keeps our people, progress, and memories in one orbit.</p>
+                    <div class="about-highlights">
+                        <div><span>01</span><strong>Different stories</strong></div>
+                        <div><span>02</span><strong>One shared journey</strong></div>
+                        <div><span>03</span><strong>Limitless possibilities</strong></div>
+                    </div>
+                </div>
 
-        <div class="about">
-
-            <p>
-                Ruang buat cerita singkat tentang kelas, siapa kita,
-                dan kenapa nama Stellars dipilih.
-            </p>
-
-        </div>
+                <div class="about-signoff">
+                    <span>STELLARS <i class="bx bxs-star" aria-hidden="true"></i> BP11</span>
+                    <strong>Together We Shine Beyond The Limits.</strong>
+                </div>
+            </div>
+        </section>
 
     </main>
 
