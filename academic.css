@@ -3034,3 +3034,150 @@ body.academic-page {
         margin-left: 0;
     }
 }
+
+
+/* Admin-only student activation code manager */
+.activation-manager-panel {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px 24px;
+    align-items: center;
+    margin: 0 0 28px;
+    padding: clamp(20px, 3vw, 30px);
+    border: 1px solid rgba(181, 169, 255, 0.25);
+    border-radius: 24px;
+    background:
+        radial-gradient(circle at 95% 8%, rgba(140, 113, 255, 0.20), transparent 34%),
+        linear-gradient(135deg, rgba(23, 34, 90, 0.86), rgba(46, 29, 95, 0.78));
+    box-shadow: 0 18px 46px rgba(5, 7, 28, 0.20);
+    backdrop-filter: blur(14px);
+}
+.activation-manager-topline {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+}
+.activation-manager-icon {
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(255,255,255,.17);
+    border-radius: 13px;
+    color: #e3ddff;
+    background: rgba(255,255,255,.10);
+    font-size: 20px;
+}
+.activation-manager-copy h3 {
+    margin: 0 0 7px;
+    color: #fff;
+    font-size: clamp(19px, 2vw, 23px);
+}
+.activation-manager-copy p {
+    max-width: 760px;
+    margin: 0;
+    color: rgba(238, 236, 255, .75);
+    font-size: 13px;
+    line-height: 1.65;
+}
+.activation-workbook-picker {
+    min-height: 66px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 12px 16px;
+    border: 1px dashed rgba(206, 198, 255, .42);
+    border-radius: 14px;
+    color: #eeeaff;
+    background: rgba(255,255,255,.07);
+    cursor: pointer;
+}
+.activation-workbook-picker > i {
+    font-size: 23px;
+    color: #d8d0ff;
+}
+.activation-workbook-picker span {
+    display: grid;
+    gap: 4px;
+}
+.activation-workbook-picker strong {
+    font-size: 12px;
+}
+.activation-workbook-picker small {
+    color: rgba(238,236,255,.65);
+    font-size: 10px;
+}
+.activation-workbook-picker input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+}
+.activation-workbook-picker:focus-within {
+    outline: 2px solid rgba(195, 184, 255, .7);
+    outline-offset: 3px;
+}
+.activation-import-button {
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 11px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 13px;
+    color: #29204f;
+    background: linear-gradient(115deg, #f5f0ff, #d8d0ff);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    box-shadow: 0 8px 22px rgba(6, 7, 32, .18);
+}
+.activation-import-button:disabled {
+    cursor: not-allowed;
+    opacity: .48;
+}
+.activation-import-button:not(:disabled):hover {
+    transform: translateY(-1px);
+}
+.activation-manager-status,
+.activation-manager-result,
+.activation-manager-footnote {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: rgba(239,237,255,.76);
+    font-size: 12px;
+    line-height: 1.6;
+}
+.activation-manager-status[data-type="success"] {
+    color: #b9f6d0;
+}
+.activation-manager-status[data-type="error"] {
+    color: #ffc0cb;
+}
+.activation-manager-result {
+    color: #fff;
+    font-weight: 600;
+}
+.activation-manager-footnote {
+    color: rgba(239,237,255,.54);
+    font-size: 10px;
+}
+@media (max-width: 760px) {
+    .activation-manager-panel {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 13px;
+        border-radius: 19px;
+    }
+    .activation-workbook-picker,
+    .activation-import-button {
+        width: 100%;
+    }
+    .activation-import-button {
+        justify-content: space-between;
+    }
+}
