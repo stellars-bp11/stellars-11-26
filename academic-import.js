@@ -826,7 +826,7 @@ function validateRows() {
             if (memberCounts.get(member.uid) > 1) errors.push("Duplicate student in this file");
         }
 
-        if (member && match.matchType === "nim") {
+        if (member && match.matchType === "nim" && selectedNameColumn) {
             if (!normalizeName(row.name)) {
                 warning = true;
             } else if (normalizeName(row.name) !== normalizeName(member.fullName)) {
@@ -954,13 +954,16 @@ function renderReview() {
 
     const hasValidSubject = !!subjectInput.value.trim();
     const hasValidAssessmentCount = definitions.length > 0;
+    const hasIdentityColumn = !!selectedNameColumn || !!selectedNimColumn;
+    const identityColumnsAreDistinct =
+        !selectedNameColumn || !selectedNimColumn || selectedNameColumn !== selectedNimColumn;
     const canSave = currentRows.length > 0 &&
         validation.selectedRows > 0 &&
         validation.errorRows === 0 &&
         hasValidSubject &&
         hasValidAssessmentCount &&
-        !!selectedNameColumn &&
-        selectedNameColumn !== selectedNimColumn &&
+        hasIdentityColumn &&
+        identityColumnsAreDistinct &&
         !isSaving;
 
     reviewSummary.dataset.type = validation.errorRows ? "error" : validation.warningRows ? "info" : "success";
