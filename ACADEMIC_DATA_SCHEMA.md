@@ -242,11 +242,15 @@ exists, the importer may use the first name only when that normalized first
 name belongs to exactly one active account. This supports short-name entries
 while keeping duplicate first names blocked as ambiguous. These rules support
 NIM-only rows and name-only rows, including files that do not contain one of
-the two columns. Partial or fuzzy name matches are never used. A supplied but
-unrecognized NIM is not silently replaced by a name match; the administrator
-must verify it or clear the NIM cell intentionally. Duplicate student rows,
-ambiguous or unmatched names, duplicate NIMs, and invalid scores must be
-corrected or excluded. Name differences or missing values in a mapped name
+the two columns. Partial or fuzzy name matches are never used. The student roster is
+refreshed from active `users/{uid}` profiles whenever a new file is selected,
+so accounts registered after the administrator opened the portal are
+included. If a supplied NIM is not in the active roster but a unique full-name
+or first-name match exists, the row is matched to that account with an
+explicit identity warning and must be verified before saving. If a supplied
+NIM and a unique name point to different accounts, the row is blocked until
+corrected. Duplicate student rows, ambiguous or unmatched names, duplicate
+NIMs, and invalid scores must be corrected or excluded. Name differences or missing values in a mapped name
 column on a valid NIM match are shown as warnings for manual review. When no
 name column is mapped, NIM-only matches do not receive a name warning. Empty
 score cells remain `null`.
