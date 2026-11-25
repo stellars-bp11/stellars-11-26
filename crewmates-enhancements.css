@@ -463,3 +463,87 @@
     .crewmates-page .crew-card:hover,
     .crewmates-page .crewmate-card:hover { transform: none; }
 }
+
+
+/* BRAND PALETTE ALIGNMENT — STELLARS NAVY / PURPLE / LAVENDER */
+.crewmates-page {
+    background: #111326;
+}
+.crewmates-page .background-overlay {
+    background:
+        radial-gradient(ellipse 58% 52% at 18% 14%, rgba(112, 99, 184, .30), transparent 72%),
+        radial-gradient(ellipse 52% 48% at 88% 58%, rgba(67, 76, 154, .22), transparent 72%),
+        linear-gradient(180deg, rgba(9, 12, 28, .35), rgba(13, 17, 34, .80));
+}
+.crewmates-page .library-hero .eyebrow {
+    border-color: rgba(201, 188, 255, .30);
+    color: #d8ceff;
+    background: rgba(25, 27, 54, .54);
+}
+.crewmates-page .library-hero .hero-content h1 {
+    background: linear-gradient(180deg, #fff 18%, #c9bcff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+}
+.crewmates-page .library-hero .hero-content::after {
+    border-color: rgba(201, 188, 255, .42);
+    color: #e3dcff;
+    background: radial-gradient(circle, rgba(128, 111, 193, .32), rgba(28, 31, 62, .2) 68%, transparent 70%);
+    box-shadow: 0 0 0 12px rgba(201, 188, 255, .045), 0 0 55px rgba(144, 126, 218, .2);
+}
+.crewmates-page .crew-role-section {
+    border-color: rgba(201, 188, 255, .19);
+    background: linear-gradient(135deg, rgba(25, 28, 54, .88), rgba(30, 27, 55, .76));
+}
+.crewmates-page .crew-card::before {
+    background: linear-gradient(90deg, #0f2182, #7659c8, #c9bcff);
+}
+.crewmates-page .crew-photo {
+    background: linear-gradient(145deg, #e9e5f8, #f7f5ff);
+}
+.crewmates-page .crew-role {
+    color: #58439c;
+    background: #eee9fc;
+    border-color: #ddd4f6;
+}
+.crewmates-page .crew-quote {
+    border-color: #e9e3f5;
+}
+.crewmates-page .library-section.crewmates-section {
+    border-color: rgba(201, 188, 255, .65);
+    background:
+        linear-gradient(rgba(118, 96, 174, .035) 1px, transparent 1px),
+        #efecf8;
+    background-size: 100% 34px;
+}
+.crewmates-page .crewmates-section .section-heading .eyebrow {
+    color: #725eb1;
+}
+.crewmates-page .crewmates-section .section-heading h2 {
+    color: #26213f;
+}
+.crewmates-page .crewmates-section .section-heading h2::after {
+    background: linear-gradient(90deg, #4b2aad, #b9a9ec);
+}
+.crewmates-page .crewmate-card {
+    border-color: #e0d9f0;
+    background: #fff;
+}
+.crewmates-page .crewmate-photo {
+    background: linear-gradient(145deg, #eae6f8, #f7f4ff);
+}
+.crewmates-page .crewmate-info {
+    color: #28243c;
+}
+.crewmates-page .crewmate-card h3 {
+    color: #28243c;
+}
+.crewmates-page .crewmate-dob,
+.crewmates-page .crewmate-quote {
+    color: #706a84;
+}
+.crewmates-page footer {
+    border-top-color: rgba(201, 188, 255, .17);
+}
