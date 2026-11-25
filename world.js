@@ -38,7 +38,7 @@ const jobs = [
   { id: "builder", name: "Builder", icon: "🧱", desc: "Help construct shared town projects.", place: "townhall" },
   { id: "trader", name: "Virtual Trader", icon: "📈", desc: "Trade fictional goods at Star Market.", place: "market" },
   { id: "courier", name: "Courier", icon: "📦", desc: "Deliver parcels around the district.", place: "townhall" },
-  { id: "trickster", name: "Trickster", icon: "🦝", desc: "Play harmless fictional mischief missions.", place: "market" }
+  { id: "trickster", name: "Sneaky Thief", icon: "🦝", desc: "Try fictional NPC loot missions and risk getting caught.", place: "market" }
 ];
 
 const buildings = [
@@ -260,7 +260,11 @@ function drawBuilding(b) {
   polygon([topLeft, topBack, back, left], b.wall, "rgba(45,46,54,.24)");
   polygon([topBack, topRight, right, back], b.side, "rgba(45,46,54,.24)");
   polygon([topRight, topFront, front, right], shade(b.side, -10), "rgba(45,46,54,.2)");
-  polygon([topLeft, topBack, topRight, topFront], b.roof, "rgba(45,46,54,.26)");
+  const homeRoofPalette = ["#8d709d", "#66899a", "#a77b70", "#9a8a58", "#6f8e6d"];
+  const roofColor = b.id === "home"
+    ? homeRoofPalette[save.homeDecor % homeRoofPalette.length]
+    : b.roof;
+  polygon([topLeft, topBack, topRight, topFront], roofColor, "rgba(45,46,54,.26)");
 
   // Pixel roof trim and windows.
   ctx.fillStyle = "rgba(255,247,220,.72)";
@@ -525,9 +529,16 @@ function interact() {
   }
   lastActionAt = now;
   if (building.id === "home") {
+    const decorCost = 10;
+    if (save.coins < decorCost) {
+      showToast("You need 10 Star Coins for a home upgrade.");
+      return;
+    }
+    save.coins -= decorCost;
     save.homeDecor += 1;
-    addReward(0, 4, 1, "Your home feels cosier!");
-    $("taskHint").textContent = "Home comfort level: " + save.homeDecor + ". Your little corner of Stellars.";
+    addReward(0, 4, 1, "Home upgraded! New roof style unlocked.");
+    $("taskHint").textContent = "Home style level: " + save.homeDecor + ". Your little corner of Stellars.";
+    draw();
     return;
   }
   if (building.id === "park") {
@@ -553,14 +564,26 @@ function interact() {
     showToast(expected ? "This place is for " + expected.name + " work." : "Nothing to do here yet.");
     return;
   }
+  if (job.id === "trickster") {
+    if (Math.random() < 0.58) {
+      addReward(22, 9, 2, "NPC loot mission complete!");
+    } else {
+      const loss = Math.min(10, save.coins);
+      save.coins -= loss;
+      save.xp += 2;
+      persist();
+      updateHud();
+      showToast("Town patrol caught you! -" + loss + " coins");
+    }
+    return;
+  }
   const rewards = {
     farmer: [18, 11, 3, "Fresh harvest ready!"],
     cashier: [14, 10, 2, "Order served. Nice work!"],
     firefighter: [16, 12, 3, "Fire safety drill complete!"],
     police: [15, 10, 3, "Town patrol completed!"],
-    trader: [12 + Math.floor(Math.random() * 12), 9, 2, "Virtual trade completed!"],
-    courier: [13, 10, 2, "Parcel delivered!"],
-    trickster: [18, 8, 2, "You pulled off a harmless NPC prank!"]
+    trader: [12 + Math.floor(Math.random() * 12), 9, 2, "Virtual market trade complete!"],
+    courier: [13, 10, 2, "Parcel delivered!"]
   };
   const reward = rewards[job.id];
   if (reward) addReward(...reward);
