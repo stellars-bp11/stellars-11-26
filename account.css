@@ -548,3 +548,36 @@ nav.navbar .site-account-wrap {
 .site-account-menu > .site-account-security-button[hidden] {
     display: none !important;
 }
+
+
+/* Two-stage student account registration (scoped to the Create Account dialog). */
+#siteRegistrationDialog .site-registration-step {
+    display: grid;
+    gap: 11px;
+}
+
+#siteRegistrationDialog .site-registration-step[hidden] {
+    display: none !important;
+}
+
+#siteRegistrationDialog .site-registration-summary {
+    padding: 12px 14px;
+    border: 1px solid rgba(80, 123, 108, 0.22);
+    border-radius: 12px;
+    color: #315b4b;
+    background: #f0faf4;
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+#siteRegistrationDialog .site-login-message[data-type="success"] {
+    color: #28734f;
+}
+
+#siteRegistrationDialog .site-login-message[data-type="error"] {
+    color: #a52f4b;
+}
+
+#siteRegistrationDialog .site-login-register-link[hidden] {
+    display: none !important;
+}
