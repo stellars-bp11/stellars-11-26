@@ -4,6 +4,9 @@ import {
     onAuthStateChanged,
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
+    EmailAuthProvider,
+    reauthenticateWithCredential,
+    updatePassword,
     updateProfile,
     deleteUser,
     signOut,
@@ -36,6 +39,14 @@ const profileLink = document.getElementById("siteAccountProfileLink");
 const loginButton = document.getElementById("siteAccountLoginButton");
 const logoutButton = document.getElementById("siteAccountLogout");
 
+const securityMenuButton = document.createElement("button");
+securityMenuButton.type = "button";
+securityMenuButton.id = "siteAccountSecurityButton";
+securityMenuButton.className = "site-account-security-button";
+securityMenuButton.textContent = "Secure My Account";
+securityMenuButton.hidden = true;
+menu.insertBefore(securityMenuButton, portalLink);
+
 const loginDialog = document.createElement("dialog");
 loginDialog.className = "site-login-dialog";
 loginDialog.id = "siteLoginDialog";
@@ -53,7 +64,7 @@ loginDialog.innerHTML = '<form id="siteLoginForm" class="site-login-form">' +
     '<p class="site-login-message" id="siteLoginMessage" role="status" aria-live="polite"></p>' +
     '<button class="site-login-submit" id="siteLoginSubmit" type="submit"><span>Sign In</span><span aria-hidden="true">→</span></button>' +
     '<button class="site-login-register-link" id="siteLoginRegisterButton" type="button">First time here? Activate your account</button>' +
-    '<p class="site-login-footnote">Students can sign in with NIM + their own password. Admins use their existing username.</p>' +
+    '<p class="site-login-footnote">Existing members: use your current username and password. New students: use NIM after activating your account.</p>' +
     '</form>';
 document.body.append(loginDialog);
 
@@ -102,6 +113,39 @@ const registrationMessage = document.getElementById("siteRegistrationMessage");
 const registrationSubmit = document.getElementById("siteRegistrationSubmit");
 const registrationClose = document.getElementById("siteRegistrationClose");
 const registrationBack = document.getElementById("siteRegistrationBack");
+const securityDialog = document.createElement("dialog");
+securityDialog.className = "site-login-dialog";
+securityDialog.id = "siteAccountSecurityDialog";
+securityDialog.setAttribute("aria-labelledby", "siteAccountSecurityTitle");
+securityDialog.innerHTML = '<form id="siteAccountSecurityForm" class="site-login-form">' +
+    '<div class="site-login-top"><span class="site-login-mark" aria-hidden="true">✦</span>' +
+    '<button class="site-login-close" id="siteAccountSecurityClose" type="button" aria-label="Close password update">×</button></div>' +
+    '<p class="site-login-kicker">STELLARS BP11 · ACCOUNT SECURITY</p>' +
+    '<h2 id="siteAccountSecurityTitle">Secure your account.</h2>' +
+    '<p class="site-login-copy">Use the one-time code issued for your existing account, then replace your old password with a private one.</p>' +
+    '<label for="siteSecurityCurrentPassword">Current password</label>' +
+    '<input id="siteSecurityCurrentPassword" type="password" autocomplete="current-password" placeholder="Your current password" required>' +
+    '<label for="siteSecurityCode">Personal activation code</label>' +
+    '<input id="siteSecurityCode" type="text" autocomplete="off" autocapitalize="characters" placeholder="XXXX-XXXX-XXXX-XXXX" maxlength="19" required>' +
+    '<label for="siteSecurityNewPassword">New password</label>' +
+    '<input id="siteSecurityNewPassword" type="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters" required>' +
+    '<label for="siteSecurityConfirmPassword">Confirm new password</label>' +
+    '<input id="siteSecurityConfirmPassword" type="password" autocomplete="new-password" minlength="8" placeholder="Repeat your new password" required>' +
+    '<p class="site-login-message" id="siteAccountSecurityMessage" role="status" aria-live="polite"></p>' +
+    '<button class="site-login-submit" id="siteAccountSecuritySubmit" type="submit"><span>Update Password</span><span aria-hidden="true">→</span></button>' +
+    '<p class="site-login-footnote">Your existing STELLARS account and academic results stay connected to the same account ID.</p>' +
+    '</form>';
+document.body.append(securityDialog);
+
+const securityForm = document.getElementById("siteAccountSecurityForm");
+const securityCurrentPassword = document.getElementById("siteSecurityCurrentPassword");
+const securityCode = document.getElementById("siteSecurityCode");
+const securityNewPassword = document.getElementById("siteSecurityNewPassword");
+const securityConfirmPassword = document.getElementById("siteSecurityConfirmPassword");
+const securityMessage = document.getElementById("siteAccountSecurityMessage");
+const securitySubmit = document.getElementById("siteAccountSecuritySubmit");
+const securityClose = document.getElementById("siteAccountSecurityClose");
+
 
 
 const authReady = setPersistence(auth, browserLocalPersistence);
@@ -172,6 +216,127 @@ async function hashActivationCode(code) {
     const digest = await crypto.subtle.digest("SHA-256", bytes);
     return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
 }
+
+function openSecurityDialog() {
+    closeMenu();
+    securityMessage.textContent = "";
+    securityMessage.dataset.type = "";
+    securityForm.reset();
+    if (!securityDialog.open) securityDialog.showModal();
+    securityCurrentPassword.focus();
+}
+
+securityMenuButton.addEventListener("click", openSecurityDialog);
+securityClose.addEventListener("click", () => securityDialog.close());
+securityDialog.addEventListener("click", event => {
+    if (event.target === securityDialog) securityDialog.close();
+});
+
+securityForm.addEventListener("submit", async event => {
+    event.preventDefault();
+    if (securitySubmit.disabled) return;
+
+    const currentUser = auth.currentUser;
+    const currentPassword = securityCurrentPassword.value;
+    const code = normalizeActivationCode(securityCode.value);
+    const newPassword = securityNewPassword.value;
+    const confirmPassword = securityConfirmPassword.value;
+
+    if (!currentUser) {
+        securityMessage.textContent = "Sesi login sudah berakhir. Login kembali menggunakan akun lama.";
+        securityMessage.dataset.type = "error";
+        return;
+    }
+    if (!/^[A-HJ-NP-Z2-9]{16}$/.test(code)) {
+        securityMessage.textContent = "Format kode aktivasi tidak valid.";
+        securityMessage.dataset.type = "error";
+        return;
+    }
+    if (newPassword.length < 8) {
+        securityMessage.textContent = "Password baru harus minimal 8 karakter.";
+        securityMessage.dataset.type = "error";
+        return;
+    }
+    if (newPassword !== confirmPassword) {
+        securityMessage.textContent = "Konfirmasi password baru belum sama.";
+        securityMessage.dataset.type = "error";
+        return;
+    }
+    if (newPassword === currentPassword) {
+        securityMessage.textContent = "Password baru harus berbeda dari password lama.";
+        securityMessage.dataset.type = "error";
+        return;
+    }
+
+    securitySubmit.disabled = true;
+    securitySubmit.querySelector("span").textContent = "Securing…";
+    securityMessage.textContent = "Memeriksa identitas dan kode aktivasi…";
+    securityMessage.dataset.type = "info";
+
+    let passwordUpdated = false;
+    try {
+        await authReady;
+        const profileSnapshot = await getDoc(doc(db, "users", currentUser.uid));
+        if (!profileSnapshot.exists()) throw new Error("Profil akun tidak ditemukan.");
+        const profile = profileSnapshot.data();
+
+        if (profile.role !== "student" || profile.isActive !== true || !profile.nim) {
+            throw new Error("Fitur ini hanya tersedia untuk akun mahasiswa aktif.");
+        }
+
+        const codeHash = await hashActivationCode(code);
+        const activationRef = doc(db, "activationCodes", codeHash);
+        const activationSnapshot = await getDoc(activationRef);
+        if (!activationSnapshot.exists()) {
+            throw new Error("Kode aktivasi tidak ditemukan. Pastikan admin sudah mendaftarkan workbook terbaru.");
+        }
+
+        const activation = activationSnapshot.data();
+        if (activation.status !== "available" ||
+            activation.nim !== String(profile.nim) ||
+            normalizeStudentName(activation.fullName) !== normalizeStudentName(profile.fullName)) {
+            throw new Error("Kode tidak cocok dengan akun ini atau sudah pernah digunakan.");
+        }
+
+        if (!currentUser.email) throw new Error("Identitas login akun tidak tersedia. Hubungi admin STELLARS.");
+        const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
+        await reauthenticateWithCredential(currentUser, credential);
+        await updatePassword(currentUser, newPassword);
+        passwordUpdated = true;
+
+        const batch = writeBatch(db);
+        batch.update(activationRef, {
+            status: "redeemed",
+            redeemedBy: currentUser.uid,
+            redeemedAt: serverTimestamp()
+        });
+        await batch.commit();
+
+        securityForm.reset();
+        securityDialog.close();
+        alert("Password berhasil diperbarui. Akun dan riwayat nilai kamu tetap sama.");
+    } catch (error) {
+        console.error("Could not secure STELLARS student account:", error);
+        let message = error.message || "Password belum berhasil diperbarui.";
+        if (error.code === "auth/wrong-password" || error.code === "auth/invalid-credential") {
+            message = "Password lama tidak sesuai. Gunakan password yang biasa dipakai untuk login.";
+        } else if (error.code === "auth/weak-password") {
+            message = "Password baru terlalu lemah. Gunakan minimal 8 karakter.";
+        } else if (error.code === "auth/requires-recent-login") {
+            message = "Sesi perlu diperbarui. Logout, login lagi dengan akun lama, lalu ulangi proses ini.";
+        } else if (error.code === "permission-denied" && passwordUpdated) {
+            message = "Password akun sudah berubah, tetapi kode belum berhasil ditandai terpakai. Jangan bagikan kode ini; hubungi admin untuk pemeriksaan.";
+        } else if (error.code === "permission-denied") {
+            message = "Aturan keamanan belum mengizinkan proses ini. Pastikan Firestore Rules terbaru sudah di-deploy.";
+        }
+        securityMessage.textContent = message;
+        securityMessage.dataset.type = "error";
+    } finally {
+        securitySubmit.disabled = false;
+        securitySubmit.querySelector("span").textContent = "Update Password";
+    }
+});
+
 
 
 button.addEventListener("click", () => {
@@ -409,6 +574,7 @@ authReady
             portalLink.href = "academic.html";
             profileLink.hidden = true;
             logoutButton.hidden = true;
+            securityMenuButton.hidden = true;
 
             if (shouldAutoOpenLogin && !loginDialog.open) {
                 shouldAutoOpenLogin = false;
@@ -441,6 +607,7 @@ authReady
                     super_admin: "Super Admin"
                 };
                 metaLabel.textContent = roleNames[profile.role] || "Signed in";
+                securityMenuButton.hidden = profile.role !== "student" || profile.isActive !== true;
             }
         } catch (error) {
             console.error("Could not load the STELLARS account profile:", error);
