@@ -1,0 +1,61 @@
+/* STELLARS — LIBRARY POLISH PASS */
+.library-section { padding-top: 18px; }
+.library-section .section-heading {
+    display:flex;
+    flex-wrap:wrap;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:18px;
+}
+.library-section .section-heading h2 {
+    color:#fff;
+    letter-spacing:-.8px;
+}
+.library-section .section-heading .eyebrow { color:#d9d0ff; }
+.add-memory-btn {
+    min-height:44px;
+    padding:0 18px;
+    border:1px solid rgba(222,215,255,.38);
+    border-radius:12px;
+    background:linear-gradient(120deg,#4930a0,#7250c9);
+    box-shadow:0 9px 22px rgba(30,17,80,.28);
+}
+.add-memory-btn:focus-visible,.memory-like:focus-visible,.memory-delete:focus-visible {
+    outline:3px solid #d6caff;
+    outline-offset:3px;
+}
+.library-grid { align-items:start; gap:24px; }
+.memory-card {
+    border:1px solid rgba(224,219,244,.9);
+    border-radius:22px;
+    box-shadow:0 16px 38px rgba(2,5,20,.24);
+}
+.memory-card:hover {
+    transform:translateY(-5px);
+    box-shadow:0 22px 46px rgba(2,5,20,.3),0 0 25px rgba(139,92,246,.2);
+}
+.memory-image { background:linear-gradient(145deg,#f5f2ff,#e8e3f7); }
+.memory-info { padding-top:20px; }
+.memory-category { color:#7056b2; font-weight:700; }
+.memory-info h3 { line-height:1.22; }
+.memory-description { color:#706d7c; line-height:1.55; }
+.memory-delete { opacity:1; background:rgba(16,13,36,.68); }
+.memory-like { box-shadow:0 5px 14px rgba(20,15,45,.08); }
+@media(max-width:700px) {
+    .library-section { padding-top:8px; }
+    .library-section .section-heading { align-items:flex-start; margin-bottom:28px; }
+    .library-grid { gap:17px; }
+    .memory-card { border-radius:19px; }
+    .memory-image { height:clamp(210px,54vw,280px); }
+    .memory-info { min-height:130px; padding:18px 64px 20px 19px; }
+    .memory-info h3 { font-size:21px; }
+}
+@media(max-width:520px) {
+    .library-grid { grid-template-columns:1fr; }
+    .memory-image { height:clamp(230px,72vw,340px); }
+    .memory-info { min-height:0; }
+}
+@media(prefers-reduced-motion:reduce) {
+    .memory-card,.memory-image img { transition:none; }
+    .memory-card:hover,.memory-card:hover .memory-image img { transform:none; }
+}
