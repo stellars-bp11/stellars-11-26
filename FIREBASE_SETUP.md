@@ -179,3 +179,29 @@ root with:
 ```bash
 firebase deploy --only firestore:rules --project class-web-7241e
 ```
+
+
+## Correct a student's NIM after account registration
+
+If a student's NIM was corrected manually in `users/{uid}.nim`, the profile
+field alone is not enough: the login email alias, `users.username`,
+`nimIndex`, and redeemed activation record must also be synchronized.
+
+The Academic Portal includes a repair control visible only to active
+Super Admins. It locates the unique active student profile by the corrected
+NIM already stored in `users.nim`, checks for conflicting NIM and activation
+records, updates the Firebase Authentication email alias, and then commits
+the related Firestore changes. It preserves the student's Firebase UID and
+all academic score ownership.
+
+Deploy the callable before using the control:
+
+```bash
+firebase deploy --only functions:repairStudentNim --project class-web-7241e
+```
+
+After the deployment completes, refresh Academic Portal while signed in as
+a Super Admin, enter the corrected NIM, and confirm the synchronization.
+If the function reports a conflict or missing redeemed activation record,
+stop and inspect the profile, Authentication user, NIM index, and activation
+record rather than deleting or recreating the account.
