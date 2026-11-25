@@ -229,9 +229,16 @@ is imported as one subject; separate subject worksheets can be imported
 separately.
 
 Before saving, each included row is matched against active records in
-`nimIndex`. Missing or unmatched NIMs, duplicate NIMs, and invalid scores
-must be corrected or excluded. Name differences are shown as warnings for
-manual review. Empty score cells remain `null`.
+`nimIndex`. A valid NIM is the primary identifier. If the NIM cell is blank,
+the importer may match by an exact normalized full name (case, accents,
+punctuation, and repeated spaces are normalized), but only when that name
+belongs to exactly one active account. Partial or fuzzy name matches are never
+used. A supplied but unrecognized NIM is not silently replaced by a name
+match; the administrator must verify it or clear the NIM cell intentionally.
+Duplicate student rows, ambiguous or unmatched names, duplicate NIMs, and
+invalid scores must be corrected or excluded. Name differences on a valid
+NIM match are shown as warnings for manual review. Empty score cells remain
+`null`.
 
 The original file is processed locally in the browser and is not uploaded to
 Firestore or Firebase Storage. Firestore stores the import metadata, subject,
