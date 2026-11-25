@@ -74,6 +74,7 @@ let rosterByNim = new Map();
 let rosterByName = new Map();
 let rosterByFirstName = new Map();
 let rosterPromise = null;
+let rosterRequestVersion = 0;
 let workbook = null;
 let currentGrid = [];
 let currentFile = null;
@@ -239,13 +240,13 @@ function categoryFromAssessmentName(name) {
     return cleaned.replace(/\s*[\(\[]?\d+[\)\]]?\s*$/, "").trim() || cleaned || "Assessment";
 }
 
-async function loadRoster() {
-    if (rosterPromise) return rosterPromise;
+async function loadRoster({ refresh = false } = {}) {
+    if (rosterPromise && !refresh) return rosterPromise;
 
-    rosterPromise = (async () => {
-        // User profiles are the canonical source for the registered student
-        // name and NIM. nimIndex remains the sign-in lookup, but older index
-        // entries may not have a current fullName value.
+    // A fresh request invalidates any older in-flight roster load so stale
+    // results cannot overwrite the most recent student list.
+    const requestVersion = ++rosterRequestVersion;
+    const pending = (async () => {
         const snapshot = await getDocs(collection(db, "users"));
         const nextRoster = new Map();
         const nextRosterByName = new Map();
@@ -291,35 +292,25 @@ async function loadRoster() {
             }
         });
 
-        rosterByNim = nextRoster;
-        rosterByName = nextRosterByName;
-        rosterByFirstName = nextRosterByFirstName;
-        return rosterByNim;
-    })().catch((error) => {
-        rosterPromise = null;
-        throw error;
-    });
+        if (requestVersion === rosterRequestVersion) {
+            rosterByNim = nextRoster;
+            rosterByName = nextRosterByName;
+            rosterByFirstName = nextRosterByFirstName;
+        }
 
-    return rosterPromise;
+        return nextRoster;
+    })();
+
+    rosterPromise = pending;
+    try {
+        return await pending;
+    } catch (error) {
+        if (requestVersion === rosterRequestVersion) rosterPromise = null;
+        throw error;
+    }
 }
 
-function resolveRosterMember(row) {
-    const nim = normalizeNim(row?.nim);
-
-    // A supplied NIM always takes precedence. Never silently replace an
-    // unrecognized NIM with a name match; ask the admin to verify it instead.
-    if (nim) {
-        const member = rosterByNim.get(nim) || null;
-        return {
-            member,
-            matchType: "nim",
-            issue: member
-                ? ""
-                : "NIM not found in active roster. Verify it, or clear the NIM cell to use name matching."
-        };
-    }
-
-    const nameKey = normalizeName(row?.name);
+function findRosterMemberByName(nameKey) {
     if (!nameKey) {
         return {
             member: null,
@@ -340,8 +331,6 @@ function resolveRosterMember(row) {
         };
     }
 
-    // Last fallback: match the first name only when exactly one active
-    // roster account has that normalized first name.
     const firstNameKey = nameKey.split(" ")[0];
     const firstNameCandidates = rosterByFirstName.get(firstNameKey) || [];
     if (firstNameCandidates.length === 1) {
@@ -360,6 +349,52 @@ function resolveRosterMember(row) {
         matchType: "name",
         issue: "Full name and first name not found in active roster"
     };
+}
+
+function resolveRosterMember(row) {
+    const nim = normalizeNim(row?.nim);
+    const nameKey = normalizeName(row?.name);
+    const nameMatch = findRosterMemberByName(nameKey);
+
+    if (nim) {
+        const nimMember = rosterByNim.get(nim) || null;
+
+        if (nimMember) {
+            // If the supplied NIM and a unique name point to different people,
+            // stop instead of silently assigning the score to the wrong student.
+            if (nameMatch.member && nameMatch.member.uid !== nimMember.uid) {
+                return {
+                    member: null,
+                    matchType: "conflict",
+                    issue: "NIM and student name point to different accounts. Correct the row before importing."
+                };
+            }
+
+            return { member: nimMember, matchType: "nim", issue: "" };
+        }
+
+        // A unique name can still identify the student when the file/profile
+        // NIM is outdated or mistyped, but this is always shown as a warning.
+        if (nameMatch.member) {
+            const method = nameMatch.matchType === "name" ? "full name" : "first name";
+            return {
+                member: nameMatch.member,
+                matchType: nameMatch.matchType + "NimMismatch",
+                warning: true,
+                warningLabel: "NIM not found; matched by " + method + " — verify NIM",
+                issue: ""
+            };
+        }
+
+        return {
+            member: null,
+            matchType: "nim",
+            issue: "NIM not found in active roster. " +
+                (nameMatch.issue || "Verify the NIM and student name.")
+        };
+    }
+
+    return nameMatch;
 }
 
 function bindWorkspaceEvents() {
@@ -507,6 +542,10 @@ async function readSelectedFile(file) {
     setImportStatus("Reading " + file.name + "…");
 
     try {
+        // Refresh the roster on every upload so accounts registered after the
+        // admin opened Academic Portal are included in the matching preview.
+        await loadRoster({ refresh: true });
+
         const extension = file.name.split(".").pop().toLowerCase();
 
         if (extension === "pdf") {
@@ -563,7 +602,7 @@ async function readSelectedFile(file) {
         setImportStatus(
             error?.message?.includes("No text could be extracted")
                 ? "This PDF appears to be scanned or image-only. It needs selectable text to be imported automatically."
-                : "Could not read this file. " + friendlyError(error),
+                : "Could not read this file or refresh the student roster. " + friendlyError(error),
             "error"
         );
     }
@@ -913,6 +952,8 @@ function validateRows() {
             if (memberCounts.get(member.uid) > 1) errors.push("Duplicate student in this file");
         }
 
+        if (member && match.warning) warning = true;
+
         if (member && match.matchType === "nim" && selectedNameColumn) {
             if (!normalizeName(row.name)) {
                 warning = true;
@@ -944,7 +985,7 @@ function validateRows() {
             label: errors.length
                 ? errors[0]
                 : warning
-                    ? (!row.name ? "Name missing" : "Name differs")
+                    ? (match.warningLabel || (!row.name ? "Name missing" : "Name differs"))
                     : match.matchType === "firstName"
                         ? "Matched by first name"
                         : match.matchType === "name" ? "Matched by full name" : "Matched by NIM",
@@ -1059,11 +1100,11 @@ function renderReview() {
     reviewSummary.textContent =
         validation.selectedRows + " row(s) selected · " +
         validation.matchedRows + " matched by NIM/name · " +
-        validation.warningRows + " name warning(s) · " +
+        validation.warningRows + " identity warning(s) · " +
         validation.errorRows + " row(s) need correction · " +
         definitions.length + " assessment component(s). " +
         (validation.errorRows ? "Fix the highlighted rows or uncheck rows that are not student records." :
-            validation.warningRows ? "Name differences are warnings; verify them before saving." :
+            validation.warningRows ? "Identity differences are warnings; verify them before saving." :
                 "The preview is ready to be saved as a draft.");
 
     saveDraftButton.disabled = !canSave;
