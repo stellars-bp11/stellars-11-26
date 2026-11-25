@@ -312,7 +312,7 @@ function showProfile(profile, authUser) {
         bindAdminResultsControls();
         loadAdminResults();
 
-        import("./activation-manager.js?v=activation-import-fix-20261125a")
+        import("./activation-manager.js?v=academics-rebuild-v2-activation-rotation")
             .then(({ initActivationManager }) => {
                 initActivationManager(profile, authUser);
             })
