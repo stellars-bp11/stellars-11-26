@@ -1,0 +1,239 @@
+/* =========================================================
+   STELLARS — PLAYFUL EDITORIAL THEME
+   A softer, friendlier visual language across all pages.
+   Existing page palettes are intentionally preserved.
+========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+    --st-playful-display: "Fredoka", "Nunito", sans-serif;
+    --st-playful-body: "Nunito", "Ubuntu", sans-serif;
+    --st-playful-radius: 24px;
+    --st-playful-shadow: 0 12px 30px rgba(12, 10, 42, .14);
+    --st-playful-shadow-hover: 0 18px 38px rgba(12, 10, 42, .2);
+}
+
+/* Friendly, readable typography */
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--st-playful-body) !important;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+p,
+li,
+label,
+input,
+textarea,
+select {
+    font-family: var(--st-playful-body) !important;
+}
+
+h1,
+h2,
+h3,
+h4 {
+    font-family: var(--st-playful-display) !important;
+    font-weight: 600;
+    letter-spacing: -.025em;
+    text-wrap: balance;
+}
+
+/* Keep the pixel-world's tiny interface labels pixel-styled,
+   while its main page heading joins the shared display font. */
+.world-intro h1 {
+    font-family: var(--st-playful-display) !important;
+    font-weight: 600;
+}
+
+/* Softer navigation without changing its existing colors */
+.navbar a,
+.site-nav a,
+.academic-nav-links a,
+.nav-links a,
+.academic-nav-pill,
+.back-link {
+    border-radius: 999px;
+    transition: transform .2s ease, background-color .2s ease, opacity .2s ease;
+}
+
+.navbar a:hover,
+.site-nav a:hover,
+.academic-nav-links a:hover,
+.nav-links a:hover {
+    transform: translateY(-2px);
+}
+
+/* Rounded, tactile buttons — their original colors stay untouched */
+button,
+.home-hero-button,
+.academic-primary-button,
+.academic-secondary-button,
+.academic-access-button,
+.academic-grade-card-button,
+.activation-import-button,
+.profile-save-button,
+.add-memory-btn,
+.btn-utama,
+.btn-kedua,
+.radio-primary-button,
+.radio-search-button,
+.radio-upload-button,
+.radio-text-button,
+.radio-cancel-button {
+    border-radius: 15px;
+    font-family: var(--st-playful-body);
+    font-weight: 800;
+    transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+}
+
+button:not(:disabled):hover,
+.home-hero-button:hover,
+.academic-primary-button:hover,
+.academic-secondary-button:hover,
+.academic-access-button:hover,
+.academic-grade-card-button:hover,
+.activation-import-button:hover,
+.profile-save-button:hover,
+.add-memory-btn:hover,
+.btn-utama:hover,
+.btn-kedua:hover,
+.radio-primary-button:hover,
+.radio-search-button:hover,
+.radio-upload-button:hover,
+.radio-text-button:hover,
+.radio-cancel-button:hover {
+    transform: translateY(-2px);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    outline-offset: 3px;
+}
+
+/* Cards and feature panels share a softer, rounded silhouette */
+.outer-space-card,
+.quick-access-card,
+.pulse-panel,
+.pulse-time-card,
+.crew-card,
+.crewmate-card,
+.lecturer-card,
+.featured-lecturer,
+.memory-card,
+.library-section,
+.radio-hero,
+.radio-countdown-card,
+.radio-prompt-card,
+.radio-share-card,
+.radio-empty-state,
+.academic-access-card,
+.academic-grade-card,
+.academic-personal-results-panel,
+.student-personal-results-panel,
+.activation-manager-panel,
+.academic-import-step-card,
+.academic-import-history-card,
+.admin-results-stat {
+    border-radius: var(--st-playful-radius);
+}
+
+/* Gentle lift gives cards a little personality without shaking the layout */
+.outer-space-card,
+.quick-access-card,
+.crew-card,
+.crewmate-card,
+.lecturer-card,
+.featured-lecturer,
+.memory-card,
+.radio-countdown-card,
+.radio-prompt-card,
+.radio-share-card,
+.academic-access-card,
+.academic-grade-card,
+.academic-import-step-card,
+.academic-import-history-card,
+.admin-results-stat {
+    transition: transform .24s ease, box-shadow .24s ease, border-color .24s ease;
+}
+
+.outer-space-card:hover,
+.quick-access-card:hover,
+.lecturer-card:hover,
+.academic-access-card:hover,
+.academic-grade-card:hover,
+.academic-import-step-card:hover,
+.admin-results-stat:hover {
+    transform: translateY(-4px);
+}
+
+/* Small labels become friendly chips rather than rigid metadata */
+.home-hero-eyebrow,
+.home-section-kicker,
+.crew-role,
+.radio-hero-tags span,
+.academic-grade-card-kicker,
+.admin-results-nim-pill,
+.preview-pill,
+.save-state {
+    border-radius: 999px;
+}
+
+/* More playful shape language on the game UI, while retaining pixel fonts */
+.panel {
+    border-radius: 14px;
+}
+
+.world-toolbar {
+    border-radius: 15px 15px 0 0;
+}
+
+.stage-footer {
+    border-radius: 0 0 15px 15px;
+}
+
+.pixel-button {
+    border-radius: 8px;
+}
+
+/* Dialogs and overlays feel like floating, friendly sheets */
+.modal,
+.academic-profile-dialog,
+.modal-content,
+.site-account-menu {
+    border-radius: 22px;
+}
+
+/* Keep transitions calm for users who request reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+    .navbar a,
+    .site-nav a,
+    .academic-nav-links a,
+    .nav-links a,
+    button,
+    .home-hero-button,
+    .outer-space-card,
+    .quick-access-card,
+    .crew-card,
+    .crewmate-card,
+    .lecturer-card,
+    .featured-lecturer,
+    .memory-card,
+    .radio-countdown-card,
+    .radio-prompt-card,
+    .radio-share-card,
+    .academic-access-card,
+    .academic-grade-card,
+    .academic-import-step-card,
+    .admin-results-stat {
+        transition-duration: .01ms !important;
+    }
+}
