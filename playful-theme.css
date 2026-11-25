@@ -596,7 +596,30 @@ select[aria-invalid="true"] {
     animation-delay: .28s;
 }
 
-/* Hover triggers a comic-style bounce and a deeper offset shadow. */
+/* Hover triggers a springy lift and deeper offset shadow. */
+.outer-space-card,
+.quick-access-card,
+.home-identities .accountings .item,
+.home-history-section .history .entry,
+.crew-card,
+.crewmate-card,
+.lecturer-card,
+.featured-lecturer,
+.memory-card,
+.radio-countdown-card,
+.radio-prompt-card,
+.radio-share-card,
+.radio-song-card,
+.academic-access-card,
+.academic-grade-card,
+.academic-import-step-card,
+.academic-import-history-card,
+.admin-results-stat,
+.intro-stats > div,
+.panel {
+    transition: transform .42s cubic-bezier(.2, .9, .3, 1.55), box-shadow .22s ease;
+}
+
 .outer-space-card:hover,
 .quick-access-card:hover,
 .home-identities .accountings .item:hover,
@@ -615,8 +638,9 @@ select[aria-invalid="true"] {
 .academic-import-step-card:hover,
 .academic-import-history-card:hover,
 .admin-results-stat:hover,
+.intro-stats > div:hover,
 .panel:hover {
-    animation: stBoxExcited .58s cubic-bezier(.2, .85, .35, 1.15) both;
+    transform: translate(-3px, -5px) rotate(-.6deg) scale(1.025);
     box-shadow: 6px 6px 0 var(--st-cartoon-ink) !important;
 }
 
