@@ -56,6 +56,8 @@ service cloud.firestore {
       let data = request.resource.data;
       let activationPath = /databases/$(database)/documents/activationCodes/$(data.activationCodeHash);
       let activation = getAfter(activationPath);
+      let nimIndexPath = /databases/$(database)/documents/nimIndex/$(data.nim);
+      let nimIndex = getAfter(nimIndexPath);
       return signedIn() &&
         request.auth.uid == userId &&
         data.keys().hasAll([
@@ -83,12 +85,18 @@ service cloud.firestore {
         activation.data.status == 'redeemed' &&
         activation.data.redeemedBy == userId &&
         activation.data.nim == data.nim &&
-        activation.data.fullName == data.fullName;
+        activation.data.fullName == data.fullName &&
+        existsAfter(nimIndexPath) &&
+        nimIndex.data.uid == userId &&
+        nimIndex.data.fullName == data.fullName &&
+        nimIndex.data.isActive == true;
     }
 
     function validActivationCodeRedemption(codeHash) {
       let profilePath = /databases/$(database)/documents/users/$(request.auth.uid);
       let profile = getAfter(profilePath);
+      let nimIndexPath = /databases/$(database)/documents/nimIndex/$(resource.data.nim);
+      let nimIndex = getAfter(nimIndexPath);
       return signedIn() &&
         resource.data.status == 'available' &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'redeemedBy', 'redeemedAt']) &&
@@ -100,7 +108,11 @@ service cloud.firestore {
         profile.data.nim == resource.data.nim &&
         profile.data.fullName == resource.data.fullName &&
         profile.data.role == 'student' &&
-        profile.data.isActive == true;
+        profile.data.isActive == true &&
+        existsAfter(nimIndexPath) &&
+        nimIndex.data.uid == request.auth.uid &&
+        nimIndex.data.fullName == profile.data.fullName &&
+        nimIndex.data.isActive == true;
     }
 
     function validStudentNimIndexCreate(nim) {
