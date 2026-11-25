@@ -248,6 +248,19 @@ function showProfile(profile, authUser) {
         bindAdminResultsControls();
         loadAdminResults();
 
+        import("./activation-manager.js")
+            .then(({ initActivationManager }) => {
+                initActivationManager(profile, authUser);
+            })
+            .catch((error) => {
+                console.error("Activation manager could not be initialized:", error);
+                const status = document.getElementById("activationManagerStatus");
+                if (status) {
+                    status.textContent = "Activation manager is unavailable. Refresh and try again.";
+                    status.dataset.type = "error";
+                }
+            });
+
         import("./academic-import.js")
             .then(({ initAcademicImport }) => {
                 initAcademicImport(profile, authUser);
