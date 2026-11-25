@@ -175,11 +175,11 @@ securityDialog.innerHTML = '<form id="siteAccountSecurityForm" class="site-login
     '<button class="site-login-close" id="siteAccountSecurityClose" type="button" aria-label="Close password update">×</button></div>' +
     '<p class="site-login-kicker">STELLARS BP11 · ACCOUNT SECURITY</p>' +
     '<h2 id="siteAccountSecurityTitle">Secure your account.</h2>' +
-    '<p class="site-login-copy">Use the one-time code issued for your existing account, then replace your old password with a private one.</p>' +
+    '<p class="site-login-copy" id="siteAccountSecurityCopy">Students must verify with their personal activation code. Super Admins only need their current password to set a new one.</p>' +
     '<label for="siteSecurityCurrentPassword">Current password</label>' +
     '<input id="siteSecurityCurrentPassword" type="password" autocomplete="current-password" placeholder="Your current password" required>' +
     '<label for="siteSecurityCode">Personal activation code</label>' +
-    '<input id="siteSecurityCode" type="text" autocomplete="off" autocapitalize="characters" placeholder="XXXX-XXXX-XXXX-XXXX" maxlength="19" required>' +
+    '<input id="siteSecurityCode" type="text" autocomplete="off" autocapitalize="characters" placeholder="XXXX-XXXX-XXXX-XXXX" maxlength="19">' +
     '<label for="siteSecurityNewPassword">New password</label>' +
     '<input id="siteSecurityNewPassword" type="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters" required>' +
     '<label for="siteSecurityConfirmPassword">Confirm new password</label>' +
@@ -193,6 +193,8 @@ document.body.append(securityDialog);
 const securityForm = document.getElementById("siteAccountSecurityForm");
 const securityCurrentPassword = document.getElementById("siteSecurityCurrentPassword");
 const securityCode = document.getElementById("siteSecurityCode");
+const securityCodeLabel = securityForm.querySelector('label[for="siteSecurityCode"]');
+const securityCopy = document.getElementById("siteAccountSecurityCopy");
 const securityNewPassword = document.getElementById("siteSecurityNewPassword");
 const securityConfirmPassword = document.getElementById("siteSecurityConfirmPassword");
 const securityMessage = document.getElementById("siteAccountSecurityMessage");
@@ -296,11 +298,39 @@ async function hashActivationCode(code) {
     return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
 }
 
-function openSecurityDialog() {
+async function openSecurityDialog() {
     closeMenu();
     securityMessage.textContent = "";
     securityMessage.dataset.type = "";
     securityForm.reset();
+
+    // Default to the student flow until the signed-in profile confirms Super Admin.
+    securityCodeLabel.hidden = false;
+    securityCode.hidden = false;
+    securityCopy.textContent = "Students must verify with their personal activation code. Super Admins only need their current password to set a new one.";
+
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+        try {
+            await authReady;
+            const profileSnapshot = await getDoc(doc(db, "users", currentUser.uid));
+            const role = profileSnapshot.exists()
+                ? String(profileSnapshot.data().role || "").trim().toLowerCase()
+                : "";
+            const isSuperAdmin = ["superadmin", "super_admin"].includes(role);
+
+            securityCodeLabel.hidden = isSuperAdmin;
+            securityCode.hidden = isSuperAdmin;
+            securityCopy.textContent = isSuperAdmin
+                ? "Super Admin verification: enter your current password, then choose a new password. No activation code is required."
+                : "Student verification: enter your current password and personal activation code, then choose a new password.";
+        } catch (error) {
+            console.error("Could not determine STELLARS account role:", error);
+            securityMessage.textContent = "Jenis akun belum dapat diverifikasi. Muat ulang halaman dan coba lagi.";
+            securityMessage.dataset.type = "error";
+        }
+    }
+
     if (!securityDialog.open) securityDialog.showModal();
     securityCurrentPassword.focus();
 }
@@ -326,11 +356,6 @@ securityForm.addEventListener("submit", async event => {
         securityMessage.dataset.type = "error";
         return;
     }
-    if (!/^[A-HJ-NP-Z2-9]{16}$/.test(code)) {
-        securityMessage.textContent = "Format kode aktivasi tidak valid.";
-        securityMessage.dataset.type = "error";
-        return;
-    }
     if (newPassword.length < 8) {
         securityMessage.textContent = "Password baru harus minimal 8 karakter.";
         securityMessage.dataset.type = "error";
@@ -349,10 +374,12 @@ securityForm.addEventListener("submit", async event => {
 
     securitySubmit.disabled = true;
     securitySubmit.querySelector("span").textContent = "Securing…";
-    securityMessage.textContent = "Memeriksa identitas dan kode aktivasi…";
+    securityMessage.textContent = "Memeriksa akun dan verifikasi password…";
     securityMessage.dataset.type = "info";
 
     let passwordUpdated = false;
+    let activationRef = null;
+    let isSuperAdmin = false;
     try {
         await authReady;
         const profileSnapshot = await getDoc(doc(db, "users", currentUser.uid));
@@ -363,23 +390,33 @@ securityForm.addEventListener("submit", async event => {
         if (!eligibleRoles.includes(profile.role) || profile.isActive !== true) {
             throw new Error("Secure My Account hanya tersedia untuk akun STELLARS yang aktif.");
         }
-        const profileNim = String(profile.nim ?? "").trim();
-        if (!profileNim) {
-            throw new Error("Profil akun ini belum memiliki NIM. Minta admin melengkapi NIM akun terlebih dahulu agar kode aktivasi bisa dicocokkan.");
-        }
 
-        const codeHash = await hashActivationCode(code);
-        const activationRef = doc(db, "activationCodes", codeHash);
-        const activationSnapshot = await getDoc(activationRef);
-        if (!activationSnapshot.exists()) {
-            throw new Error("Kode aktivasi tidak ditemukan. Pastikan admin sudah mendaftarkan workbook terbaru.");
-        }
+        const normalizedRole = String(profile.role || "").trim().toLowerCase();
+        isSuperAdmin = ["superadmin", "super_admin"].includes(normalizedRole);
 
-        const activation = activationSnapshot.data();
-        if (activation.status !== "available" ||
-            activation.nim !== profileNim ||
-            normalizeStudentName(activation.fullName) !== normalizeStudentName(profile.fullName)) {
-            throw new Error("Kode tidak cocok dengan akun ini atau sudah pernah digunakan.");
+        // Only student and regular admin accounts need a one-time activation code.
+        if (!isSuperAdmin) {
+            const profileNim = String(profile.nim ?? "").trim();
+            if (!profileNim) {
+                throw new Error("Profil akun ini belum memiliki NIM. Minta admin melengkapi NIM akun terlebih dahulu agar kode aktivasi bisa dicocokkan.");
+            }
+            if (!/^[A-HJ-NP-Z2-9]{16}$/.test(code)) {
+                throw new Error("Format kode aktivasi tidak valid.");
+            }
+
+            const codeHash = await hashActivationCode(code);
+            activationRef = doc(db, "activationCodes", codeHash);
+            const activationSnapshot = await getDoc(activationRef);
+            if (!activationSnapshot.exists()) {
+                throw new Error("Kode aktivasi tidak ditemukan. Pastikan admin sudah mendaftarkan workbook terbaru.");
+            }
+
+            const activation = activationSnapshot.data();
+            if (activation.status !== "available" ||
+                activation.nim !== profileNim ||
+                normalizeStudentName(activation.fullName) !== normalizeStudentName(profile.fullName)) {
+                throw new Error("Kode tidak cocok dengan akun ini atau sudah pernah digunakan.");
+            }
         }
 
         if (!currentUser.email) throw new Error("Identitas login akun tidak tersedia. Hubungi admin STELLARS.");
@@ -388,17 +425,21 @@ securityForm.addEventListener("submit", async event => {
         await updatePassword(currentUser, newPassword);
         passwordUpdated = true;
 
-        const batch = writeBatch(db);
-        batch.update(activationRef, {
-            status: "redeemed",
-            redeemedBy: currentUser.uid,
-            redeemedAt: serverTimestamp()
-        });
-        await batch.commit();
+        if (activationRef) {
+            const batch = writeBatch(db);
+            batch.update(activationRef, {
+                status: "redeemed",
+                redeemedBy: currentUser.uid,
+                redeemedAt: serverTimestamp()
+            });
+            await batch.commit();
+        }
 
         securityForm.reset();
         securityDialog.close();
-        alert("Password berhasil diperbarui. Akun dan riwayat nilai kamu tetap sama.");
+        alert(isSuperAdmin
+            ? "Password Super Admin berhasil diperbarui."
+            : "Password berhasil diperbarui. Akun dan riwayat nilai kamu tetap sama.");
     } catch (error) {
         console.error("Could not secure STELLARS student account:", error);
         let message = error.message || "Password belum berhasil diperbarui.";
@@ -408,7 +449,7 @@ securityForm.addEventListener("submit", async event => {
             message = "Password baru terlalu lemah. Gunakan minimal 8 karakter.";
         } else if (error.code === "auth/requires-recent-login") {
             message = "Sesi perlu diperbarui. Logout, login lagi dengan akun lama, lalu ulangi proses ini.";
-        } else if (error.code === "permission-denied" && passwordUpdated) {
+        } else if (error.code === "permission-denied" && passwordUpdated && activationRef) {
             message = "Password akun sudah berubah, tetapi kode belum berhasil ditandai terpakai. Jangan bagikan kode ini; hubungi admin untuk pemeriksaan.";
         } else if (error.code === "permission-denied") {
             message = "Aturan keamanan belum mengizinkan proses ini. Pastikan Firestore Rules terbaru sudah di-deploy.";
