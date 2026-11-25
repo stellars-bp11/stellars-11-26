@@ -280,8 +280,9 @@ securityForm.addEventListener("submit", async event => {
         if (!profileSnapshot.exists()) throw new Error("Profil akun tidak ditemukan.");
         const profile = profileSnapshot.data();
 
-        if (profile.role !== "student" || profile.isActive !== true || !profile.nim) {
-            throw new Error("Fitur ini hanya tersedia untuk akun mahasiswa aktif.");
+        const eligibleRoles = ["student", "admin", "superAdmin", "super_admin"];
+        if (!eligibleRoles.includes(profile.role) || profile.isActive !== true || !profile.nim) {
+            throw new Error("Secure My Account hanya tersedia untuk akun STELLARS aktif yang memiliki NIM.");
         }
 
         const codeHash = await hashActivationCode(code);
@@ -607,7 +608,10 @@ authReady
                     super_admin: "Super Admin"
                 };
                 metaLabel.textContent = roleNames[profile.role] || "Signed in";
-                securityMenuButton.hidden = profile.role !== "student" || profile.isActive !== true;
+                securityMenuButton.hidden =
+                    !["student", "admin", "superAdmin", "super_admin"].includes(profile.role) ||
+                    profile.isActive !== true ||
+                    !profile.nim;
             }
         } catch (error) {
             console.error("Could not load the STELLARS account profile:", error);
