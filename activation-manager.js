@@ -103,8 +103,46 @@ export function initActivationManager(profile, authUser) {
             if (!sheetName) throw new Error("Workbook tidak memiliki worksheet.");
 
             const sheet = workbook.Sheets[sheetName];
-            const rows = XLSX.utils.sheet_to_json(sheet, { defval: "", raw: false });
-            if (!rows.length) throw new Error("Worksheet Aktivasi belum berisi data mahasiswa.");
+            const grid = XLSX.utils.sheet_to_json(sheet, {
+                header: 1,
+                defval: "",
+                raw: false,
+                blankrows: false
+            });
+            if (!grid.length) throw new Error("Worksheet Aktivasi belum berisi data mahasiswa.");
+
+            // Detect the real header row instead of assuming it is always row 1.
+            // This supports workbooks with title/instruction rows above the table.
+            const headerRowIndex = grid.findIndex(row => {
+                const headers = row.map(normalizeHeader);
+                const hasName = headers.some(value =>
+                    ["nama", "nama_lengkap", "full_name", "name"].includes(value)
+                );
+                const hasNim = headers.includes("nim");
+                const hasCode = headers.some(value =>
+                    ["kode_aktivasi", "kode_aktivasi_baru", "activation_code", "code"].includes(value)
+                );
+                return hasName && hasNim && hasCode;
+            });
+
+            if (headerRowIndex < 0) {
+                throw new Error("Header tabel tidak ditemukan. Pastikan ada kolom Nama, NIM, dan Kode Aktivasi.");
+            }
+
+            const headerKeys = grid[headerRowIndex].map(normalizeHeader);
+            const rows = grid.slice(headerRowIndex + 1)
+                .map((values, index) => {
+                    const row = { __rowNumber: headerRowIndex + index + 2 };
+                    headerKeys.forEach((key, columnIndex) => {
+                        if (key) row[key] = values[columnIndex] ?? "";
+                    });
+                    return row;
+                })
+                .filter(row => Object.keys(row).some(key =>
+                    key !== "__rowNumber" && String(row[key] ?? "").trim() !== ""
+                ));
+
+            if (!rows.length) throw new Error("Tidak ada baris mahasiswa setelah header tabel.");
 
             const records = [];
             const seenNims = new Set();
@@ -122,12 +160,13 @@ export function initActivationManager(profile, authUser) {
                 ).trim().replace(/\s+/g, " ");
                 const nim = String(normalized.nim ?? "").trim().replace(/\.0$/, "");
                 const code = normalizeCode(
-                    normalized.kode_aktivasi || normalized.activation_code || normalized.code || ""
+                    normalized.kode_aktivasi || normalized.kode_aktivasi_baru ||
+                    normalized.activation_code || normalized.code || ""
                 );
 
                 if (!fullName && !nim && !code) return;
 
-                const rowNumber = index + 2;
+                const rowNumber = row.__rowNumber || index + 2;
                 if (!fullName || !NIM_PATTERN.test(nim) || !CODE_PATTERN.test(code)) {
                     missing.push("Baris " + rowNumber + ": " + (fullName || "Nama kosong") +
                         (NIM_PATTERN.test(nim) ? "" : " — NIM belum valid") +
