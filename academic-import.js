@@ -72,6 +72,7 @@ let activeProfile = null;
 let activeUser = null;
 let rosterByNim = new Map();
 let rosterByName = new Map();
+let rosterByFirstName = new Map();
 let rosterPromise = null;
 let workbook = null;
 let currentGrid = [];
@@ -245,6 +246,7 @@ async function loadRoster() {
         const snapshot = await getDocs(collection(db, "nimIndex"));
         const nextRoster = new Map();
         const nextRosterByName = new Map();
+        const nextRosterByFirstName = new Map();
 
         snapshot.forEach((memberDoc) => {
             const data = memberDoc.data() || {};
@@ -265,11 +267,21 @@ async function loadRoster() {
                     candidates.push(member);
                 }
                 nextRosterByName.set(nameKey, candidates);
+
+                const firstNameKey = nameKey.split(" ")[0];
+                if (firstNameKey) {
+                    const firstNameCandidates = nextRosterByFirstName.get(firstNameKey) || [];
+                    if (!firstNameCandidates.some((candidate) => candidate.uid === member.uid)) {
+                        firstNameCandidates.push(member);
+                    }
+                    nextRosterByFirstName.set(firstNameKey, firstNameCandidates);
+                }
             }
         });
 
         rosterByNim = nextRoster;
         rosterByName = nextRosterByName;
+        rosterByFirstName = nextRosterByFirstName;
         return rosterByNim;
     })().catch((error) => {
         rosterPromise = null;
@@ -312,14 +324,29 @@ function resolveRosterMember(row) {
         return {
             member: null,
             matchType: "name",
-            issue: "Name matches multiple active accounts. Enter the student's NIM."
+            issue: "Full name matches multiple active accounts. Enter the student's NIM."
+        };
+    }
+
+    // Last fallback: match the first name only when exactly one active
+    // roster account has that normalized first name.
+    const firstNameKey = nameKey.split(" ")[0];
+    const firstNameCandidates = rosterByFirstName.get(firstNameKey) || [];
+    if (firstNameCandidates.length === 1) {
+        return { member: firstNameCandidates[0], matchType: "firstName", issue: "" };
+    }
+    if (firstNameCandidates.length > 1) {
+        return {
+            member: null,
+            matchType: "firstName",
+            issue: "First name matches multiple active accounts. Enter the student's full name or NIM."
         };
     }
 
     return {
         member: null,
         matchType: "name",
-        issue: "Name not found in active roster"
+        issue: "Full name and first name not found in active roster"
     };
 }
 
@@ -906,7 +933,9 @@ function validateRows() {
                 ? errors[0]
                 : warning
                     ? (!row.name ? "Name missing" : "Name differs")
-                    : match.matchType === "name" ? "Matched by name" : "Matched by NIM",
+                    : match.matchType === "firstName"
+                        ? "Matched by first name"
+                        : match.matchType === "name" ? "Matched by full name" : "Matched by NIM",
             errors
         });
     }
