@@ -261,6 +261,25 @@
                     </div>
                 </div>
 
+                <section class="admin-nim-repair-panel" id="adminNimRepairPanel" hidden aria-labelledby="adminNimRepairTitle">
+                    <div class="admin-nim-repair-copy">
+                        <p class="admin-nim-repair-kicker">SUPER ADMIN ACCOUNT MAINTENANCE</p>
+                        <h3 id="adminNimRepairTitle">Synchronize a corrected student NIM</h3>
+                        <p>Use only after the student's <code>users.nim</code> has been corrected. This synchronizes the login alias, username, NIM index, and redeemed activation record while preserving the student's Firebase UID and academic history.</p>
+                    </div>
+                    <div class="admin-nim-repair-controls">
+                        <label class="academic-import-field" for="adminNimRepairInput">
+                            <span>Correct NIM</span>
+                            <input id="adminNimRepairInput" type="text" inputmode="numeric" maxlength="24" autocomplete="off" placeholder="Enter the corrected NIM">
+                        </label>
+                        <button class="academic-secondary-button" id="adminNimRepairButton" type="button">
+                            <i class="bx bx-sync" aria-hidden="true"></i>
+                            <span>Synchronize account</span>
+                        </button>
+                    </div>
+                    <p class="admin-nim-repair-status" id="adminNimRepairStatus" role="status" aria-live="polite"></p>
+                </section>
+
                 <div class="admin-results-stats" aria-label="Your result summary">
                     <article class="admin-results-stat stat-subjects">
                         <span class="admin-results-stat-icon"><i class="bx bx-book-open" aria-hidden="true"></i></span>
