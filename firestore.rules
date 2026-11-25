@@ -149,6 +149,81 @@ service cloud.firestore {
 
     // Daily Music Diary: active STELLARS members can see today's wall.
     // Each member's UID is the document ID, so only one entry is active per day.
+
+    // STELLARS Pulse — daily random poll, Jakarta time.
+    function isPulseVotingOpen() {
+      let jakartaNow = request.time + duration.value(7, "h");
+      return (
+        (jakartaNow.hours() > 9 ||
+         (jakartaNow.hours() == 9 && jakartaNow.minutes() >= 30)) &&
+        jakartaNow.hours() < 13
+      );
+    }
+
+    function pulseRosterIds() {
+      return ['quinetta-aulya-winata', 'darren-leinad-cahaya', 'vianney-yovella-kristanto', 'levinne-emerson-mulia', 'delfina-calista-ciu-putri', 'kelly-patricia-ongkodjojo', 'felicia-zefanya', 'nicke-amelia-trijono', 'tesalonika-uli-putri-silalahi', 'ersya-fely', 'shareen-tesalonika-setiawan', 'marsha-setiawan', 'anita-lestari-elisabet', 'anjelie', 'johanna-avrilla-hapsari-putri', 'kevano-mareto', 'vincent-farellius', 'elmarsha-hannabella', 'kioko-rei', 'raisya-thalita-jasmine', 'ellie-margaretta', 'jasper-vladino-alvis', 'adeline-nadia-nicola', 'andre-praditya-pratama', 'carmella-wibowo-widhianto', 'chairine-aretha-nathania', 'danniel', 'eilien-ardelia', 'grace-abigail-wijaya', 'gracielle-fellisca-tjoa', 'hosea-bowie-immanuel', 'jean-romeo-junior-sembiring', 'keely-michiko-mulyanto', 'maresha-majesty-wales', 'maya-caroline', 'pande-kadek-redita-julia-dewi', 'patricia-devina', 'putu-adelia-nariswari', 'reynard-christian', 'samantha-angel', 'stevander-rusli', 'stephanie-felita-widodo', 'chantika-anastasia', 'vivian-renata-chandra', 'zalika-afarin-azura'];
+    }
+
+    function pulseQuestionIds() {
+      return ['ceo', 'chaos-mascot', 'alien-buddy', 'human-calendar', 'plot-twist', 'travel-guide', 'snack-ambassador', 'idea-machine', 'main-character', 'future-millionaire', 'tech-support', 'event-planner', 'adventure', 'peacekeeper', 'fashion-icon', 'random-facts', 'comedian', 'night-owl', 'meme-dealer', 'secret-talent', 'group-chat', 'overthinker', 'mystery-box', 'good-vibes'];
+    }
+
+    function validPulsePoll(dayId) {
+      let data = request.resource.data;
+      let roster = pulseRosterIds();
+      return data.keys().hasAll(['dayKey', 'questionId', 'candidateIds', 'createdAt']) &&
+        data.keys().hasOnly(['dayKey', 'questionId', 'candidateIds', 'createdAt']) &&
+        data.dayKey == dayId &&
+        data.questionId is string &&
+        data.questionId in pulseQuestionIds() &&
+        data.candidateIds is list &&
+        data.candidateIds.size() == 4 &&
+        data.candidateIds[0] in roster &&
+        data.candidateIds[1] in roster &&
+        data.candidateIds[2] in roster &&
+        data.candidateIds[3] in roster &&
+        data.candidateIds[0] != data.candidateIds[1] &&
+        data.candidateIds[0] != data.candidateIds[2] &&
+        data.candidateIds[0] != data.candidateIds[3] &&
+        data.candidateIds[1] != data.candidateIds[2] &&
+        data.candidateIds[1] != data.candidateIds[3] &&
+        data.candidateIds[2] != data.candidateIds[3] &&
+        data.createdAt is timestamp;
+    }
+
+    function validPulseVote(dayId, memberId) {
+      let data = request.resource.data;
+      let pollPath = /databases/$(database)/documents/pulseDays/$(dayId);
+      let poll = get(pollPath).data;
+      return exists(pollPath) &&
+        data.keys().hasAll(['uid', 'dayKey', 'questionId', 'candidateId', 'createdAt']) &&
+        data.keys().hasOnly(['uid', 'dayKey', 'questionId', 'candidateId', 'createdAt']) &&
+        data.uid == memberId &&
+        data.dayKey == dayId &&
+        data.questionId == poll.questionId &&
+        data.candidateId in poll.candidateIds &&
+        data.createdAt is timestamp;
+    }
+
+    match /pulseDays/{dayId} {
+      allow get, list: if activeMember() && isCurrentJakartaRadioDay(dayId);
+      allow create: if activeMember() &&
+        isCurrentJakartaRadioDay(dayId) &&
+        isPulseVotingOpen() &&
+        validPulsePoll(dayId);
+      allow update, delete: if false;
+
+      match /votes/{memberId} {
+        allow get, list: if activeMember() && isCurrentJakartaRadioDay(dayId);
+        allow create: if activeMember() &&
+          request.auth.uid == memberId &&
+          isCurrentJakartaRadioDay(dayId) &&
+          isPulseVotingOpen() &&
+          validPulseVote(dayId, memberId);
+        allow update, delete: if false;
+      }
+    }
+
     match /radioDays/{dayId}/songs/{memberId} {
       allow read: if activeMember();
       allow create: if activeMember() &&
