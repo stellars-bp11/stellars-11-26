@@ -1,18 +1,11 @@
 /*
  * STELLARS Academic Portal
- * Firebase Authentication gate + role-aware portal shell.
+ * Shared Firebase Authentication + role-aware academic workspace.
  *
- * INTERNAL LOGIN ALIAS:
- * Firebase Email/Password requires an email-shaped identifier.
- * Students still enter their full name as the visible username.
- * The account provisioning script must use the exact same mapping:
- *   normalized-full-name@class-web-7241e.firebaseapp.com
- *
- * Example:
- *   "Jasper Vladino Alvis" -> "jasper.vladino.alvis@class-web-7241e.firebaseapp.com"
- *
- * If two people share a name, give each a distinct username suffix
- * (example: "Full Name 02") and provision the matching alias.
+ * The portal uses the same Firebase Auth identities as account.js.
+ * First-time student registration creates the NIM-based email alias:
+ *   202612010146@class-web-7241e.firebaseapp.com
+ * Returning users sign in with the username/NIM and password they already use.
  *
  * Expected Firestore profile:
  * users/{firebaseUid}:
