@@ -105,7 +105,7 @@ service cloud.firestore {
         (!profileHasActivationHash || profile.data.activationCodeHash == codeHash) &&
         profile.data.nim == resource.data.nim &&
         profile.data.fullName == resource.data.fullName &&
-        profile.data.role == 'student' &&
+        profile.data.role in ['student', 'admin', 'superAdmin', 'super_admin'] &&
         profile.data.isActive == true;
     }
 
