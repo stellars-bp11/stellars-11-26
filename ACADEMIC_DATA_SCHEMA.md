@@ -233,7 +233,10 @@ Before saving, each included row is matched against active records in
 student name, NIM, or both. A valid NIM is the primary identifier when present.
 If the NIM cell is blank, the importer may match by an exact normalized full
 name (case, accents, punctuation, and repeated spaces are normalized), but
-only when that name belongs to exactly one active account. This supports
+only when that name belongs to exactly one active account. If no exact full-name match
+exists, the importer may use the first name only when that normalized first
+name belongs to exactly one active account. This supports short-name entries
+while keeping duplicate first names blocked as ambiguous. These rules support
 NIM-only rows and name-only rows, including files that do not contain one of
 the two columns. Partial or fuzzy name matches are never used. A supplied but
 unrecognized NIM is not silently replaced by a name match; the administrator
