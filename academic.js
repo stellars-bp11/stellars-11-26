@@ -54,10 +54,6 @@ import {
     where,
     getDocs
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
-import {
-    getFunctions,
-    httpsCallable
-} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-functions.js";
 
 /* Firebase configuration reused from the existing STELLARS Library. */
 const firebaseConfig = {
@@ -73,7 +69,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const functions = getFunctions(app, "asia-southeast2");
 
 /* DOM references */
 const loginView = document.getElementById("loginView");
@@ -124,12 +119,6 @@ const adminResultsSubjectCount = document.getElementById("adminResultsSubjectCou
 const adminResultsComponentCount = document.getElementById("adminResultsComponentCount");
 const adminResultsPublishedCount = document.getElementById("adminResultsPublishedCount");
 const refreshAdminResultsButton = document.getElementById("refreshAdminResults");
-const adminNimRepairPanel = document.getElementById("adminNimRepairPanel");
-const adminNimRepairInput = document.getElementById("adminNimRepairInput");
-const adminNimRepairButton = document.getElementById("adminNimRepairButton");
-const adminNimRepairStatus = document.getElementById("adminNimRepairStatus");
-let adminNimRepairBound = false;
-
 let adminResultRecords = [];
 let adminResultsLoading = false;
 let adminResultsControlsBound = false;
@@ -158,62 +147,6 @@ function bindAcademicWorkspaceShell() {
     });
 }
 
-
-function bindAdminNimRepair() {
-    if (adminNimRepairBound || !adminNimRepairButton) return;
-    adminNimRepairBound = true;
-
-    adminNimRepairButton.addEventListener("click", async () => {
-        const newNim = String(adminNimRepairInput?.value || "").trim();
-        if (!/^\d{5,24}$/.test(newNim)) {
-            if (adminNimRepairStatus) {
-                adminNimRepairStatus.textContent = "Masukkan NIM baru yang valid (5–24 digit).";
-                adminNimRepairStatus.dataset.type = "error";
-            }
-            return;
-        }
-
-        const confirmed = window.confirm(
-            "Sinkronkan identitas akun siswa untuk NIM " + newNim + "? " +
-            "Proses ini memperbarui alias login Firebase, username, nimIndex, dan kode aktivasi. " +
-            "Firebase UID serta riwayat nilai tetap dipertahankan. Pastikan field users.nim sudah benar."
-        );
-        if (!confirmed) return;
-
-        adminNimRepairButton.disabled = true;
-        adminNimRepairButton.querySelector("span").textContent = "Synchronizing…";
-        if (adminNimRepairStatus) {
-            adminNimRepairStatus.textContent = "Memeriksa profil dan menyinkronkan identitas akun…";
-            adminNimRepairStatus.dataset.type = "info";
-        }
-
-        try {
-            const repairStudentNim = httpsCallable(functions, "repairStudentNim");
-            const response = await repairStudentNim({
-                newNim,
-                confirmation: "SYNC_STUDENT_NIM"
-            });
-            const result = response.data || {};
-            if (adminNimRepairStatus) {
-                adminNimRepairStatus.textContent =
-                    (result.fullName || "Student") + " · NIM " + (result.nim || newNim) +
-                    " berhasil disinkronkan. Firebase UID dan riwayat nilai tetap sama.";
-                adminNimRepairStatus.dataset.type = "success";
-            }
-            if (adminNimRepairInput) adminNimRepairInput.value = "";
-        } catch (error) {
-            console.error("Student NIM synchronization failed:", error);
-            if (adminNimRepairStatus) {
-                adminNimRepairStatus.textContent =
-                    error?.message || "Sinkronisasi belum berhasil. Tidak ada tindakan lanjutan yang dilakukan.";
-                adminNimRepairStatus.dataset.type = "error";
-            }
-        } finally {
-            adminNimRepairButton.disabled = false;
-            adminNimRepairButton.querySelector("span").textContent = "Synchronize account";
-        }
-    });
-}
 
 bindAcademicWorkspaceShell();
 
@@ -307,10 +240,6 @@ function showProfile(profile, authUser) {
     const isAdmin = profile.role === "admin" ||
                     profile.role === "superAdmin" ||
                     profile.role === "super_admin";
-    const isSuperAdmin = ["superAdmin", "super_admin"].includes(profile.role) &&
-                         profile.isActive === true;
-    if (adminNimRepairPanel) adminNimRepairPanel.hidden = !isSuperAdmin;
-    if (isSuperAdmin) bindAdminNimRepair();
     studentView.hidden = !isStudent;
     adminView.hidden = !isAdmin;
 
