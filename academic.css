@@ -3941,3 +3941,13 @@ body.academic-page {
         flex-wrap: wrap;
     }
 }
+
+
+/* Preserve the hidden attribute on views that have explicit display layouts. */
+#loginView[hidden],
+#portalView[hidden],
+#studentView[hidden],
+#adminView[hidden],
+#academicImportWorkspace[hidden] {
+    display: none !important;
+}
