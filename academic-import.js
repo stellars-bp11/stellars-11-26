@@ -71,6 +71,7 @@ const clearDeletedHistoryNotice = el("academicHistoryClearNotice");
 let activeProfile = null;
 let activeUser = null;
 let rosterByNim = new Map();
+let rosterByName = new Map();
 let rosterPromise = null;
 let workbook = null;
 let currentGrid = [];
@@ -243,20 +244,32 @@ async function loadRoster() {
     rosterPromise = (async () => {
         const snapshot = await getDocs(collection(db, "nimIndex"));
         const nextRoster = new Map();
+        const nextRosterByName = new Map();
 
         snapshot.forEach((memberDoc) => {
             const data = memberDoc.data() || {};
             const nim = normalizeNim(memberDoc.id);
-            if (nim && data.uid && data.isActive === true) {
-                nextRoster.set(nim, {
-                    uid: String(data.uid),
-                    fullName: String(data.fullName || ""),
-                    isActive: true
-                });
+            if (!nim || !data.uid || data.isActive !== true) return;
+
+            const member = {
+                uid: String(data.uid),
+                fullName: String(data.fullName || ""),
+                isActive: true
+            };
+            nextRoster.set(nim, member);
+
+            const nameKey = normalizeName(member.fullName);
+            if (nameKey) {
+                const candidates = nextRosterByName.get(nameKey) || [];
+                if (!candidates.some((candidate) => candidate.uid === member.uid)) {
+                    candidates.push(member);
+                }
+                nextRosterByName.set(nameKey, candidates);
             }
         });
 
         rosterByNim = nextRoster;
+        rosterByName = nextRosterByName;
         return rosterByNim;
     })().catch((error) => {
         rosterPromise = null;
@@ -264,6 +277,50 @@ async function loadRoster() {
     });
 
     return rosterPromise;
+}
+
+function resolveRosterMember(row) {
+    const nim = normalizeNim(row?.nim);
+
+    // A supplied NIM always takes precedence. Never silently replace an
+    // unrecognized NIM with a name match; ask the admin to verify it instead.
+    if (nim) {
+        const member = rosterByNim.get(nim) || null;
+        return {
+            member,
+            matchType: "nim",
+            issue: member
+                ? ""
+                : "NIM not found in active roster. Verify it, or clear the NIM cell to use name matching."
+        };
+    }
+
+    const nameKey = normalizeName(row?.name);
+    if (!nameKey) {
+        return {
+            member: null,
+            matchType: "",
+            issue: "Missing NIM and student name"
+        };
+    }
+
+    const candidates = rosterByName.get(nameKey) || [];
+    if (candidates.length === 1) {
+        return { member: candidates[0], matchType: "name", issue: "" };
+    }
+    if (candidates.length > 1) {
+        return {
+            member: null,
+            matchType: "name",
+            issue: "Name matches multiple active accounts. Enter the student's NIM."
+        };
+    }
+
+    return {
+        member: null,
+        matchType: "name",
+        issue: "Name not found in active roster"
+    };
 }
 
 function bindWorkspaceEvents() {
@@ -386,7 +443,7 @@ export function initAcademicImport(profile, user) {
 
     loadRoster()
         .then(() => {
-            setImportStatus("Student roster loaded: " + rosterByNim.size + " active accounts are available for matching.", "success");
+            setImportStatus("Student roster loaded: " + rosterByNim.size + " active accounts are available for NIM or exact-name matching.", "success");
             renderReview();
         })
         .catch((error) => {
@@ -722,11 +779,24 @@ function selectedAssessments() {
 
 function validateRows() {
     const includedRows = currentRows.filter((row) => row.include);
-    const counts = new Map();
+    const nimCounts = new Map();
+    const memberCounts = new Map();
+    const matchesByIndex = new Map();
 
     includedRows.forEach((row) => {
-        const key = normalizeNim(row.nim);
-        if (key) counts.set(key, (counts.get(key) || 0) + 1);
+        const nim = normalizeNim(row.nim);
+        if (nim) nimCounts.set(nim, (nimCounts.get(nim) || 0) + 1);
+    });
+
+    // Resolve every selected row first so duplicate accounts can be detected
+    // even when one row is matched by NIM and another by name.
+    currentRows.forEach((row, index) => {
+        if (!row.include) return;
+        const match = resolveRosterMember(row);
+        matchesByIndex.set(index, match);
+        if (match.member) {
+            memberCounts.set(match.member.uid, (memberCounts.get(match.member.uid) || 0) + 1);
+        }
     });
 
     const results = new Map();
@@ -744,18 +814,24 @@ function validateRows() {
         }
 
         const nim = normalizeNim(row.nim);
-        const member = nim ? rosterByNim.get(nim) : null;
+        const match = matchesByIndex.get(index) || resolveRosterMember(row);
+        const member = match.member;
         const errors = [];
         let warning = false;
 
-        if (!nim) errors.push("Missing NIM");
-        else if (!member) errors.push("NIM not found in active roster");
-        else if (counts.get(nim) > 1) errors.push("Duplicate NIM in this file");
+        if (!member) {
+            errors.push(match.issue || "Student account could not be matched");
+        } else {
+            if (nim && nimCounts.get(nim) > 1) errors.push("Duplicate NIM in this file");
+            if (memberCounts.get(member.uid) > 1) errors.push("Duplicate student in this file");
+        }
 
-        if (member && !row.name) {
-            warning = true;
-        } else if (member && normalizeName(row.name) !== normalizeName(member.fullName)) {
-            warning = true;
+        if (member && match.matchType === "nim") {
+            if (!normalizeName(row.name)) {
+                warning = true;
+            } else if (normalizeName(row.name) !== normalizeName(member.fullName)) {
+                warning = true;
+            }
         }
 
         for (const definition of definitions) {
@@ -778,7 +854,11 @@ function validateRows() {
 
         results.set(index, {
             state: errors.length ? "error" : warning ? "warning" : "matched",
-            label: errors.length ? errors[0] : warning ? (!row.name ? "Name missing" : "Name differs") : "Matched",
+            label: errors.length
+                ? errors[0]
+                : warning
+                    ? (!row.name ? "Name missing" : "Name differs")
+                    : match.matchType === "name" ? "Matched by name" : "Matched by NIM",
             errors
         });
     }
@@ -880,13 +960,13 @@ function renderReview() {
         hasValidSubject &&
         hasValidAssessmentCount &&
         !!selectedNameColumn &&
-        !!selectedNimColumn &&
+        selectedNameColumn !== selectedNimColumn &&
         !isSaving;
 
     reviewSummary.dataset.type = validation.errorRows ? "error" : validation.warningRows ? "info" : "success";
     reviewSummary.textContent =
         validation.selectedRows + " row(s) selected · " +
-        validation.matchedRows + " matched · " +
+        validation.matchedRows + " matched by NIM/name · " +
         validation.warningRows + " name warning(s) · " +
         validation.errorRows + " row(s) need correction · " +
         definitions.length + " assessment component(s). " +
@@ -959,8 +1039,12 @@ async function saveCurrentDraft() {
         const includedRows = currentRows.filter((row) => row.include);
         const verifiedRows = includedRows.map((row) => ({
             row,
-            member: rosterByNim.get(normalizeNim(row.nim))
+            ...resolveRosterMember(row)
         }));
+
+        if (verifiedRows.some(({ member }) => !member)) {
+            throw new Error("One or more student rows no longer match the active roster. Review the rows and try again.");
+        }
 
         const duplicateSubjectSnapshot = await getDocs(query(
             collection(db, "subjects"),
