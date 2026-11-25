@@ -412,6 +412,9 @@ function updateClock() {
         creatingPollFor = "";
         startPollListener();
     } else {
+        if (activePoll && currentUser && currentProfile?.isActive === true && voteListenerMode !== phase) {
+            startVoteListener();
+        }
         renderPulse();
         if (phase === "open" && currentUser && currentProfile?.isActive === true && !activePoll) {
             ensureDailyPoll();
@@ -424,26 +427,51 @@ function stopVoteListener() {
         unsubscribeVotes();
         unsubscribeVotes = null;
     }
+    voteListenerMode = "";
 }
+
+let voteListenerMode = "";
 
 function startVoteListener() {
     stopVoteListener();
     currentVotes = [];
     ownVote = null;
 
-    const votesRef = collection(db, "pulseDays", activeDayKey, "votes");
-    unsubscribeVotes = onSnapshot(votesRef, snapshot => {
-        currentVotes = snapshot.docs.map(document => ({
-            id: document.id,
-            ...document.data()
-        }));
-        ownVote = currentVotes.find(vote => vote.uid === currentUser?.uid) || null;
-        renderPulse();
-    }, error => {
-        console.error("STELLARS Pulse vote listener failed:", error);
-        currentPollError = "The vote list could not be read. Check that the latest Pulse Firestore Rules have been deployed.";
-        renderPollError();
-    });
+    if (!currentUser) return;
+
+    const phase = getPollPhase();
+    voteListenerMode = phase;
+
+    if (phase === "open") {
+        // During voting, each member can read only their own vote document.
+        const ownVoteRef = doc(db, "pulseDays", activeDayKey, "votes", currentUser.uid);
+        unsubscribeVotes = onSnapshot(ownVoteRef, snapshot => {
+            ownVote = snapshot.exists() ? snapshot.data() : null;
+            renderPulse();
+        }, error => {
+            console.error("STELLARS Pulse own-vote listener failed:", error);
+            currentPollError = "Your vote status could not be read. Check the latest Pulse Firestore Rules.";
+            renderPollError();
+        });
+        return;
+    }
+
+    if (phase === "closed") {
+        // The full vote collection becomes readable only after 13:00 WIB.
+        const votesRef = collection(db, "pulseDays", activeDayKey, "votes");
+        unsubscribeVotes = onSnapshot(votesRef, snapshot => {
+            currentVotes = snapshot.docs.map(document => ({
+                id: document.id,
+                ...document.data()
+            }));
+            ownVote = currentVotes.find(vote => vote.uid === currentUser.uid) || null;
+            renderPulse();
+        }, error => {
+            console.error("STELLARS Pulse results listener failed:", error);
+            currentPollError = "The results are still locked by server time. Refresh after 13:00 WIB.";
+            renderPollError();
+        });
+    }
 }
 
 function startPollListener() {
