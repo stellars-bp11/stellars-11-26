@@ -80,10 +80,10 @@ const STELLARS_AUTH_SUFFIX = "@class-web-7241e.firebaseapp.com";
 function normalizeAccountName(value) {
     return String(value || "")
         .normalize("NFKD")
-        .replace(/[\\u0300-\\u036f]/g, "")
+        .replace(/[\u0300-\u036f]/g, "")
         .trim()
         .toLowerCase()
-        .replace(/\\s+/g, " ");
+        .split(" ").filter(Boolean).join(" ");
 }
 
 async function listAllAuthUsers() {
