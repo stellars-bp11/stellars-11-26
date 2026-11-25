@@ -833,7 +833,7 @@ nav.navbar .site-account-button:focus-visible,
    SHARED NAVBAR — TRUE THREE-ZONE ALIGNMENT
    Left: brand | Center: navigation | Right: account actions
 ========================================================= */
-@media (min-width: 701px) {
+@media (min-width: 761px) {
     .site-header .site-nav {
         display: grid;
         grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
@@ -856,7 +856,7 @@ nav.navbar .site-account-button:focus-visible,
 }
 
 /* Keep the Home navbar's three zones balanced as well. */
-@media (min-width: 701px) {
+@media (min-width: 761px) {
     .navbar {
         display: grid;
         grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
