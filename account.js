@@ -281,8 +281,12 @@ securityForm.addEventListener("submit", async event => {
         const profile = profileSnapshot.data();
 
         const eligibleRoles = ["student", "admin", "superAdmin", "super_admin"];
-        if (!eligibleRoles.includes(profile.role) || profile.isActive !== true || !profile.nim) {
-            throw new Error("Secure My Account hanya tersedia untuk akun STELLARS aktif yang memiliki NIM.");
+        if (!eligibleRoles.includes(profile.role) || profile.isActive !== true) {
+            throw new Error("Secure My Account hanya tersedia untuk akun STELLARS yang aktif.");
+        }
+        const profileNim = String(profile.nim ?? "").trim();
+        if (!profileNim) {
+            throw new Error("Profil akun ini belum memiliki NIM. Minta admin melengkapi NIM akun terlebih dahulu agar kode aktivasi bisa dicocokkan.");
         }
 
         const codeHash = await hashActivationCode(code);
@@ -294,7 +298,7 @@ securityForm.addEventListener("submit", async event => {
 
         const activation = activationSnapshot.data();
         if (activation.status !== "available" ||
-            activation.nim !== String(profile.nim) ||
+            activation.nim !== profileNim ||
             normalizeStudentName(activation.fullName) !== normalizeStudentName(profile.fullName)) {
             throw new Error("Kode tidak cocok dengan akun ini atau sudah pernah digunakan.");
         }
@@ -609,9 +613,7 @@ authReady
                 };
                 metaLabel.textContent = roleNames[profile.role] || "Signed in";
                 securityMenuButton.hidden =
-                    !["student", "admin", "superAdmin", "super_admin"].includes(profile.role) ||
-                    profile.isActive !== true ||
-                    !profile.nim;
+                    !["student", "admin", "superAdmin", "super_admin"].includes(profile.role);
             }
         } catch (error) {
             console.error("Could not load the STELLARS account profile:", error);
