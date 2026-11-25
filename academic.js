@@ -258,16 +258,16 @@ function showProfile(profile, authUser) {
         .trim()
         .toLowerCase()
         .split(" ").filter(Boolean).join(" ");
+    const canManageAccountReset =
+        profile.isActive === true &&
+        resetOperatorNames.has(normalizedProfileName);
+
     if (accountResetPanel) {
-        accountResetPanel.hidden = !(
-            isAdmin &&
-            profile.isActive === true &&
-            resetOperatorNames.has(normalizedProfileName)
-        );
+        accountResetPanel.hidden = !canManageAccountReset;
     }
 
     studentView.hidden = !isStudent;
-    adminView.hidden = !isAdmin;
+    adminView.hidden = !(isAdmin || canManageAccountReset);
 
     if (isAdmin) {
         bindAdminResultsControls();
