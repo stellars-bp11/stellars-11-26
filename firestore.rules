@@ -81,6 +81,7 @@ service cloud.firestore {
         data.createdAt is timestamp &&
         existsAfter(activationPath) &&
         activation.data.status == 'redeemed' &&
+        activation.data.redeemedBy == userId &&
         activation.data.nim == data.nim &&
         activation.data.fullName == data.fullName;
     }
@@ -90,8 +91,9 @@ service cloud.firestore {
       let profile = getAfter(profilePath);
       return signedIn() &&
         resource.data.status == 'available' &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'redeemedAt']) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'redeemedBy', 'redeemedAt']) &&
         request.resource.data.status == 'redeemed' &&
+        request.resource.data.redeemedBy == request.auth.uid &&
         request.resource.data.redeemedAt is timestamp &&
         existsAfter(profilePath) &&
         profile.data.activationCodeHash == codeHash &&
