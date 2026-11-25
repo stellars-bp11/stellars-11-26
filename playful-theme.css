@@ -376,17 +376,33 @@ textarea::placeholder {
 
 /* Academic: each result row behaves like the sample's input row. */
 .academic-result-card {
-    border: var(--st-cartoon-line);
-    border-radius: var(--st-cartoon-radius-small);
+    border: var(--st-cartoon-line) !important;
+    border-radius: var(--st-cartoon-radius) !important;
+    background: #fff;
+    box-shadow: var(--st-cartoon-shadow) !important;
 }
 .academic-result-row {
-    padding: 9px 12px;
-    margin-bottom: 8px;
-    border: 2px dashed rgba(43, 38, 64, .45);
-    border-radius: var(--st-cartoon-radius-small);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding: 8px 10px 8px 14px;
+    background: #fff;
+    border: var(--st-cartoon-line);
+    border-radius: var(--st-cartoon-radius);
 }
 .academic-result-row:last-child {
     margin-bottom: 0;
+}
+.academic-result-name strong {
+    color: var(--st-cartoon-ink);
+    font-size: 1rem;
+    font-weight: 800;
+}
+.academic-result-name small {
+    color: #5b5478;
+    font-weight: 700;
 }
 .academic-result-name strong,
 .admin-results-stat strong {
@@ -445,4 +461,13 @@ select:focus-visible {
     input[type="number"]:focus {
         transform: none;
     }
+}
+
+/* Validation states mirror the sample's clear pink error treatment. */
+input.salah,
+input[aria-invalid="true"],
+textarea[aria-invalid="true"],
+select[aria-invalid="true"] {
+    border-color: #e11d48 !important;
+    background: #ffe3e8 !important;
 }
