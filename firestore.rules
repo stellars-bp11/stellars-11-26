@@ -159,7 +159,8 @@ service cloud.firestore {
         isCurrentJakartaRadioDay(dayId) &&
         request.resource.data.createdAt == resource.data.createdAt &&
         validRadioSong(dayId, memberId);
-      allow delete: if activeMember() && request.auth.uid == memberId;
+      // Members edit their own entry; only the scheduled backend deletes old days.
+      allow delete: if false;
     }
 
     function validSelfProfileUpdate() {
