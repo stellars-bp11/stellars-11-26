@@ -3,7 +3,11 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-aut
 import {
     getFirestore,
     doc,
+    collection,
     getDoc,
+    getDocs,
+    query,
+    where,
     writeBatch,
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
@@ -147,12 +151,19 @@ export function initActivationManager(profile, authUser) {
 
             const hashes = await Promise.all(records.map(record => hashCode(record.code)));
             const conflicts = await Promise.all(records.map(async (record, index) => {
-                const [codeSnapshot, nimSnapshot] = await Promise.all([
+                const [codeSnapshot, nimCodeSnapshot] = await Promise.all([
                     getDoc(doc(db, "activationCodes", hashes[index])),
-                    getDoc(doc(db, "nimIndex", record.nim))
+                    getDocs(query(
+                        collection(db, "activationCodes"),
+                        where("nim", "==", record.nim)
+                    ))
                 ]);
-                if (codeSnapshot.exists()) return "Kode pada baris " + record.rowNumber + " sudah pernah didaftarkan.";
-                if (nimSnapshot.exists()) return "NIM " + record.nim + " sudah terhubung ke akun STELLARS.";
+                if (codeSnapshot.exists()) {
+                    return "Kode pada baris " + record.rowNumber + " sudah pernah didaftarkan.";
+                }
+                if (!nimCodeSnapshot.empty) {
+                    return "NIM " + record.nim + " sudah memiliki kode aktivasi. Jangan membuat kode kedua untuk NIM yang sama.";
+                }
                 return "";
             }));
             const conflict = conflicts.find(Boolean);
@@ -192,7 +203,7 @@ export function initActivationManager(profile, authUser) {
                 records.length + " kode berhasil didaftarkan. Kode asli tetap hanya ada di file Excel admin.",
                 "success");
             if (result) result.textContent =
-                "Berhasil: " + records.length + " akun siap diaktivasi. Bagikan setiap kode secara pribadi kepada mahasiswa yang namanya tercantum.";
+                "Berhasil: " + records.length + " kode terdaftar. Mahasiswa yang sudah punya akun harus login dengan akun lamanya lalu pilih Secure My Account untuk mengganti password. Mahasiswa yang belum punya akun dapat memakai First-time Activation.";
             fileInput.value = "";
         } catch (error) {
             console.error("STELLARS activation workbook import failed:", error);
