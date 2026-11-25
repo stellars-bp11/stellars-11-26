@@ -160,11 +160,11 @@ function openRegistrationDialog() {
 }
 
 function normalizeStudentName(value) {
-    return String(value || "").normalize("NFKC").trim().replace(/\\s+/g, " ").toLocaleLowerCase("id");
+    return String(value || "").normalize("NFKC").trim().replace(/\s+/g, " ").toLocaleLowerCase("id");
 }
 
 function normalizeActivationCode(value) {
-    return String(value || "").toUpperCase().replace(/[\\s-]/g, "");
+    return String(value || "").toUpperCase().replace(/[\s-]/g, "");
 }
 
 async function hashActivationCode(code) {
@@ -197,13 +197,13 @@ registrationForm.addEventListener("submit", async event => {
     event.preventDefault();
     if (registrationSubmit.disabled) return;
 
-    const fullName = registrationName.value.trim().replace(/\\s+/g, " ");
+    const fullName = registrationName.value.trim().replace(/\s+/g, " ");
     const nim = registrationNim.value.trim();
     const code = normalizeActivationCode(registrationCode.value);
     const password = registrationPassword.value;
     const confirmPassword = registrationConfirm.value;
 
-    if (!fullName || !/^\\d{5,24}$/.test(nim)) {
+    if (!fullName || !/^\d{5,24}$/.test(nim)) {
         registrationMessage.textContent = "Periksa kembali nama lengkap dan NIM. NIM harus berupa 5–24 digit.";
         registrationMessage.dataset.type = "error";
         return;
