@@ -165,7 +165,7 @@ function bindAdminNimRepair() {
 
     adminNimRepairButton.addEventListener("click", async () => {
         const newNim = String(adminNimRepairInput?.value || "").trim();
-        if (!/^\\d{5,24}$/.test(newNim)) {
+        if (!/^\d{5,24}$/.test(newNim)) {
             if (adminNimRepairStatus) {
                 adminNimRepairStatus.textContent = "Masukkan NIM baru yang valid (5–24 digit).";
                 adminNimRepairStatus.dataset.type = "error";
