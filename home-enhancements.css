@@ -193,7 +193,31 @@
 }
 
 .quick-access-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 205px), 1fr));
     gap: 14px;
+}
+
+.world-access-card {
+    border-color: rgba(121, 100, 194, .28);
+    background: linear-gradient(145deg, rgba(245, 241, 255, .98), rgba(232, 227, 255, .92));
+}
+
+.world-access-card .quick-access-icon {
+    color: #fff;
+    background: linear-gradient(145deg, #7665b9, #a18de3);
+    box-shadow: 0 7px 18px rgba(101, 82, 174, .2);
+}
+
+.world-access-card .quick-access-copy strong {
+    color: #4e3d87;
+}
+
+.world-access-card .quick-access-copy small {
+    color: #746a96;
+}
+
+.world-access-card .quick-access-arrow {
+    color: #7965bd;
 }
 
 .quick-access-card {
