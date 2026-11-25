@@ -58,6 +58,7 @@ let storageKey = SAVE_PREFIX + ":guest";
 let playerUser = null;
 let walkTarget = null;
 let lastMoveAt = 0;
+let lastActionAt = 0;
 let toastTimer = null;
 let animationFrame = 0;
 let lastFrame = 0;
@@ -115,6 +116,11 @@ function updateHud() {
     ? "Your path: " + job.name + ". Find your workplace and press E."
     : "Choose a profession, then explore the town.";
   $("worldCoords").textContent = String(player.x).padStart(2, "0") + " : " + String(player.y).padStart(2, "0");
+  const marker = document.querySelector(".map-player");
+  if (marker) {
+    marker.style.left = (12 + (player.x / (MAP_W - 1)) * 76) + "%";
+    marker.style.top = (10 + (player.y / (MAP_H - 1)) * 76) + "%";
+  }
   drawAvatar(job);
 }
 
@@ -502,11 +508,17 @@ function addReward(coins, xp, progress, message) {
 }
 
 function interact() {
+  const now = Date.now();
+  if (now - lastActionAt < 1100) {
+    showToast("One task at a time, Star!");
+    return;
+  }
   const building = nearestBuilding();
   if (!building) {
     showToast("Move closer to a building first!");
     return;
   }
+  lastActionAt = now;
   if (building.id === "home") {
     save.homeDecor += 1;
     addReward(0, 4, 1, "Your home feels cosier!");
@@ -583,11 +595,12 @@ function dayCycle() {
 function bindControls() {
   document.addEventListener("keydown", event => {
     if ($("jobDialog").open) return;
+    // Screen-direction controls for an isometric grid.
     const keys = {
-      ArrowUp: [0, -1], w: [0, -1], W: [0, -1],
-      ArrowDown: [0, 1], s: [0, 1], S: [0, 1],
-      ArrowLeft: [-1, 0], a: [-1, 0], A: [-1, 0],
-      ArrowRight: [1, 0], d: [1, 0], D: [1, 0]
+      ArrowUp: [-1, -1], w: [-1, -1], W: [-1, -1],
+      ArrowDown: [1, 1], s: [1, 1], S: [1, 1],
+      ArrowLeft: [-1, 1], a: [-1, 1], A: [-1, 1],
+      ArrowRight: [1, -1], d: [1, -1], D: [1, -1]
     };
     if (keys[event.key]) {
       event.preventDefault();
@@ -609,7 +622,7 @@ function bindControls() {
 
   document.querySelectorAll("[data-move]").forEach(button => {
     const moveMap = {
-      up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0]
+      up: [-1, -1], down: [1, 1], left: [-1, 1], right: [1, -1]
     };
     button.addEventListener("click", () => step(...moveMap[button.dataset.move]));
   });
