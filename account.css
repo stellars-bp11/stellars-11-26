@@ -525,3 +525,26 @@ nav.navbar .site-account-wrap {
     font-size: 10px;
     line-height: 1.45;
 }
+
+
+/* Student password migration action in the account dropdown */
+.site-account-menu > .site-account-security-button {
+    width: 100%;
+    min-height: 40px;
+    padding: 9px 13px;
+    border: 1px solid rgba(115, 91, 191, .18);
+    border-radius: 10px;
+    color: #49358d;
+    background: #f2efff;
+    cursor: pointer;
+    font: 700 12px 'Ubuntu', sans-serif;
+    text-align: left;
+    transition: background .2s ease, transform .2s ease;
+}
+.site-account-menu > .site-account-security-button:hover {
+    background: #e8e2ff;
+    transform: translateY(-1px);
+}
+.site-account-menu > .site-account-security-button[hidden] {
+    display: none !important;
+}
