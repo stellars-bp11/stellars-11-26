@@ -13,8 +13,8 @@
 
 .home-hero::after {
     background:
-        linear-gradient(90deg, rgba(5, 8, 31, .86) 0%, rgba(8, 10, 37, .55) 48%, rgba(8, 10, 37, .12) 100%),
-        linear-gradient(0deg, rgba(8, 9, 34, .34), transparent 55%);
+        linear-gradient(90deg, rgba(5, 8, 31, .52) 0%, rgba(8, 10, 37, .28) 46%, rgba(8, 10, 37, .06) 100%),
+        linear-gradient(0deg, rgba(8, 9, 34, .18), transparent 58%);
 }
 
 .home-hero::before {
