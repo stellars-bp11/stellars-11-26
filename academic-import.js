@@ -243,22 +243,34 @@ async function loadRoster() {
     if (rosterPromise) return rosterPromise;
 
     rosterPromise = (async () => {
-        const snapshot = await getDocs(collection(db, "nimIndex"));
+        // User profiles are the canonical source for the registered student
+        // name and NIM. nimIndex remains the sign-in lookup, but older index
+        // entries may not have a current fullName value.
+        const snapshot = await getDocs(collection(db, "users"));
         const nextRoster = new Map();
         const nextRosterByName = new Map();
         const nextRosterByFirstName = new Map();
+        const duplicateNims = new Set();
 
         snapshot.forEach((memberDoc) => {
             const data = memberDoc.data() || {};
-            const nim = normalizeNim(memberDoc.id);
-            if (!nim || !data.uid || data.isActive !== true) return;
+            if (data.role !== "student" || data.isActive !== true) return;
+
+            const nim = normalizeNim(data.nim || data.username);
+            if (!nim) return;
 
             const member = {
-                uid: String(data.uid),
+                uid: String(memberDoc.id),
                 fullName: String(data.fullName || ""),
                 isActive: true
             };
-            nextRoster.set(nim, member);
+
+            if (nextRoster.has(nim)) {
+                nextRoster.delete(nim);
+                duplicateNims.add(nim);
+            } else if (!duplicateNims.has(nim)) {
+                nextRoster.set(nim, member);
+            }
 
             const nameKey = normalizeName(member.fullName);
             if (nameKey) {
@@ -470,7 +482,7 @@ export function initAcademicImport(profile, user) {
 
     loadRoster()
         .then(() => {
-            setImportStatus("Student roster loaded: " + rosterByNim.size + " active accounts are available for NIM or exact-name matching.", "success");
+            setImportStatus("Student profiles loaded: " + rosterByNim.size + " active accounts are available for NIM, full-name, or first-name matching.", "success");
             renderReview();
         })
         .catch((error) => {
