@@ -58,6 +58,7 @@ let storageKey = SAVE_PREFIX + ":guest";
 let playerUser = null;
 let walkTarget = null;
 let lastMoveAt = 0;
+let lastKeyboardMoveAt = 0;
 let lastActionAt = 0;
 let toastTimer = null;
 let animationFrame = 0;
@@ -458,7 +459,11 @@ function moveTowardTarget() {
     : [{ x: 0, y: Math.sign(dy) }, { x: Math.sign(dx), y: 0 }];
   for (const candidate of candidates) {
     if (candidate.x || candidate.y) {
-      if (step(candidate.x, candidate.y)) return;
+      const destination = { ...walkTarget };
+      if (step(candidate.x, candidate.y)) {
+        walkTarget = destination;
+        return;
+      }
     }
   }
   walkTarget = null;
@@ -605,8 +610,8 @@ function bindControls() {
     if (keys[event.key]) {
       event.preventDefault();
       const now = Date.now();
-      if (now - lastMoveAt > 105) {
-        lastMoveAt = now;
+      if (now - lastKeyboardMoveAt > 105) {
+        lastKeyboardMoveAt = now;
         step(...keys[event.key]);
       }
     } else if (event.key.toLowerCase() === "e") {
