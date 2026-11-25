@@ -374,11 +374,12 @@ exports.repairStudentNim = onCall(
             throw new HttpsError("failed-precondition", "Profil siswa tidak memiliki nama lengkap.");
         }
 
-        const [targetAuthUser, indexesByUid, redeemedCodes, newIndexSnapshot] = await Promise.all([
+        const [targetAuthUser, indexesByUid, redeemedCodes, newIndexSnapshot, codesForNewNim] = await Promise.all([
             getAuth().getUser(targetUid),
             db.collection("nimIndex").where("uid", "==", targetUid).get(),
             db.collection("activationCodes").where("redeemedBy", "==", targetUid).get(),
-            db.collection("nimIndex").doc(newNim).get()
+            db.collection("nimIndex").doc(newNim).get(),
+            db.collection("activationCodes").where("nim", "==", newNim).get()
         ]);
 
         if (newIndexSnapshot.exists && String(newIndexSnapshot.data()?.uid || "") !== targetUid) {
@@ -399,6 +400,13 @@ exports.repairStudentNim = onCall(
 
         const activationDoc = matchingActivationCodes[0];
         const activation = activationDoc.data() || {};
+        const conflictingNewNimCode = codesForNewNim.docs.find(codeDoc => codeDoc.id !== activationDoc.id);
+        if (conflictingNewNimCode) {
+            throw new HttpsError(
+                "already-exists",
+                "NIM baru sudah tercantum pada kode aktivasi lain. Periksa workbook kode aktivasi sebelum melanjutkan."
+            );
+        }
         const oldNims = new Set([
             String(target.username || "").trim(),
             ...indexesByUid.docs.map(indexDoc => String(indexDoc.id).trim()),
