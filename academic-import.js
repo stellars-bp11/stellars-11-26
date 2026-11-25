@@ -255,10 +255,15 @@ async function loadRoster({ refresh = false } = {}) {
 
         snapshot.forEach((memberDoc) => {
             const data = memberDoc.data() || {};
-            if (data.role !== "student" || data.isActive !== true) return;
+            const role = String(data.role || "").trim();
+            const isEligibleRole = ["student", "admin", "superAdmin", "super_admin"].includes(role);
+            if (!isEligibleRole || data.isActive !== true) return;
 
-            const nim = normalizeNim(data.nim || data.username);
-            if (!nim) return;
+            // NIM is canonical. Keep name matching available even for an
+            // active admin profile whose NIM needs to be corrected separately.
+            const rawNim = String(data.nim || "").trim() ||
+                (/^\\d{5,24}$/.test(String(data.username || "").trim()) ? String(data.username).trim() : "");
+            const nim = normalizeNim(rawNim);
 
             const member = {
                 uid: String(memberDoc.id),
@@ -266,11 +271,13 @@ async function loadRoster({ refresh = false } = {}) {
                 isActive: true
             };
 
-            if (nextRoster.has(nim)) {
-                nextRoster.delete(nim);
-                duplicateNims.add(nim);
-            } else if (!duplicateNims.has(nim)) {
-                nextRoster.set(nim, member);
+            if (nim) {
+                if (nextRoster.has(nim)) {
+                    nextRoster.delete(nim);
+                    duplicateNims.add(nim);
+                } else if (!duplicateNims.has(nim)) {
+                    nextRoster.set(nim, member);
+                }
             }
 
             const nameKey = normalizeName(member.fullName);
