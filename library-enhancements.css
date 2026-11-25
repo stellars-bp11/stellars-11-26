@@ -59,3 +59,281 @@
     .memory-card,.memory-image img { transition:none; }
     .memory-card:hover,.memory-card:hover .memory-image img { transform:none; }
 }
+
+
+/* =========================================================
+   LIBRARY — MEMORY GALLERY / SCRAPBOOK ARCHIVE
+   A warm gallery wall with photo-print cards and a clear upload action.
+========================================================= */
+.library-page {
+    background: #202133;
+}
+.library-page .background-overlay {
+    background:
+        radial-gradient(ellipse 60% 52% at 12% 16%, rgba(142, 116, 178, .2), transparent 72%),
+        radial-gradient(ellipse 60% 50% at 88% 70%, rgba(189, 151, 103, .14), transparent 74%),
+        linear-gradient(180deg, rgba(17, 18, 34, .4), rgba(25, 25, 39, .76));
+}
+.library-page .library-hero {
+    min-height: 370px;
+    padding: 76px 24px 70px;
+}
+.library-page .library-hero .hero-content {
+    max-width: 760px;
+    padding: 29px 34px 31px;
+    border: 1px solid rgba(235, 221, 193, .2);
+    border-radius: 5px;
+    background: linear-gradient(135deg, rgba(31, 31, 49, .64), rgba(57, 48, 68, .38));
+    box-shadow: 0 18px 50px rgba(8, 8, 20, .16);
+    backdrop-filter: blur(8px);
+}
+.library-page .library-hero .eyebrow {
+    color: #e7cfa6;
+    font: 9px "Silkscreen", monospace;
+    letter-spacing: 2px;
+}
+.library-page .library-hero .hero-content h1 {
+    margin: 16px 0 12px;
+    color: #f7eddb;
+    background: none;
+    -webkit-text-fill-color: currentColor;
+    filter: none;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(56px, 8vw, 88px);
+    font-weight: 500;
+    letter-spacing: -2px;
+}
+.library-page .library-hero .hero-content > p:last-child {
+    max-width: 470px;
+    margin: 0 auto;
+    color: rgba(248, 239, 222, .82);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 16px;
+    line-height: 1.7;
+}
+.library-page .library-hero .hero-content::after {
+    content: "EST.\A 2026";
+    top: 50%;
+    left: auto;
+    right: -30px;
+    width: 76px;
+    height: 76px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(236, 209, 160, .65);
+    border-radius: 50%;
+    color: #f0d8aa;
+    background: rgba(42, 39, 55, .9);
+    box-shadow: 0 0 0 5px rgba(239, 219, 184, .08);
+    text-align: center;
+    font: 8px/1.8 "Silkscreen", monospace;
+    letter-spacing: .5px;
+    transform: translateY(-50%) rotate(9deg);
+}
+.library-page .library-section {
+    width: min(1380px, calc(100% - 64px));
+    margin: 0 auto 84px;
+    padding: 38px;
+    border: 1px solid rgba(238, 227, 207, .7);
+    border-radius: 7px;
+    color: #343044;
+    background:
+        linear-gradient(rgba(255,255,255,.22) 1px, transparent 1px),
+        #eee8dc;
+    background-size: 100% 34px;
+    box-shadow: 0 24px 60px rgba(4, 6, 19, .24);
+}
+.library-page .library-section .section-heading {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+        "eyebrow button"
+        "title button";
+    align-items: end;
+    gap: 7px 20px;
+    margin-bottom: 30px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid rgba(92, 77, 59, .19);
+}
+.library-page .library-section .section-heading .eyebrow {
+    grid-area: eyebrow;
+    margin: 0;
+    color: #9a7951;
+    font: 9px "Silkscreen", monospace;
+    letter-spacing: 2px;
+}
+.library-page .library-section .section-heading h2 {
+    grid-area: title;
+    margin: 0;
+    color: #302a3b;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(30px, 4vw, 43px);
+    font-weight: 500;
+    letter-spacing: -1px;
+}
+.library-page .library-section .section-heading h2::after {
+    display: none;
+}
+.library-page .add-memory-btn {
+    grid-area: button;
+    min-height: 46px;
+    padding: 0 19px;
+    border: 1px solid #705c82;
+    border-radius: 3px;
+    color: #fffaf0;
+    background: #514363;
+    box-shadow: 0 4px 0 #382e45;
+    font-size: 11px;
+    letter-spacing: .3px;
+}
+.library-page .add-memory-btn:hover {
+    transform: translateY(-2px);
+    background: #665477;
+}
+.library-page .library-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+    gap: 25px;
+}
+.library-page .memory-card {
+    position: relative;
+    overflow: hidden;
+    padding: 9px 9px 0;
+    border: 1px solid #ddd3c2;
+    border-radius: 3px;
+    background: #fffdf7;
+    box-shadow: 0 8px 20px rgba(65, 55, 43, .12);
+    transition: transform .24s ease, box-shadow .24s ease;
+}
+.library-page .memory-card:nth-child(3n + 1) { transform: rotate(-.45deg); }
+.library-page .memory-card:nth-child(3n + 2) { transform: rotate(.35deg); }
+.library-page .memory-card:nth-child(3n) { transform: rotate(-.15deg); }
+.library-page .memory-card:hover {
+    z-index: 2;
+    transform: translateY(-5px) rotate(0);
+    box-shadow: 0 18px 32px rgba(65, 55, 43, .17);
+}
+.library-page .memory-image {
+    height: clamp(220px, 24vw, 310px);
+    padding: 0;
+    overflow: hidden;
+    background: #e6dfd2;
+}
+.library-page .memory-image img,
+.library-page .memory-image video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.library-page .memory-card.is-video .memory-image video {
+    object-fit: contain;
+    background: #171622;
+}
+.library-page .memory-delete {
+    top: 10px;
+    right: 10px;
+    width: 35px;
+    height: 35px;
+    border: 1px solid rgba(255,255,255,.5);
+    border-radius: 50%;
+    background: rgba(31, 29, 43, .72);
+    backdrop-filter: blur(6px);
+}
+.library-page .memory-info {
+    min-height: 146px;
+    padding: 19px 64px 22px 15px;
+    color: #4f4a56;
+    background: #fffdf7;
+}
+.library-page .memory-category {
+    display: inline-flex;
+    margin: 0 0 8px;
+    padding: 4px 8px;
+    border: 1px solid #e5dac7;
+    border-radius: 2px;
+    color: #8a704f;
+    background: #f5efe4;
+    font: 8px "Silkscreen", monospace;
+    letter-spacing: .8px;
+}
+.library-page .memory-info h3 {
+    color: #302b3b;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 21px;
+    font-weight: 600;
+    line-height: 1.25;
+}
+.library-page .memory-description {
+    margin-top: 8px;
+    color: #77717a;
+    font-size: 12px;
+    line-height: 1.6;
+}
+.library-page .memory-like {
+    right: 13px;
+    bottom: 15px;
+    width: 39px;
+    height: 39px;
+    border: 1px solid #e7dfd1;
+    border-radius: 50%;
+    color: #8b7487;
+    background: #f7f2e9;
+}
+.library-page .memory-like.liked {
+    color: #fff;
+    background: #aa6478;
+    border-color: #aa6478;
+}
+.library-page footer {
+    border-top: 1px solid rgba(232, 219, 194, .16);
+    background: rgba(21, 21, 34, .88);
+}
+.library-page .modal-overlay {
+    background: rgba(20, 19, 31, .78);
+}
+.library-page .modal {
+    border: 1px solid #e4d9c6;
+    border-radius: 7px;
+    background: #f7f2e8;
+    color: #302b3b;
+}
+.library-page .modal-header {
+    border-bottom: 1px solid #e4d9c6;
+}
+.library-page .modal-header h3 {
+    color: #302b3b;
+    font-family: Georgia, "Times New Roman", serif;
+}
+@media (max-width: 980px) {
+    .library-page .library-section { width: calc(100% - 40px); padding: 29px; }
+    .library-page .library-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+    .library-page .memory-image { height: clamp(230px, 32vw, 300px); }
+}
+@media (max-width: 700px) {
+    .library-page .library-hero { min-height: 315px; padding: 55px 20px; }
+    .library-page .library-hero .hero-content { padding: 24px 22px; }
+    .library-page .library-hero .hero-content::after { right: -8px; top: 0; width: 58px; height: 58px; font-size: 7px; }
+    .library-page .library-hero .hero-content h1 { font-size: clamp(49px, 12vw, 68px); }
+    .library-page .library-hero .hero-content > p:last-child { max-width: 320px; font-size: 14px; }
+    .library-page .library-section { width: calc(100% - 28px); margin-bottom: 55px; padding: 20px; }
+    .library-page .library-section .section-heading { grid-template-columns: 1fr; grid-template-areas: "eyebrow" "title" "button"; align-items: start; gap: 7px; margin-bottom: 21px; padding-bottom: 18px; }
+    .library-page .library-section .section-heading h2 { font-size: clamp(28px, 7vw, 36px); }
+    .library-page .add-memory-btn { width: fit-content; margin-top: 10px; }
+    .library-page .library-grid { gap: 15px; }
+    .library-page .memory-card { padding: 7px 7px 0; }
+    .library-page .memory-image { height: clamp(180px, 38vw, 240px); }
+    .library-page .memory-info { min-height: 138px; padding: 15px 48px 17px 11px; }
+    .library-page .memory-info h3 { font-size: 17px; }
+    .library-page .memory-description { font-size: 11px; }
+}
+@media (max-width: 480px) {
+    .library-page .library-grid { grid-template-columns: 1fr; gap: 18px; }
+    .library-page .memory-card:nth-child(n) { transform: none; }
+    .library-page .memory-image { height: clamp(230px, 72vw, 330px); }
+    .library-page .memory-info { min-height: 0; padding: 17px 55px 20px 13px; }
+    .library-page .memory-info h3 { font-size: 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .library-page .memory-card { transition: none; }
+    .library-page .memory-card:hover { transform: none; }
+}
