@@ -509,11 +509,13 @@ async function readSelectedFile(file) {
         }
 
         subjectInput.value = fileBaseName(file.name);
-        headerRowInput.value = "1";
+        const detectedHeaderIndex = detectPdfHeaderRow(currentGrid);
+        headerRowInput.value = String(detectedHeaderIndex + 1);
         mappingPanel.hidden = false;
         buildMappingFromGrid();
         setImportStatus(
-            "PDF text extracted into " + currentGrid.length + " row(s). Check the preview carefully because PDF column spacing can vary.",
+            "PDF text extracted into " + currentGrid.length + " row(s). Table header detected on row " +
+            (detectedHeaderIndex + 1) + ". Check the column mapping and preview before saving.",
             "success"
         );
     } catch (error) {
@@ -619,6 +621,52 @@ async function extractPdfGrid(file) {
     }
 
     return grid;
+}
+
+function detectPdfHeaderRow(grid) {
+    let bestIndex = 0;
+    let bestScore = -1;
+
+    const nameHeaders = new Set([
+        "nama",
+        "nama mahasiswa",
+        "nama lengkap",
+        "name",
+        "full name",
+        "student",
+        "student name"
+    ]);
+    const nimHeaders = new Set([
+        "nim",
+        "nomor induk",
+        "nomor induk mahasiswa",
+        "student id",
+        "registration number"
+    ]);
+
+    grid.forEach((cells, index) => {
+        const headers = (cells || []).map((cell) => normalizeName(cell)).filter(Boolean);
+        if (headers.length < 2) return;
+
+        const hasName = headers.some((header) => nameHeaders.has(header));
+        const hasNim = headers.some((header) => nimHeaders.has(header));
+        if (!hasName && !hasNim) return;
+
+        const scoreHeaders = headers.filter((header) =>
+            /^(kuis|quiz|tugas|assignment|uts|uas|utc|praktikum|practice|rata rata|average|mean|nilai)$/.test(header)
+        ).length;
+
+        // Prefer a real column-header row over a title or a student data row.
+        const score = (hasName ? 10 : 0) + (hasNim ? 8 : 0) +
+            Math.min(scoreHeaders, 6) + Math.min(headers.length, 6) / 10;
+
+        if (score > bestScore) {
+            bestScore = score;
+            bestIndex = index;
+        }
+    });
+
+    return bestIndex;
 }
 
 function buildMappingFromGrid() {
