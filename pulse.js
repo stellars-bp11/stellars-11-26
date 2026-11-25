@@ -389,6 +389,8 @@ function renderPulse() {
     return renderResults(activePoll);
 }
 
+let lastUiPhase = "";
+
 function updateClock() {
     const phase = getPollPhase();
     if (phase === "closed") {
@@ -410,15 +412,20 @@ function updateClock() {
         ownVote = null;
         currentPollError = "";
         creatingPollFor = "";
+        lastUiPhase = "";
         startPollListener();
-    } else {
+    }
+
+    if (phase !== lastUiPhase) {
+        lastUiPhase = phase;
         if (activePoll && currentUser && currentProfile?.isActive === true && voteListenerMode !== phase) {
             startVoteListener();
         }
         renderPulse();
-        if (phase === "open" && currentUser && currentProfile?.isActive === true && !activePoll) {
-            ensureDailyPoll();
-        }
+    }
+
+    if (phase === "open" && currentUser && currentProfile?.isActive === true && !activePoll) {
+        ensureDailyPoll();
     }
 }
 
