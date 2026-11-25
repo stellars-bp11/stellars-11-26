@@ -41,6 +41,10 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
 import {
     getAuth,
     onAuthStateChanged,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    updateProfile,
+    deleteUser,
     signOut,
     setPersistence,
     browserLocalPersistence
@@ -53,7 +57,9 @@ import {
     collection,
     query,
     where,
-    getDocs
+    getDocs,
+    writeBatch,
+    serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 /* Firebase configuration reused from the existing STELLARS Library. */
@@ -71,12 +77,31 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const functions = getFunctions(app, "asia-southeast2");
+const authPersistenceReady = setPersistence(auth, browserLocalPersistence);
+let academicRegistrationInProgress = false;
 
 /* DOM references */
 const loginView = document.getElementById("loginView");
 const portalView = document.getElementById("portalView");
 const academicSignInLink = document.getElementById("academicSignInLink");
 const academicAccessMessage = document.getElementById("academicAccessMessage");
+const academicSignInPanel = document.getElementById("academicSignInPanel");
+const academicRegisterPanel = document.getElementById("academicRegisterPanel");
+const academicSignInForm = document.getElementById("academicSignInForm");
+const academicLoginUsername = document.getElementById("academicLoginUsername");
+const academicLoginPassword = document.getElementById("academicLoginPassword");
+const academicSignInMessage = document.getElementById("academicSignInMessage");
+const academicSignInSubmit = document.getElementById("academicSignInSubmit");
+const academicRegisterForm = document.getElementById("academicRegisterForm");
+const academicRegisterName = document.getElementById("academicRegisterName");
+const academicRegisterNim = document.getElementById("academicRegisterNim");
+const academicRegisterCode = document.getElementById("academicRegisterCode");
+const academicRegisterPassword = document.getElementById("academicRegisterPassword");
+const academicRegisterConfirm = document.getElementById("academicRegisterConfirm");
+const academicRegisterMessage = document.getElementById("academicRegisterMessage");
+const academicRegisterSubmit = document.getElementById("academicRegisterSubmit");
+const academicOpenRegister = document.getElementById("academicOpenRegister");
+const academicBackToSignIn = document.getElementById("academicBackToSignIn");
 
 const accountResetPanel = document.getElementById("accountResetPanel");
 const accountResetConfirmation = document.getElementById("accountResetConfirmation");
@@ -176,6 +201,50 @@ function getInitials(name) {
         .join("") || "S";
 }
 
+function setAcademicAuthMode(mode) {
+    const showRegister = mode === "register";
+    if (academicSignInPanel) academicSignInPanel.hidden = showRegister;
+    if (academicRegisterPanel) academicRegisterPanel.hidden = !showRegister;
+}
+
+function setAuthMessage(element, message, type = "info") {
+    if (!element) return;
+    element.textContent = message || "";
+    element.dataset.type = message ? type : "";
+    element.hidden = !message;
+}
+
+function usernameToAuthEmail(username) {
+    const normalized = String(username || "")
+        .normalize("NFKD")
+        .replace(/[\\u0300-\\u036f]/g, "")
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ".")
+        .replace(/^\\.+|\\.+$/g, "");
+    if (!normalized) throw new Error("Username atau NIM tidak valid.");
+    return normalized + "@class-web-7241e.firebaseapp.com";
+}
+
+function normalizeStudentName(value) {
+    return String(value || "")
+        .normalize("NFKC")
+        .trim()
+        .replace(/\\s+/g, " ")
+        .toLocaleLowerCase("id");
+}
+
+function normalizeActivationCode(value) {
+    return String(value || "").toUpperCase().replace(/[\\s-]/g, "");
+}
+
+async function hashActivationCode(code) {
+    const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(code));
+    return Array.from(new Uint8Array(digest), byte =>
+        byte.toString(16).padStart(2, "0")
+    ).join("");
+}
+
 function showLogin(message = "") {
     currentProfile = null;
     currentAuthUser = null;
@@ -183,6 +252,7 @@ function showLogin(message = "") {
     portalView.hidden = true;
     profileArea.hidden = true;
     academicSignInLink.hidden = false;
+    setAcademicAuthMode("signin");
     if (accountResetPanel) accountResetPanel.hidden = true;
     closeProfileMenu();
 
@@ -850,7 +920,172 @@ async function handleAuthState(user) {
     }
 }
 
-/* Login is handled once from the main STELLARS website. */
+/* In-page Academic account access — the rest of this file remains Main-identical. */
+academicOpenRegister?.addEventListener("click", event => {
+    event.preventDefault();
+    setAuthMessage(academicSignInMessage, "");
+    setAuthMessage(academicRegisterMessage, "");
+    academicRegisterForm?.reset();
+    setAcademicAuthMode("register");
+});
+
+academicBackToSignIn?.addEventListener("click", event => {
+    event.preventDefault();
+    setAuthMessage(academicRegisterMessage, "");
+    setAuthMessage(academicSignInMessage, "");
+    setAcademicAuthMode("signin");
+});
+
+academicSignInForm?.addEventListener("submit", async event => {
+    event.preventDefault();
+    if (academicSignInSubmit?.disabled) return;
+
+    const username = academicLoginUsername?.value.trim() || "";
+    const password = academicLoginPassword?.value || "";
+    if (!username || !password) {
+        setAuthMessage(academicSignInMessage, "Masukkan username/NIM dan password terlebih dahulu.", "error");
+        return;
+    }
+
+    academicSignInSubmit.disabled = true;
+    academicSignInSubmit.querySelector("span").textContent = "Signing in…";
+    setAuthMessage(academicSignInMessage, "Memeriksa akun STELLARS…", "info");
+
+    try {
+        await authPersistenceReady;
+        await signInWithEmailAndPassword(auth, usernameToAuthEmail(username), password);
+        academicLoginPassword.value = "";
+        setAuthMessage(academicSignInMessage, "Login berhasil. Membuka Academic Portal…", "success");
+    } catch (error) {
+        const messages = {
+            "auth/invalid-credential": "Username/NIM atau password tidak sesuai.",
+            "auth/user-not-found": "Akun tidak ditemukan. Periksa username atau NIM.",
+            "auth/wrong-password": "Password tidak sesuai.",
+            "auth/too-many-requests": "Terlalu banyak percobaan. Coba lagi nanti.",
+            "auth/network-request-failed": "Koneksi bermasalah. Periksa internet lalu coba lagi."
+        };
+        setAuthMessage(
+            academicSignInMessage,
+            messages[error.code] || error.message || "Login belum berhasil. Periksa data lalu coba lagi.",
+            "error"
+        );
+    } finally {
+        academicSignInSubmit.disabled = false;
+        academicSignInSubmit.querySelector("span").textContent = "Sign In";
+    }
+});
+
+academicRegisterForm?.addEventListener("submit", async event => {
+    event.preventDefault();
+    if (academicRegisterSubmit?.disabled || academicRegistrationInProgress) return;
+
+    const fullName = String(academicRegisterName?.value || "").trim().replace(/\\s+/g, " ");
+    const nim = String(academicRegisterNim?.value || "").trim();
+    const code = normalizeActivationCode(academicRegisterCode?.value || "");
+    const password = academicRegisterPassword?.value || "";
+    const confirmPassword = academicRegisterConfirm?.value || "";
+
+    if (!fullName || !/^\\d{5,24}$/.test(nim)) {
+        setAuthMessage(academicRegisterMessage, "Periksa nama lengkap dan NIM. NIM harus terdiri dari 5–24 digit.", "error");
+        return;
+    }
+    if (!/^[A-HJ-NP-Z2-9]{16}$/.test(code)) {
+        setAuthMessage(academicRegisterMessage, "Format kode aktivasi tidak valid. Gunakan kode 16 karakter dari admin.", "error");
+        return;
+    }
+    if (password.length < 8) {
+        setAuthMessage(academicRegisterMessage, "Password harus terdiri dari minimal 8 karakter.", "error");
+        return;
+    }
+    if (password !== confirmPassword) {
+        setAuthMessage(academicRegisterMessage, "Konfirmasi password belum sama.", "error");
+        return;
+    }
+
+    academicRegistrationInProgress = true;
+    academicRegisterSubmit.disabled = true;
+    academicRegisterSubmit.querySelector("span").textContent = "Activating…";
+    setAuthMessage(academicRegisterMessage, "Memeriksa nama, NIM, dan kode aktivasi…", "info");
+
+    let createdCredential = null;
+    let profileCommitted = false;
+
+    try {
+        await authPersistenceReady;
+        const codeHash = await hashActivationCode(code);
+        const activationRef = doc(db, "activationCodes", codeHash);
+        const activationSnapshot = await getDoc(activationRef);
+
+        if (!activationSnapshot.exists()) {
+            throw new Error("Kode aktivasi tidak ditemukan. Pastikan admin sudah mendaftarkan kode tersebut.");
+        }
+
+        const activation = activationSnapshot.data() || {};
+        if (activation.status !== "available" ||
+            String(activation.nim || "").trim() !== nim ||
+            normalizeStudentName(activation.fullName) !== normalizeStudentName(fullName)) {
+            throw new Error("Kode tidak cocok dengan nama dan NIM ini, atau kode sudah pernah digunakan.");
+        }
+
+        const verifiedFullName = String(activation.fullName || "").trim();
+        const emailAlias = usernameToAuthEmail(nim);
+        createdCredential = await createUserWithEmailAndPassword(auth, emailAlias, password);
+        await updateProfile(createdCredential.user, { displayName: verifiedFullName });
+
+        const batch = writeBatch(db);
+        batch.set(doc(db, "users", createdCredential.user.uid), {
+            fullName: verifiedFullName,
+            username: nim,
+            nim,
+            role: "student",
+            isActive: true,
+            birthDate: "",
+            slogan: "",
+            activationCodeHash: codeHash,
+            createdAt: serverTimestamp()
+        });
+        batch.set(doc(db, "nimIndex", nim), {
+            uid: createdCredential.user.uid,
+            fullName: verifiedFullName,
+            isActive: true
+        });
+        batch.update(activationRef, {
+            status: "redeemed",
+            redeemedBy: createdCredential.user.uid,
+            redeemedAt: serverTimestamp()
+        });
+        await batch.commit();
+        profileCommitted = true;
+
+        academicRegisterForm.reset();
+        setAuthMessage(academicRegisterMessage, "Akun berhasil dibuat. Membuka Academic Portal…", "success");
+        await handleAuthState(createdCredential.user);
+    } catch (error) {
+        if (createdCredential?.user && !profileCommitted) {
+            try {
+                await deleteUser(createdCredential.user);
+            } catch (cleanupError) {
+                console.error("Could not clean up incomplete Academic registration:", cleanupError);
+                try { await signOut(auth); } catch (_) {}
+            }
+        }
+
+        let message = error.message || "Registrasi belum berhasil. Periksa data lalu coba lagi.";
+        if (error.code === "auth/email-already-in-use") {
+            message = "Akun untuk NIM ini sudah ada. Sign in dengan password sebelumnya, lalu pilih Secure My Account bila perlu memperbarui password.";
+        } else if (error.code === "auth/weak-password") {
+            message = "Password terlalu lemah. Gunakan minimal 8 karakter.";
+        } else if (error.code === "permission-denied") {
+            message = "NIM ini mungkin sudah terhubung ke akun lama atau Firestore Rules belum sesuai. Coba sign in dengan akun sebelumnya.";
+        }
+        setAuthMessage(academicRegisterMessage, message, "error");
+    } finally {
+        academicRegistrationInProgress = false;
+        academicRegisterSubmit.disabled = false;
+        academicRegisterSubmit.querySelector("span").textContent = "Create Account";
+    }
+});
+
 
 /* Guarded one-time account reset: the server independently validates the two Super Admins. */
 const ACCOUNT_RESET_PHRASE = "RESET STELLARS";
@@ -982,8 +1217,11 @@ logoutButton.addEventListener("click", async () => {
 });
 
 /* Keep the session on the same browser until the user logs out. */
-setPersistence(auth, browserLocalPersistence)
-    .then(() => onAuthStateChanged(auth, handleAuthState))
+authPersistenceReady
+    .then(() => onAuthStateChanged(auth, user => {
+        if (academicRegistrationInProgress) return;
+        handleAuthState(user);
+    }))
     .catch(error => {
         console.error("Unable to initialize Firebase session:", error);
         showLogin("Firebase Authentication belum dapat diinisialisasi. Periksa koneksi dan konfigurasi project.");
