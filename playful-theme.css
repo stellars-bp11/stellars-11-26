@@ -756,3 +756,59 @@ select,
         animation: none !important;
     }
 }
+
+
+/* =========================================================
+   LECTURERS HERO — prevent the oversized title from clipping
+   Fredoka has a taller, rounder glyph box than the previous serif.
+========================================================= */
+.lecturers-page .lecturers-hero .hero-content {
+    width: min(760px, 100%);
+    max-width: 100%;
+    min-width: 0;
+}
+
+.lecturers-page .lecturers-hero .hero-content h1 {
+    display: inline-block;
+    max-width: 100%;
+    margin: 22px 0 18px;
+    padding: .10em .06em .26em;
+    font-family: var(--st-ui-display) !important;
+    font-size: clamp(64px, 8.6vw, 110px);
+    font-style: normal;
+    font-weight: 600;
+    line-height: 1.16;
+    letter-spacing: -.035em;
+    white-space: nowrap;
+    overflow: visible;
+    filter: drop-shadow(0 7px 22px rgba(111, 85, 192, .30));
+}
+
+.lecturers-page .lecturers-hero .hero-content h1::after {
+    bottom: .02em;
+    height: 4px;
+}
+
+@media (max-width: 760px) {
+    .lecturers-page .lecturers-hero .hero-content {
+        width: 100%;
+    }
+
+    .lecturers-page .lecturers-hero .hero-content h1 {
+        display: inline-block;
+        max-width: 100%;
+        margin: 18px 0 16px;
+        padding: .10em .04em .28em;
+        font-size: clamp(48px, 11.5vw, 76px);
+        line-height: 1.16;
+        letter-spacing: -.04em;
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 380px) {
+    .lecturers-page .lecturers-hero .hero-content h1 {
+        font-size: clamp(43px, 11vw, 48px);
+        letter-spacing: -.045em;
+    }
+}
