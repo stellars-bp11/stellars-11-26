@@ -32,7 +32,8 @@ const OPEN_MINUTE = 9 * 60 + 30;
 const CLOSE_MINUTE = 13 * 60;
 
 const ROSTER = ["Quinetta Aulya Winata","Darren Leinad Cahaya","Vianney Yovella Kristanto","Levinne Emerson Mulia","Delfina Calista Ciu Putri","Kelly Patricia Ongkodjojo","Felicia Zefanya","Nicke Mega Amelia Trijono","Tesalonika Uli Putri Silalahi","Ersya Fely","Shareen Tesalonika Setiawan","Marsha Setiawan","Anita Lestari Elisabet","Anjelie","Johanna Avrilla Hapsari Putri","Kevano Mareto","Vincent Farellius","Elmarsha Hannabella","Kioko Rei","Raisya Thalita Jasmine","Ellie Margaretta","Jasper Vladino Alvis","Adeline Nadia Nicola","Andre Praditya Pratama","Carmella Wibowo Widhianto","Chairine Aretha Nathania","Danniel","Eilien Ardelia","Grace Abigail Wijaya","Gracielle Fellisca Tjoa","Hosea Bowie Immanuel","Jean Romeo Junior Sembiring","Keely Michiko Mulyanto","Maresha Majesty Wales","Maya Caroline","Pande Kadek Redita Julia Dewi","Patricia Devina","Putu Adelia Nariswari","Reynard Christian","Samantha Angel","Stevander Rusli","Stephanie Felita Widodo","Chantika Anastasia","Vivian Renata Chandra","Zalika Afarin Azura"].map(name => ({
-    id: slugify(name),
+    // Keep Nicke's existing poll ID stable so current Firestore Rules remain compatible.
+    id: name === "Nicke Mega Amelia Trijono" ? "nicke-amelia-trijono" : slugify(name),
     name
 }));
 
