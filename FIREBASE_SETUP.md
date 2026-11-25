@@ -181,27 +181,46 @@ firebase deploy --only firestore:rules --project class-web-7241e
 ```
 
 
-## Correct a student's NIM after account registration
+## Correct a student's NIM after account registration (Spark-compatible)
 
 If a student's NIM was corrected manually in `users/{uid}.nim`, the profile
 field alone is not enough: the login email alias, `users.username`,
 `nimIndex`, and redeemed activation record must also be synchronized.
 
-The Academic Portal includes a repair control visible only to active
-Super Admins. It locates the unique active student profile by the corrected
-NIM already stored in `users.nim`, checks for conflicting NIM and activation
-records, updates the Firebase Authentication email alias, and then commits
-the related Firestore changes. It preserves the student's Firebase UID and
-all academic score ownership.
+Cloud Functions deployment requires the Blaze plan. For a one-time correction
+while keeping the project on Spark, use the local Admin SDK script
+`functions/repair-student-nim-local.js`. It checks the corrected profile,
+the current Auth alias, NIM-index ownership, and the redeemed activation
+record before making changes. It then updates the Authentication email alias,
+`users.username`, `nimIndex`, and the redeemed activation record. The
+Firebase UID and academic score ownership remain unchanged.
 
-Deploy the callable before using the control:
+A trusted project owner or adult administrator should run this maintenance
+script on a secured computer. The service-account JSON key is highly
+sensitive: keep it outside the repository, never commit or share it, and
+revoke/delete the temporary key after the repair.
 
-```bash
-firebase deploy --only functions:repairStudentNim --project class-web-7241e
-```
+1. In Firebase Console, open Project settings > Service accounts and create
+   a private key for the Firebase Admin SDK. Save it outside the repository.
+2. Open a terminal in the repository's `functions/` directory.
+3. Set `GOOGLE_APPLICATION_CREDENTIALS` to the full path of that private key.
+   In Git Bash, for example:
 
-After the deployment completes, refresh Academic Portal while signed in as
-a Super Admin, enter the corrected NIM, and confirm the synchronization.
-If the function reports a conflict or missing redeemed activation record,
-stop and inspect the profile, Authentication user, NIM index, and activation
-record rather than deleting or recreating the account.
+   ```bash
+   export GOOGLE_APPLICATION_CREDENTIALS="/c/secure-folder/stellars-admin-key.json"
+   ```
+
+4. Run the script with the corrected NIM and exact registered student name:
+
+   ```bash
+   node repair-student-nim-local.js 202612010118 "Carmella Wibowo Widhianto"
+   ```
+
+5. Check the student name, NIM, and detected old NIM values shown by the
+   script. Continue only by typing the exact confirmation phrase it requests.
+6. After the script reports success, the student signs in using the corrected
+   NIM and their existing password.
+
+If a profile, alias, index, or activation-code conflict is reported, stop.
+Do not delete or recreate the account, and do not manually alter additional
+records until the conflict has been reviewed.
