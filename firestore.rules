@@ -194,7 +194,7 @@ service cloud.firestore {
     function validPulseVote(dayId, memberId) {
       let data = request.resource.data;
       let pollPath = /databases/$(database)/documents/pulseDays/$(dayId);
-      let poll = get(pollPath).data;
+      let poll = get(pollPath);
       return exists(pollPath) &&
         data.keys().hasAll(['uid', 'dayKey', 'questionId', 'candidateId', 'createdAt']) &&
         data.keys().hasOnly(['uid', 'dayKey', 'questionId', 'candidateId', 'createdAt']) &&
