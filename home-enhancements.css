@@ -855,3 +855,236 @@
         transform: none;
     }
 }
+
+
+/* =========================================================
+   OUTER SPACE — WIDE STORY CARDS
+   Follows the horizontal image-and-copy rhythm of the
+   Atma Jaya, BLI, and RTB journey cards.
+========================================================= */
+
+.home-outer-space {
+    width: min(1240px, calc(100% - 112px));
+    margin: 0 auto 100px;
+}
+
+.outer-space-list {
+    display: grid;
+    gap: 18px;
+}
+
+.outer-space-card {
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    align-items: stretch;
+    gap: 28px;
+    min-width: 0;
+    padding: 15px;
+    border: 1px solid rgba(112, 96, 173, .12);
+    border-left: 4px solid #725bc5;
+    border-radius: 21px;
+    color: inherit;
+    background: rgba(255, 255, 255, .88);
+    box-shadow: 0 11px 32px rgba(45, 35, 94, .06);
+    text-decoration: none;
+    transition: transform .23s ease, box-shadow .23s ease, border-color .23s ease;
+}
+
+.outer-space-world-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(114, 91, 197, .28);
+    box-shadow: 0 17px 38px rgba(45, 35, 94, .11);
+}
+
+.outer-space-visual {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    min-height: 205px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    overflow: hidden;
+    isolation: isolate;
+    border-radius: 15px;
+    color: #fff;
+}
+
+.outer-space-visual::before,
+.outer-space-visual::after {
+    position: absolute;
+    z-index: -1;
+    content: "";
+    pointer-events: none;
+}
+
+.outer-space-visual::before {
+    inset: 0;
+    background:
+        radial-gradient(circle at 18% 20%, rgba(255,255,255,.22) 0 1px, transparent 2px),
+        radial-gradient(circle at 76% 28%, rgba(255,255,255,.2) 0 1px, transparent 2px),
+        radial-gradient(circle at 66% 78%, rgba(255,255,255,.18) 0 1px, transparent 2px),
+        radial-gradient(circle at 28% 74%, rgba(255,255,255,.16) 0 1px, transparent 2px);
+}
+
+.outer-space-visual i {
+    font-size: 76px;
+    line-height: 1;
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,.2));
+}
+
+.outer-space-visual-kicker,
+.outer-space-visual-caption {
+    color: rgba(248, 245, 255, .78);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+.outer-space-radio-visual {
+    background:
+        radial-gradient(ellipse at 50% 42%, rgba(157, 130, 255, .42), transparent 45%),
+        linear-gradient(135deg, #171333, #40316e 58%, #171333);
+}
+
+.outer-space-radio-visual::after {
+    inset: 18%;
+    border: 1px solid rgba(226, 216, 255, .22);
+    border-radius: 50%;
+    transform: rotate(-22deg) scaleX(1.28);
+}
+
+.outer-space-world-visual {
+    background:
+        radial-gradient(ellipse at 50% 85%, rgba(109, 91, 190, .55), transparent 46%),
+        linear-gradient(135deg, #202448, #454078 58%, #1c2442);
+}
+
+.outer-space-world-visual::after {
+    right: -24px;
+    bottom: -62px;
+    left: -24px;
+    height: 112px;
+    border-radius: 50% 50% 0 0;
+    background: rgba(14, 20, 48, .34);
+}
+
+.outer-space-copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 12px 14px 12px 0;
+}
+
+.outer-space-label {
+    color: #7968bd;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+.outer-space-copy h3 {
+    margin-top: 9px;
+    color: #30236d;
+    font-size: clamp(22px, 2.4vw, 29px);
+    line-height: 1.2;
+    letter-spacing: -.7px;
+}
+
+.outer-space-copy p {
+    max-width: 720px;
+    margin-top: 11px;
+    color: #68647a;
+    font-size: 13px;
+    line-height: 1.8;
+}
+
+.outer-space-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 18px;
+    color: #6651b0;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.outer-space-action i {
+    font-size: 17px;
+}
+
+.outer-space-coming-soon {
+    color: #8b83a5;
+}
+
+/* Outer Space responsive layout */
+@media (max-width: 900px) {
+    .home-outer-space {
+        width: calc(100% - 64px);
+    }
+
+    .outer-space-card {
+        grid-template-columns: 250px minmax(0, 1fr);
+        gap: 20px;
+    }
+}
+
+@media (max-width: 760px) {
+    .home-outer-space {
+        width: calc(100% - 36px);
+        margin-bottom: 70px;
+    }
+
+    .outer-space-list {
+        gap: 14px;
+    }
+
+    .outer-space-card {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 15px;
+        padding: 11px;
+        border-radius: 18px;
+    }
+
+    .outer-space-visual {
+        min-height: clamp(185px, 52vw, 260px);
+        border-radius: 13px;
+    }
+
+    .outer-space-copy {
+        padding: 3px 7px 9px;
+    }
+
+    .outer-space-copy h3 {
+        font-size: 21px;
+    }
+
+    .outer-space-copy p {
+        margin-top: 8px;
+        font-size: 12px;
+        line-height: 1.7;
+    }
+
+    .outer-space-action {
+        margin-top: 13px;
+    }
+}
+
+@media (max-width: 420px) {
+    .home-outer-space {
+        width: calc(100% - 28px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .outer-space-card {
+        transition: none;
+    }
+
+    .outer-space-world-card:hover {
+        transform: none;
+    }
+}
