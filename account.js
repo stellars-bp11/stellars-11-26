@@ -58,12 +58,12 @@ loginDialog.innerHTML = '<form id="siteLoginForm" class="site-login-form">' +
     '<h2 id="siteLoginTitle">Welcome back, Star.</h2>' +
     '<p class="site-login-copy">Sign in once to access your STELLARS account and academic results.</p>' +
     '<label for="siteLoginUsername">Username</label>' +
-    '<input id="siteLoginUsername" name="username" type="text" placeholder="Enter student NIM or admin username" autocomplete="username" autocapitalize="words" required>' +
+    '<input id="siteLoginUsername" name="username" type="text" placeholder="Enter your current username or NIM" autocomplete="username" autocapitalize="words" required>' +
     '<label for="siteLoginPassword">Password</label>' +
     '<input id="siteLoginPassword" name="password" type="password" placeholder="Enter your password" autocomplete="current-password" required>' +
     '<p class="site-login-message" id="siteLoginMessage" role="status" aria-live="polite"></p>' +
     '<button class="site-login-submit" id="siteLoginSubmit" type="submit"><span>Sign In</span><span aria-hidden="true">→</span></button>' +
-    '<button class="site-login-register-link" id="siteLoginRegisterButton" type="button">First time here? Activate your account</button>' +
+    '<button class="site-login-register-link" id="siteLoginRegisterButton" type="button">New student? Activate your account</button>' +
     '<p class="site-login-footnote">Existing members: use your current username and password. New students: use NIM after activating your account.</p>' +
     '</form>';
 document.body.append(loginDialog);
@@ -85,7 +85,7 @@ registrationDialog.innerHTML = '<form id="siteRegistrationForm" class="site-logi
     '<button class="site-login-close" id="siteRegistrationClose" type="button" aria-label="Close registration">×</button></div>' +
     '<p class="site-login-kicker">STELLARS BP11 · FIRST-TIME ACTIVATION</p>' +
     '<h2 id="siteRegistrationTitle">Create your account.</h2>' +
-    '<p class="site-login-copy">Use the name and NIM registered by STELLARS, then enter your personal one-time activation code.</p>' +
+    '<p class="site-login-copy">For students who do not yet have a STELLARS account. If you already have an account, sign in first and choose Secure My Account.</p>' +
     '<label for="siteRegistrationName">Full name</label>' +
     '<input id="siteRegistrationName" name="fullName" type="text" autocomplete="name" placeholder="Enter your registered full name" maxlength="100" required>' +
     '<label for="siteRegistrationNim">NIM</label>' +
