@@ -12,64 +12,48 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Ubuntu:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="academic.css?v=academics-rebuild-v3">
+    <link rel="stylesheet" href="academic.css?v=academic-shared-shell-v4">
     <link rel="stylesheet" href="account.css?v=activation-v1-20261125">
     <link rel="stylesheet" href="responsive.css">
 </head>
 <body class="academic-page">
 
-    <video class="academic-background-video" autoplay muted loop playsinline aria-hidden="true">
-        <source src="Videos/Kling.mp4.mp4" type="video/mp4">
+    <video class="background-video" autoplay muted loop playsinline aria-hidden="true">
+        <source src="Videos/Bp1.mp4" type="video/mp4">
     </video>
-    <div class="academic-background-overlay" aria-hidden="true"></div>
+    <div class="background-overlay" aria-hidden="true"></div>
 
-    <header class="academic-header">
-        <nav class="academic-navbar" aria-label="STELLARS main navigation">
-            <div class="academic-brand-block">
-                <a class="academic-logo" href="index.html" aria-label="STELLARS home">Stellars</a>
-            </div>
-            <div class="academic-nav-links">
-                <a href="index.html">Home</a>
-                <a href="lecturers.html">Lecturers</a>
-                <a href="crewmates.html">Crewmates</a>
-                <a href="library.html">Library</a>
-                <a href="academic.html" aria-current="page">Academics</a>
-            </div>
-            <div class="academic-nav-actions">
-                <a class="academic-nav-pill" id="academicSignInLink"
-                   href="#loginView">
-                    <i class="bx bx-log-in" aria-hidden="true"></i>
-                    <span>Sign In</span>
-                </a>
-                <div class="academic-profile-area" id="profileArea" hidden>
-                    <button class="academic-profile-button" id="profileMenuButton" type="button"
+    <header class="site-header">
+        <nav class="site-nav" aria-label="Main navigation">
+            <a href="index.html" class="logo">Stellars</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="lecturers.html">Lecturers</a></li>
+                <li><a href="crewmates.html">Crewmates</a></li>
+                <li><a href="library.html">Library</a></li>
+                <li><a href="academic.html" class="active" aria-current="page">Academics</a></li>
+            </ul>
+            <div class="site-nav-actions">
+                <a class="profile-button" id="academicSignInLink" href="#loginView">Sign In</a>
+                <div class="site-account-wrap" id="profileArea" hidden>
+                    <button class="site-account-button" id="profileMenuButton" type="button"
                             aria-label="Open profile menu" aria-haspopup="true" aria-expanded="false">
-                        <span class="academic-avatar" id="profileAvatar">S</span>
+                        <span id="profileAvatar">S</span>
                     </button>
-                    <div class="academic-profile-menu" id="profileMenu" hidden>
-                        <div class="profile-menu-heading">
+                    <div class="site-account-menu" id="profileMenu" hidden>
+                        <div class="site-account-heading">
                             <strong id="profileMenuName">Student</strong>
                             <span id="profileMenuNim">NIM not available</span>
                         </div>
-                        <button type="button" id="secureAccountButton">
-                            <i class="bx bx-lock-alt" aria-hidden="true"></i>
-                            <span>Secure My Account</span>
-                        </button>
-                        <button type="button" id="openProfileButton">
-                            <i class="bx bx-user-circle" aria-hidden="true"></i>
-                            <span>My Profile</span>
-                        </button>
-                        <button type="button" id="logoutButton" class="profile-logout">
-                            <i class="bx bx-log-out" aria-hidden="true"></i>
-                            <span>Log Out</span>
-                        </button>
+                        <button type="button" id="secureAccountButton">Secure My Account</button>
+                        <button type="button" id="openProfileButton">My Profile</button>
+                        <button type="button" id="logoutButton">Log Out</button>
                     </div>
                 </div>
             </div>
         </nav>
     </header>
 
-    
     <main class="academic-login-shell" id="loginView">
         <section class="academic-login-intro" aria-labelledby="academic-access-title">
             <div class="academic-eyebrow">
