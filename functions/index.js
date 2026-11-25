@@ -209,6 +209,12 @@ exports.resetStellarsAccounts = onCall(
             db.collection("activationCodes").get()
         ]);
 
+        const keepAdminNims = new Set(
+            keepProfiles
+                .map(profile => String(profile.data.nim || "").trim())
+                .filter(Boolean)
+        );
+        const keepAdminNames = new Set(RESET_SUPER_ADMINS);
         const operations = [];
 
         usersSnapshot.forEach(profileDoc => {
@@ -218,18 +224,11 @@ exports.resetStellarsAccounts = onCall(
         });
 
         nimIndexSnapshot.forEach(nimDoc => {
-            const data = nimDoc.data() || {};
-            if (!keepUids.has(String(data.uid || ""))) {
+            if (!keepAdminNims.has(String(nimDoc.id).trim())) {
                 operations.push({ type: "delete", ref: nimDoc.ref });
             }
         });
 
-        const keepAdminNims = new Set(
-            keepProfiles
-                .map(profile => String(profile.data.nim || "").trim())
-                .filter(Boolean)
-        );
-        const keepAdminNames = new Set(RESET_SUPER_ADMINS);
         let deletedActivationCodes = 0;
 
         activationCodesSnapshot.forEach(codeDoc => {
@@ -278,7 +277,7 @@ exports.resetStellarsAccounts = onCall(
             keptSuperAdmins: keepProfiles.map(profile => profile.data.fullName),
             deletedAuthUsers: oldStellarsAuthUsers.length,
             deletedUserProfiles: usersSnapshot.size - keepProfiles.length,
-            deletedNimIndexes: nimIndexSnapshot.docs.filter(doc => !keepUids.has(String(doc.data()?.uid || ""))).length,
+            deletedNimIndexes: nimIndexSnapshot.docs.filter(doc => !keepAdminNims.has(String(doc.id).trim())).length,
             deletedActivationCodes
         });
 
@@ -287,7 +286,7 @@ exports.resetStellarsAccounts = onCall(
             keptSuperAdmins: keepProfiles.map(profile => profile.data.fullName),
             deletedAuthUsers: oldStellarsAuthUsers.length,
             deletedUserProfiles: usersSnapshot.size - keepProfiles.length,
-            deletedNimIndexes: nimIndexSnapshot.docs.filter(doc => !keepUids.has(String(doc.data()?.uid || ""))).length,
+            deletedNimIndexes: nimIndexSnapshot.docs.filter(doc => !keepAdminNims.has(String(doc.id).trim())).length,
             deletedActivationCodes,
             message: "Old STELLARS student accounts and activation codes have been reset. The two Super Admin accounts were preserved."
         };
