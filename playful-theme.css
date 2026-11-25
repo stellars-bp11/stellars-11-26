@@ -1,8 +1,8 @@
 /* =========================================================
-   STELLARS — PLAYFUL MINIMAL / DASHBOARD DESIGN SYSTEM
-   Inspired by the supplied card-and-tabs reference.
-   Preserves each page's existing navy, violet, lavender,
-   cream and gold palette; updates shape, spacing and depth.
+   STELLARS — CARTOON DASHBOARD THEME
+   Based on the supplied thick-outline / cream-input reference.
+   Existing STELLARS navy, violet, lavender, gold and cream
+   page colors are retained; this layer changes the UI language.
 ========================================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800;900&display=swap');
@@ -10,17 +10,23 @@
 :root {
     --st-ui-display: "Fredoka", "Nunito", sans-serif;
     --st-ui-body: "Nunito", "Ubuntu", sans-serif;
-    --st-ui-radius-sm: 8px;
-    --st-ui-radius-md: 10px;
-    --st-ui-radius-card: 14px;
-    --st-ui-radius-panel: 16px;
-    --st-ui-border-light: rgba(116, 103, 166, .18);
-    --st-ui-shadow: 0 4px 16px rgba(31, 41, 55, .08);
-    --st-ui-shadow-hover: 0 9px 24px rgba(31, 41, 55, .13);
-    --st-ui-focus: 0 0 0 3px rgba(139, 121, 220, .17);
+
+    /* Deep plum ink harmonizes with the original violet palette. */
+    --st-cartoon-ink: #2b2640;
+    --st-cartoon-muted: #625b78;
+    --st-cartoon-cream: #fff8dc;
+    --st-cartoon-paper: #ffffff;
+    --st-cartoon-line: 2.5px solid var(--st-cartoon-ink);
+    --st-cartoon-radius: 16px;
+    --st-cartoon-radius-small: 12px;
+    --st-cartoon-shadow: 4px 4px 0 rgba(43, 38, 64, .94);
+    --st-cartoon-shadow-soft: 0 5px 0 rgba(43, 38, 64, .16);
+    --st-cartoon-glow: 0 0 0 5px rgba(185, 166, 255, .35);
 }
 
-/* ===== Typography ===== */
+/* =========================================================
+   1. TYPOGRAPHY — expressive titles, friendly readable body
+========================================================= */
 html {
     scroll-behavior: smooth;
 }
@@ -57,114 +63,50 @@ h4,
     text-wrap: balance;
 }
 
-/* Main nav: keep each page's own colors and structure */
-.navbar,
-.site-nav,
-.academic-navbar,
-.world-header {
-    font-family: var(--st-ui-body);
+/* Keep World pixel labels, but use the shared display face for its heading. */
+.world-intro h1 {
+    font-family: var(--st-ui-display) !important;
 }
 
-.navbar a,
-.site-nav a,
-.academic-nav-links a,
-.nav-links a,
-.academic-nav-pill,
-.site-account-button,
-.back-link {
-    transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease;
-}
-
+/* =========================================================
+   2. NAVIGATION — pill tabs with a clear outline
+========================================================= */
 .navbar .links a,
 .site-nav .nav-links a,
 .site-nav .nav-links > a,
 .academic-nav-links a,
-.academic-nav-pill {
-    border-radius: 10px;
+.academic-nav-pill,
+.site-account-button,
+.academic-profile-button,
+.site-header .admin-login-btn {
+    border: 2px solid var(--st-cartoon-ink);
+    border-radius: 12px;
+    box-shadow: 2px 2px 0 rgba(43, 38, 64, .75);
+    transition: transform .16s ease, box-shadow .16s ease, filter .16s ease;
 }
 
 .navbar .links a:hover,
 .site-nav .nav-links a:hover,
-.academic-nav-links a:hover {
-    transform: translateY(-1px);
+.academic-nav-links a:hover,
+.academic-nav-pill:hover,
+.site-account-button:hover,
+.academic-profile-button:hover,
+.site-header .admin-login-btn:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 var(--st-cartoon-ink);
 }
 
-/* ===== Inputs: follow the reference's simple, bordered fields ===== */
-input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
-textarea,
-select {
-    border-radius: var(--st-ui-radius-sm);
-    transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+/* Keep the nav bar's current colors, but give it a playful bottom edge. */
+.navbar,
+.site-nav,
+.academic-header,
+.world-header {
+    border-bottom: 2.5px solid var(--st-cartoon-ink);
 }
 
-input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
-textarea:focus,
-select:focus {
-    outline: none;
-    box-shadow: var(--st-ui-focus);
-}
-
-.academic-input-wrap,
-.academic-input-wrap input,
-.radio-field input,
-.radio-field textarea,
-.site-login-form input,
-.modal-field input,
-.modal-field textarea,
-.modal-field select {
-    border-radius: var(--st-ui-radius-sm);
-}
-
-/* ===== Buttons: compact, solid and tactile ===== */
-button,
-.home-hero-button,
-.academic-primary-button,
-.academic-secondary-button,
-.academic-access-button,
-.academic-grade-card-button,
-.academic-submit-button,
-.activation-import-button,
-.profile-save-button,
-.add-memory-btn,
-.btn-utama,
-.btn-kedua,
-.radio-primary-button,
-.radio-search-button,
-.radio-upload-button,
-.radio-text-button,
-.radio-cancel-button,
-.pixel-button,
-.secondary-button {
-    border-radius: 10px;
-    font-family: var(--st-ui-body);
-    font-weight: 800;
-    transition: transform .18s ease, box-shadow .18s ease, filter .18s ease, background-color .18s ease;
-}
-
-button:not(:disabled):active,
-.home-hero-button:active,
-.academic-primary-button:active,
-.academic-secondary-button:active,
-.academic-access-button:active,
-.academic-grade-card-button:active,
-.activation-import-button:active,
-.profile-save-button:active,
-.add-memory-btn:active,
-.radio-primary-button:active,
-.radio-search-button:active,
-.radio-upload-button:active {
-    transform: translateY(1px) scale(.985);
-}
-
-button:focus-visible,
-a:focus-visible,
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible {
-    outline-offset: 3px;
-}
-
-/* ===== Shared card surfaces ===== */
+/* =========================================================
+   3. CARDS — white/palette surfaces with thick ink outlines
+========================================================= */
 .outer-space-card,
 .quick-access-card,
 .home-identities .accountings .item,
@@ -194,41 +136,15 @@ select:focus-visible {
 .admin-module-card,
 .admin-results-stat,
 .intro-stats > div,
-.world .panel,
-.panel {
-    border-radius: var(--st-ui-radius-card) !important;
-    box-shadow: var(--st-ui-shadow);
+.panel,
+.radio-dialog,
+.academic-profile-dialog,
+.site-login-dialog {
+    border: var(--st-cartoon-line) !important;
+    border-radius: var(--st-cartoon-radius) !important;
+    box-shadow: var(--st-cartoon-shadow) !important;
 }
 
-/* Clean borders instead of heavy outlines */
-.outer-space-card,
-.quick-access-card,
-.home-identities .accountings .item,
-.home-history-section .history .entry,
-.crew-card,
-.crewmate-card,
-.lecturer-card,
-.memory-card,
-.radio-countdown-card,
-.radio-prompt-card,
-.radio-share-card,
-.radio-song-card,
-.radio-auth-gate,
-.radio-empty-state,
-.academic-login-card,
-.academic-access-card,
-.academic-grade-card,
-.academic-personal-results-panel,
-.student-personal-results-panel,
-.activation-manager-panel,
-.academic-import-step-card,
-.academic-import-history-card,
-.admin-results-stat,
-.intro-stats > div {
-    border-width: 1px;
-}
-
-/* Restrained hover lift — no large jumps or strong glow */
 .outer-space-card,
 .quick-access-card,
 .home-identities .accountings .item,
@@ -246,7 +162,7 @@ select:focus-visible {
 .academic-import-step-card,
 .academic-import-history-card,
 .admin-results-stat {
-    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    transition: transform .16s ease, box-shadow .16s ease;
 }
 
 .outer-space-card:hover,
@@ -262,97 +178,192 @@ select:focus-visible {
 .academic-grade-card:hover,
 .academic-import-step-card:hover,
 .admin-results-stat:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--st-ui-shadow-hover);
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--st-cartoon-ink) !important;
 }
 
-/* ===== HOME ===== */
-.home-quick-access {
-    gap: 14px;
+/* =========================================================
+   4. INPUTS — cream paper, dark ink outline, lavender focus
+========================================================= */
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+textarea,
+select {
+    border: var(--st-cartoon-line) !important;
+    border-radius: var(--st-cartoon-radius-small) !important;
+    background: var(--st-cartoon-cream) !important;
+    color: var(--st-cartoon-ink) !important;
+    font-family: var(--st-ui-body);
+    font-weight: 700;
+    transition: box-shadow .15s ease, transform .15s ease, border-color .15s ease;
 }
 
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    box-shadow: var(--st-cartoon-glow) !important;
+    border-color: var(--st-cartoon-ink) !important;
+}
+
+input[type="number"] {
+    font-family: var(--st-ui-display) !important;
+    font-size: 1.05rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+input[type="number"]:focus {
+    transform: scale(1.04);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: #8a84a8 !important;
+    opacity: 1;
+}
+
+/* Search, academic marks, and upload forms use the same tactile fields. */
+.academic-input-wrap,
+.academic-input-wrap input,
+.radio-field input,
+.radio-field textarea,
+.site-login-form input,
+.modal-field input,
+.modal-field textarea,
+.modal-field select {
+    border-radius: var(--st-cartoon-radius-small);
+}
+
+/* =========================================================
+   5. BUTTONS — solid brand colors, ink outline, pressed feel
+========================================================= */
+.home-hero-button,
+.academic-primary-button,
+.academic-secondary-button,
+.academic-access-button,
+.academic-grade-card-button,
+.academic-submit-button,
+.activation-import-button,
+.profile-save-button,
+.add-memory-btn,
+.btn-utama,
+.btn-kedua,
+.radio-primary-button,
+.radio-search-button,
+.radio-upload-button,
+.radio-text-button,
+.radio-cancel-button,
+.site-login-submit,
+.pixel-button,
+.secondary-button,
+.place-link {
+    border: var(--st-cartoon-line) !important;
+    border-radius: var(--st-cartoon-radius-small) !important;
+    box-shadow: 3px 3px 0 var(--st-cartoon-ink) !important;
+    font-family: var(--st-ui-body);
+    font-weight: 900;
+    transition: transform .13s ease, box-shadow .13s ease, filter .13s ease;
+}
+
+.home-hero-button:hover,
+.academic-primary-button:hover,
+.academic-secondary-button:hover,
+.academic-access-button:hover,
+.academic-grade-card-button:hover,
+.academic-submit-button:hover,
+.activation-import-button:hover,
+.profile-save-button:hover,
+.add-memory-btn:hover,
+.btn-utama:hover,
+.btn-kedua:hover,
+.radio-primary-button:hover,
+.radio-search-button:hover,
+.radio-upload-button:hover,
+.radio-text-button:hover,
+.radio-cancel-button:hover,
+.site-login-submit:hover,
+.pixel-button:hover,
+.secondary-button:hover,
+.place-link:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 var(--st-cartoon-ink) !important;
+}
+
+.home-hero-button:active,
+.academic-primary-button:active,
+.academic-secondary-button:active,
+.academic-access-button:active,
+.academic-grade-card-button:active,
+.activation-import-button:active,
+.profile-save-button:active,
+.add-memory-btn:active,
+.radio-primary-button:active,
+.radio-search-button:active,
+.radio-upload-button:active,
+.pixel-button:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--st-cartoon-ink) !important;
+}
+
+/* =========================================================
+   6. PAGE-SPECIFIC COMPONENT SHAPES
+========================================================= */
+
+/* Home: Outer Space cards become chunky destination tiles. */
 .quick-access-card {
     min-height: 112px;
     padding: 18px;
 }
-
 .home-identities .accountings .item {
     padding: 23px;
 }
-
 .home-history-section .history .entry {
     overflow: hidden;
 }
 
-/* ===== CREWMATES / LECTURERS ===== */
+/* Crew and lecturers: framed portrait cards. */
 .crew-card,
 .crewmate-card,
-.lecturer-card {
+.lecturer-card,
+.featured-lecturer,
+.memory-card,
+.radio-song-card {
     overflow: hidden;
 }
-
 .crew-photo,
 .crewmate-photo,
 .lecturer-photo,
 .featured-image {
     overflow: hidden;
 }
-
-.crew-info,
-.crewmate-info,
-.lecturer-info {
-    font-family: var(--st-ui-body);
-}
-
 .crew-role {
-    border-radius: 8px;
-    letter-spacing: .3px;
+    border: 2px solid var(--st-cartoon-ink);
+    border-radius: 10px;
+    font-weight: 900;
 }
 
-/* ===== LIBRARY ===== */
+/* Library: remove the overly formal paper-sheet feel, keep page colors. */
 .library-page .library-section {
     background-image: none;
-    border-radius: var(--st-ui-radius-panel) !important;
-    box-shadow: var(--st-ui-shadow);
 }
-
 .library-page .library-hero .hero-content {
-    border-radius: var(--st-ui-radius-panel);
+    border-radius: var(--st-cartoon-radius);
 }
-
-.library-page .library-hero .hero-content::after {
-    border-radius: 50%;
-}
-
-.library-page .memory-card {
-    overflow: hidden;
-}
-
-.library-page .memory-image,
-.library-page .memory-image img,
-.library-page .memory-image video {
-    border-radius: 10px 10px 0 0;
-}
-
 .library-page .memory-info {
     border-radius: 0 0 13px 13px;
 }
-
 .library-page .modal,
 .library-page .admin-modal {
-    border-radius: var(--st-ui-radius-panel);
+    border: var(--st-cartoon-line);
+    border-radius: var(--st-cartoon-radius);
 }
 
-/* ===== RADIO ===== */
-.radio-main {
-    padding-top: 34px;
-}
-
+/* Radio: bold-framed audio cards and dialog. */
 .radio-hero {
-    border-radius: var(--st-ui-radius-panel);
-    box-shadow: var(--st-ui-shadow);
+    border: var(--st-cartoon-line);
+    border-radius: var(--st-cartoon-radius);
+    box-shadow: var(--st-cartoon-shadow);
 }
-
 .radio-countdown-card,
 .radio-prompt-card,
 .radio-share-card,
@@ -360,64 +371,29 @@ select:focus-visible {
 .radio-auth-gate,
 .radio-empty-state,
 .radio-dialog {
-    border-radius: var(--st-ui-radius-card);
+    border-radius: var(--st-cartoon-radius);
 }
 
-.radio-song-card {
-    overflow: hidden;
-}
-
-.radio-dialog {
-    box-shadow: 0 16px 48px rgba(25, 18, 62, .18);
-}
-
-/* ===== ACADEMIC ===== */
-.academic-login-card,
-.academic-access-card,
-.academic-grade-card,
-.academic-personal-results-panel,
-.student-personal-results-panel,
-.activation-manager-panel,
-.academic-import-step-card,
-.academic-import-history-card,
-.admin-module-card,
-.admin-results-stat {
-    border-radius: var(--st-ui-radius-card);
-}
-
-.academic-login-card,
-.academic-access-card,
-.academic-grade-card,
-.activation-manager-panel,
-.academic-import-step-card,
-.academic-import-history-card {
-    box-shadow: var(--st-ui-shadow);
-}
-
+/* Academic: each result row behaves like the sample's input row. */
 .academic-result-card {
-    border-radius: 10px;
+    border: var(--st-cartoon-line);
+    border-radius: var(--st-cartoon-radius-small);
 }
-
 .academic-result-row {
-    border-bottom: 1px dashed rgba(116, 103, 166, .2);
+    padding: 9px 12px;
+    margin-bottom: 8px;
+    border: 2px dashed rgba(43, 38, 64, .45);
+    border-radius: var(--st-cartoon-radius-small);
 }
-
 .academic-result-row:last-child {
-    border-bottom: 0;
+    margin-bottom: 0;
+}
+.academic-result-name strong,
+.admin-results-stat strong {
+    font-family: var(--st-ui-display);
 }
 
-.academic-admin-results-heading,
-.academic-assessment-editor-heading,
-.academic-import-heading,
-.portal-section-heading {
-    font-family: var(--st-ui-display) !important;
-}
-
-/* ===== WORLD: keep its pixel-art identity, just soften panels ===== */
-.world-header {
-    border-radius: 0;
-}
-
+/* World remains pixel-art, but UI surfaces receive ink outlines. */
 .panel,
 .intro-stats > div,
 .world-toolbar,
@@ -426,51 +402,47 @@ select:focus-visible {
 .mini-map {
     border-radius: 10px;
 }
-
+.panel {
+    border: 2px solid var(--st-cartoon-ink) !important;
+    box-shadow: 3px 3px 0 rgba(43, 38, 64, .82) !important;
+}
 .avatar-frame {
+    border: 2px solid var(--st-cartoon-ink);
     border-radius: 8px;
 }
-
 .pixel-button {
-    border-radius: 7px;
+    border-radius: 7px !important;
 }
 
-/* ===== Badges / status chips ===== */
+/* Small chips read like collectible labels. */
 .home-hero-eyebrow,
 .home-section-kicker,
-.crew-role,
 .radio-hero-tags span,
 .academic-grade-card-kicker,
 .admin-results-nim-pill,
 .preview-pill,
 .save-state {
-    border-radius: 999px;
+    border-radius: 9px;
 }
 
-/* ===== Motion preferences ===== */
+/* Keyboard focus remains clear and accessible. */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    outline-offset: 3px;
+}
+
+/* Respect reduced-motion preference. */
 @media (prefers-reduced-motion: reduce) {
-    .navbar a,
-    .site-nav a,
-    .academic-nav-links a,
-    .nav-links a,
-    button,
-    .home-hero-button,
-    .outer-space-card,
-    .quick-access-card,
-    .home-identities .accountings .item,
-    .home-history-section .history .entry,
-    .crew-card,
-    .crewmate-card,
-    .lecturer-card,
-    .memory-card,
-    .radio-countdown-card,
-    .radio-prompt-card,
-    .radio-share-card,
-    .radio-song-card,
-    .academic-access-card,
-    .academic-grade-card,
-    .academic-import-step-card,
-    .admin-results-stat {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
         transition-duration: .01ms !important;
+    }
+    input[type="number"]:focus {
+        transform: none;
     }
 }
