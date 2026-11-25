@@ -1452,3 +1452,8 @@ select,
         transform: none !important;
     }
 }
+
+/* HOME: remove the colored top stripe from the three class identity cards. */
+.home-identities .accountings .item {
+    border-top: 1px solid rgba(185, 166, 255, .28) !important;
+}
