@@ -1457,3 +1457,107 @@ select,
 .home-identities .accountings .item {
     border-top: 1px solid rgba(185, 166, 255, .28) !important;
 }
+
+/* 12. SIMPLE MOTION: no entrance effects, tilt, or pointer-driven movement. */
+.outer-space-card,
+.quick-access-card,
+.home-identities .accountings .item,
+.home-history-section .history .entry,
+.crew-card,
+.crewmate-card,
+.lecturer-card,
+.featured-lecturer,
+.memory-card,
+.radio-countdown-card,
+.radio-prompt-card,
+.radio-share-card,
+.radio-song-card,
+.radio-auth-gate,
+.radio-empty-state,
+.academic-login-card,
+.academic-access-card,
+.academic-grade-card,
+.academic-personal-results-panel,
+.student-personal-results-panel,
+.activation-manager-panel,
+.academic-import-step-card,
+.academic-import-history-card,
+.admin-results-stat,
+.academic-result-card,
+.academic-result-row,
+.intro-stats > div,
+.world-app .panel {
+    animation: none !important;
+    transform: none !important;
+    rotate: none !important;
+    translate: none !important;
+    transform-style: flat !important;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease !important;
+}
+
+/* A tiny, predictable lift only while hovering. */
+@media (hover: hover) and (pointer: fine) {
+    .outer-space-card:hover,
+    .quick-access-card:hover,
+    .home-identities .accountings .item:hover,
+    .home-history-section .history .entry:hover,
+    .crew-card:hover,
+    .crewmate-card:hover,
+    .lecturer-card:hover,
+    .featured-lecturer:hover,
+    .memory-card:hover,
+    .radio-countdown-card:hover,
+    .radio-prompt-card:hover,
+    .radio-share-card:hover,
+    .radio-song-card:hover,
+    .academic-login-card:hover,
+    .academic-access-card:hover,
+    .academic-grade-card:hover,
+    .academic-personal-results-panel:hover,
+    .student-personal-results-panel:hover,
+    .activation-manager-panel:hover,
+    .academic-import-step-card:hover,
+    .academic-import-history-card:hover,
+    .admin-results-stat:hover,
+    .academic-result-card:hover,
+    .academic-result-row:hover,
+    .intro-stats > div:hover,
+    .world-app .panel:hover {
+        transform: translateY(-2px) !important;
+        rotate: none !important;
+    }
+}
+
+/* Do not animate cards or decorative accents in the reduced-motion setting. */
+@media (prefers-reduced-motion: reduce) {
+    .outer-space-card,
+    .quick-access-card,
+    .home-identities .accountings .item,
+    .home-history-section .history .entry,
+    .crew-card,
+    .crewmate-card,
+    .lecturer-card,
+    .featured-lecturer,
+    .memory-card,
+    .radio-countdown-card,
+    .radio-prompt-card,
+    .radio-share-card,
+    .radio-song-card,
+    .academic-login-card,
+    .academic-access-card,
+    .academic-grade-card,
+    .academic-personal-results-panel,
+    .student-personal-results-panel,
+    .activation-manager-panel,
+    .academic-import-step-card,
+    .academic-import-history-card,
+    .admin-results-stat,
+    .academic-result-card,
+    .academic-result-row,
+    .intro-stats > div,
+    .world-app .panel {
+        animation: none !important;
+        transition: none !important;
+        transform: none !important;
+    }
+}
