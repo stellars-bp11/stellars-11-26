@@ -115,3 +115,41 @@ Committing `firestore.rules` to GitHub does not publish rules to Firebase.
 Use strong, unique passwords where possible. Initial passwords based on
 student identifiers are easier to guess and should be replaced with private
 passwords before broad distribution.
+
+
+## STELLARS Radio — Daily Music Diary
+
+The Radio page uses the same Firebase Authentication session and the existing
+`users/{uid}` member profile. Active members can read today's song wall.
+Each member's submission is stored at:
+
+`radioDays/{YYYY-MM-DD}/songs/{firebaseUid}`
+
+The Firebase UID is the document ID, which limits each member to one current
+entry per Jakarta calendar day. Members can edit their own entry until reset.
+Artwork lookup uses the public Apple/iTunes Search API; a member may replace
+the result with an uploaded image using the existing Cloudinary
+`stellar-library` unsigned upload preset (maximum 5 MB).
+
+### Required Firebase deployment
+
+A GitHub Pages publish does not deploy Firestore Rules or Cloud Functions.
+The Radio UI may show a permission error until the updated rules are published.
+
+1. In a terminal at the repository root, install the Firebase CLI if it is not
+   already installed, then sign in to the Firebase account that owns
+   `class-web-7241e`.
+2. Run `npm install` inside `functions/`.
+3. Publish the complete Firestore rules with `firebase deploy --only firestore:rules`.
+4. Deploy the scheduled cleanup with `firebase deploy --only functions:clearExpiredRadioSongs`.
+
+The scheduled function runs at 00:05 Asia/Jakarta and permanently deletes
+Radio song documents whose date is earlier than the current Jakarta date.
+The page switches to a new, empty date-keyed song wall at 00:00 WIB. The
+scheduled function is what physically deletes yesterday's documents; without
+deploying it, old submissions stay hidden from the page but remain in
+Firestore.
+
+Scheduled Cloud Functions use Cloud Scheduler and may require the Firebase
+project to be on the Blaze (pay-as-you-go) plan. Review the billing setup in
+Firebase Console before deploying the scheduled cleanup.
