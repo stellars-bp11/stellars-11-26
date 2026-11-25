@@ -4329,3 +4329,157 @@ body.academic-page {
         animation: none;
     }
 }
+
+
+/* Academic entry page follows the same hero → content rhythm as the other pages. */
+.academic-login-shell {
+    width: min(100% - 64px, 1240px);
+    min-height: auto;
+    margin: 0 auto;
+    padding: clamp(58px, 7vw, 86px) 0 82px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    gap: clamp(28px, 4vw, 44px);
+}
+
+.academic-login-intro {
+    width: 100%;
+    max-width: 1080px;
+    padding: 0;
+    text-align: center;
+}
+
+.academic-login-overline {
+    margin-top: 23px;
+}
+
+.academic-login-intro h1 {
+    max-width: 900px;
+    margin: 17px auto 0;
+    font-size: clamp(48px, 6.3vw, 82px);
+    letter-spacing: -3.8px;
+    line-height: 1.02;
+    text-wrap: balance;
+}
+
+.academic-login-lead {
+    max-width: 690px;
+    margin: 22px auto 0;
+    font-size: 15px;
+}
+
+.academic-login-highlights {
+    width: min(100%, 950px);
+    max-width: none;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin: 34px auto 0;
+}
+
+.academic-login-highlights article {
+    min-width: 0;
+    min-height: 100px;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 15px;
+    border: 1px solid rgba(221, 214, 255, .20);
+    border-radius: 17px;
+    background: rgba(255, 255, 255, .075);
+    box-shadow: inset 0 1px rgba(255,255,255,.07);
+    text-align: left;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.academic-login-highlights article > span {
+    flex: 0 0 40px;
+    width: 40px;
+    height: 40px;
+    border-radius: 13px;
+}
+
+.academic-login-highlights strong {
+    font-size: 13px;
+}
+
+.academic-login-highlights small {
+    font-size: 11px;
+}
+
+.academic-login-orbit {
+    display: none;
+}
+
+.academic-auth-card {
+    width: min(100%, 620px);
+    max-width: 620px;
+    justify-self: center;
+    margin: 0 auto;
+    padding: clamp(28px, 4vw, 42px);
+}
+
+@media (max-width: 760px) {
+    .academic-login-shell {
+        width: min(100% - 40px, 680px);
+        padding: 48px 0 62px;
+        gap: 28px;
+    }
+
+    .academic-login-intro h1 {
+        font-size: clamp(42px, 8vw, 62px);
+        letter-spacing: -2.8px;
+    }
+
+    .academic-login-highlights {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 26px;
+    }
+
+    .academic-login-highlights article {
+        min-height: 0;
+        flex-direction: column;
+        gap: 10px;
+        padding: 14px 12px;
+    }
+
+    .academic-auth-card {
+        width: min(100%, 620px);
+    }
+}
+
+@media (max-width: 560px) {
+    .academic-login-shell {
+        width: min(100% - 28px, 470px);
+        padding: 38px 0 50px;
+        gap: 24px;
+    }
+
+    .academic-login-intro h1 {
+        font-size: clamp(38px, 10vw, 50px);
+        letter-spacing: -2.4px;
+    }
+
+    .academic-login-lead {
+        font-size: 13px;
+    }
+
+    .academic-login-highlights {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-top: 22px;
+    }
+
+    .academic-login-highlights article {
+        min-height: 0;
+        align-items: center;
+        flex-direction: row;
+        padding: 13px 14px;
+    }
+
+    .academic-auth-card {
+        padding: 24px 20px;
+        border-radius: 20px;
+    }
+}
