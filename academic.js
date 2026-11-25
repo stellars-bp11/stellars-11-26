@@ -37,7 +37,6 @@
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-functions.js";
 import {
     getAuth,
     onAuthStateChanged,
@@ -70,18 +69,12 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const functions = getFunctions(app, "asia-southeast2");
 
 /* DOM references */
 const loginView = document.getElementById("loginView");
 const portalView = document.getElementById("portalView");
 const academicSignInLink = document.getElementById("academicSignInLink");
 const academicAccessMessage = document.getElementById("academicAccessMessage");
-
-const accountResetPanel = document.getElementById("accountResetPanel");
-const accountResetConfirmation = document.getElementById("accountResetConfirmation");
-const accountResetButton = document.getElementById("accountResetButton");
-const accountResetStatus = document.getElementById("accountResetStatus");
 
 const profileArea = document.getElementById("profileArea");
 const profileMenuButton = document.getElementById("profileMenuButton");
@@ -183,7 +176,6 @@ function showLogin(message = "") {
     portalView.hidden = true;
     profileArea.hidden = true;
     academicSignInLink.hidden = false;
-    if (accountResetPanel) accountResetPanel.hidden = true;
     closeProfileMenu();
 
     if (academicAccessMessage) {
@@ -248,26 +240,8 @@ function showProfile(profile, authUser) {
     const isAdmin = profile.role === "admin" ||
                     profile.role === "superAdmin" ||
                     profile.role === "super_admin";
-    const resetOperatorNames = new Set([
-        "jasper vladino alvis",
-        "quinetta aulya winata"
-    ]);
-    const normalizedProfileName = String(fullName)
-        .normalize("NFKD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .trim()
-        .toLowerCase()
-        .split(" ").filter(Boolean).join(" ");
-    const canManageAccountReset =
-        profile.isActive === true &&
-        resetOperatorNames.has(normalizedProfileName);
-
-    if (accountResetPanel) {
-        accountResetPanel.hidden = !canManageAccountReset;
-    }
-
     studentView.hidden = !isStudent;
-    adminView.hidden = !(isAdmin || canManageAccountReset);
+    adminView.hidden = !isAdmin;
 
     if (isAdmin) {
         bindAdminResultsControls();
@@ -851,55 +825,6 @@ async function handleAuthState(user) {
 }
 
 /* Login is handled once from the main STELLARS website. */
-
-/* Guarded one-time account reset: the server independently validates the two Super Admins. */
-const ACCOUNT_RESET_PHRASE = "RESET STELLARS";
-
-accountResetConfirmation?.addEventListener("input", () => {
-    if (accountResetButton) {
-        accountResetButton.disabled = accountResetConfirmation.value.trim() !== ACCOUNT_RESET_PHRASE;
-    }
-});
-
-accountResetButton?.addEventListener("click", async () => {
-    if (accountResetConfirmation?.value.trim() !== ACCOUNT_RESET_PHRASE ||
-        accountResetButton.disabled) return;
-
-    accountResetButton.disabled = true;
-    accountResetButton.querySelector("span").textContent = "Resetting accounts…";
-    if (accountResetStatus) {
-        accountResetStatus.textContent = "Checking the two Super Admin profiles and confirming that no score records exist…";
-        accountResetStatus.dataset.type = "info";
-    }
-
-    try {
-        const resetAccounts = httpsCallable(functions, "resetStellarsAccounts");
-        const response = await resetAccounts({ confirmation: "RESET_STELLARS_ACCOUNTS" });
-        const result = response.data || {};
-        if (accountResetStatus) {
-            accountResetStatus.textContent =
-                "Reset complete. Deleted " + Number(result.deletedAuthUsers || 0) +
-                " old sign-in account(s), " + Number(result.deletedUserProfiles || 0) +
-                " profile(s), " + Number(result.deletedNimIndexes || 0) +
-                " NIM link(s), and " + Number(result.deletedActivationCodes || 0) +
-                " old activation code(s). Jasper and Quinetta remain Super Admins.";
-            accountResetStatus.dataset.type = "success";
-        }
-        accountResetConfirmation.disabled = true;
-        accountResetConfirmation.value = "";
-        accountResetButton.hidden = true;
-    } catch (error) {
-        console.error("STELLARS account reset failed:", error);
-        if (accountResetStatus) {
-            accountResetStatus.textContent =
-                error?.message || "Account reset did not finish. Check Firebase Functions deployment and try again only after reviewing the error.";
-            accountResetStatus.dataset.type = "error";
-        }
-        accountResetButton.disabled = accountResetConfirmation?.value.trim() !== ACCOUNT_RESET_PHRASE;
-    } finally {
-        accountResetButton.querySelector("span").textContent = "Reset Old Student Accounts";
-    }
-});
 
 /* Profile menu */
 profileMenuButton.addEventListener("click", () => {
