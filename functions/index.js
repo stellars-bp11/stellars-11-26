@@ -156,7 +156,7 @@ exports.resetStellarsAccounts = onCall(
             }
             const profile = matches[0];
             if (profile.data.isActive !== true ||
-                !["admin", "superAdmin", "super_admin"].includes(profile.data.role)) {
+                !["student", "admin", "superAdmin", "super_admin"].includes(profile.data.role)) {
                 throw new HttpsError(
                     "failed-precondition",
                     "Reset dibatalkan: akun " + name +
