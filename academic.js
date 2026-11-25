@@ -217,11 +217,11 @@ function setAuthMessage(element, message, type = "info") {
 function usernameToAuthEmail(username) {
     const normalized = String(username || "")
         .normalize("NFKD")
-        .replace(/[\\u0300-\\u036f]/g, "")
+        .replace(/[\u0300-\u036f]/g, "")
         .trim()
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, ".")
-        .replace(/^\\.+|\\.+$/g, "");
+        .replace(/^\.+|\.+$/g, "");
     if (!normalized) throw new Error("Username atau NIM tidak valid.");
     return normalized + "@class-web-7241e.firebaseapp.com";
 }
@@ -230,12 +230,12 @@ function normalizeStudentName(value) {
     return String(value || "")
         .normalize("NFKC")
         .trim()
-        .replace(/\\s+/g, " ")
+        .replace(/\s+/g, " ")
         .toLocaleLowerCase("id");
 }
 
 function normalizeActivationCode(value) {
-    return String(value || "").toUpperCase().replace(/[\\s-]/g, "");
+    return String(value || "").toUpperCase().replace(/[\s-]/g, "");
 }
 
 async function hashActivationCode(code) {
@@ -979,13 +979,13 @@ academicRegisterForm?.addEventListener("submit", async event => {
     event.preventDefault();
     if (academicRegisterSubmit?.disabled || academicRegistrationInProgress) return;
 
-    const fullName = String(academicRegisterName?.value || "").trim().replace(/\\s+/g, " ");
+    const fullName = String(academicRegisterName?.value || "").trim().replace(/\s+/g, " ");
     const nim = String(academicRegisterNim?.value || "").trim();
     const code = normalizeActivationCode(academicRegisterCode?.value || "");
     const password = academicRegisterPassword?.value || "";
     const confirmPassword = academicRegisterConfirm?.value || "";
 
-    if (!fullName || !/^\\d{5,24}$/.test(nim)) {
+    if (!fullName || !/^\d{5,24}$/.test(nim)) {
         setAuthMessage(academicRegisterMessage, "Periksa nama lengkap dan NIM. NIM harus terdiri dari 5–24 digit.", "error");
         return;
     }
