@@ -47,10 +47,10 @@ function normalizeCode(value) {
 function normalizeFullName(value) {
     return String(value || "")
         .normalize("NFKD")
-        .replace(/[\\u0300-\\u036f]/g, "")
+        .replace(/[\u0300-\u036f]/g, "")
         .trim()
         .toLowerCase()
-        .replace(/\\s+/g, " ");
+        .split(" ").filter(Boolean).join(" ");
 }
 
 function hashCode(code) {
