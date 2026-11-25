@@ -260,7 +260,7 @@ function showProfile(profile, authUser) {
                 }
             });
 
-        import("./academic-import.js?v=first-name-match-20261125")
+        import("./academic-import.js?v=student-profile-roster-20261125")
             .then(({ initAcademicImport }) => {
                 initAcademicImport(profile, authUser);
             })
