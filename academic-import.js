@@ -576,7 +576,7 @@ async function readSelectedFile(file) {
             loadSelectedWorksheet(workbook.SheetNames[0]);
             subjectInput.value = fileBaseName(file.name);
             mappingPanel.hidden = false;
-            setImportStatus("File read successfully. Confirm the header row and column mapping below.", "success");
+            setImportStatus("File read successfully. Refreshed roster: " + rosterByNim.size + " active student account(s). Confirm the header row and column mapping below.", "success");
             return;
         } else {
             throw new Error("Unsupported format. Choose an .xlsx, .xls, .csv, or .pdf file.");
@@ -593,7 +593,7 @@ async function readSelectedFile(file) {
         buildMappingFromGrid();
         setImportStatus(
             "PDF text extracted into " + currentGrid.length + " row(s). Table header detected on row " +
-            (detectedHeaderIndex + 1) + ". Check the column mapping and preview before saving.",
+            (detectedHeaderIndex + 1) + ". Refreshed roster: " + rosterByNim.size + " active account(s). Check the column mapping and preview before saving.",
             "success"
         );
     } catch (error) {
