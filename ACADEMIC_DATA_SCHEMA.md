@@ -228,12 +228,16 @@ exclude non-score columns and set each component's maximum score. A worksheet
 is imported as one subject; separate subject worksheets can be imported
 separately.
 
-Before saving, each included row is matched against active records in
-`nimIndex`. The administrator must map at least one identifier column:
-student name, NIM, or both. A valid NIM is the primary identifier when present.
-If the NIM cell is blank, the importer may match by an exact normalized full
-name (case, accents, punctuation, and repeated spaces are normalized), but
-only when that name belongs to exactly one active account. If no exact full-name match
+Before saving, each included row is matched against active student
+profiles in `users/{uid}`, using the registered `fullName`, `nim`, and
+document UID. The `nimIndex` collection remains the private sign-in lookup;
+the importer reads the profile collection as its canonical roster so older
+NIM-index entries with missing name fields do not break name matching.
+The administrator must map at least one identifier column: student name, NIM,
+or both. A valid NIM is the primary identifier when present. If the NIM cell
+is blank, the importer may match by an exact normalized full name (case,
+accents, punctuation, and repeated spaces are normalized), but only when that
+name belongs to exactly one active account. If no exact full-name match
 exists, the importer may use the first name only when that normalized first
 name belongs to exactly one active account. This supports short-name entries
 while keeping duplicate first names blocked as ambiguous. These rules support
