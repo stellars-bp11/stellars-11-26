@@ -38,7 +38,8 @@ Example:
 ```
 
 Student profiles are created through the one-time activation flow described
-below. Student self-registration is limited to the `student` role; admin and
+below. Active administrator profiles may also be matched for their personal
+academic scoreboard, provided the profile is active. Student self-registration is limited to the `student` role; admin and
 super-admin roles remain provisioned through a trusted administrator process.
 A user must never be able to edit their own role.
 
@@ -228,9 +229,9 @@ exclude non-score columns and set each component's maximum score. A worksheet
 is imported as one subject; separate subject worksheets can be imported
 separately.
 
-Before saving, each included row is matched against active student
-profiles in `users/{uid}`, using the registered `fullName`, `nim`, and
-document UID. The `nimIndex` collection remains the private sign-in lookup;
+Before saving, each included row is matched against active STELLARS profiles
+in `users/{uid}` (students and active administrators), using the registered
+`fullName`, `nim`, and document UID. The `nimIndex` collection remains the private sign-in lookup;
 the importer reads the profile collection as its canonical roster so older
 NIM-index entries with missing name fields do not break name matching.
 The administrator must map at least one identifier column: student name, NIM,
