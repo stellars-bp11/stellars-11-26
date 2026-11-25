@@ -362,11 +362,11 @@
                             <input id="academicSubjectName" type="text" maxlength="120" placeholder="e.g. Introduction to Accounting">
                         </label>
                         <label class="academic-import-field">
-                            <span>Student name column</span>
+                            <span>Student name column <small>(optional; use when NIM is missing)</small></span>
                             <select id="academicNameColumn"></select>
                         </label>
                         <label class="academic-import-field">
-                            <span>NIM column <small>(optional; names must match exactly)</small></span>
+                            <span>NIM column <small>(optional; use when name is missing)</small></span>
                             <select id="academicNimColumn"></select>
                         </label>
                         <label class="academic-import-field academic-import-field-wide">
@@ -388,7 +388,7 @@
                     </div>
 
                     <div class="academic-review-summary" id="academicReviewSummary">
-                        Select the student name column to preview rows. The NIM column is optional when each full name matches one active account.
+                        Select at least one identifier column. A unique full name or a valid NIM can match a student account.
                     </div>
                     <div class="academic-review-table-wrap">
                         <table class="academic-review-table" id="academicReviewTable">
