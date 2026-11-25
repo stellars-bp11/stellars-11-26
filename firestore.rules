@@ -205,8 +205,8 @@ service cloud.firestore {
         data.keys().hasOnly(['uid', 'dayKey', 'questionId', 'candidateId', 'createdAt']) &&
         data.uid == memberId &&
         data.dayKey == dayId &&
-        data.questionId == poll.questionId &&
-        data.candidateId in poll.candidateIds &&
+        data.questionId == poll.data.questionId &&
+        data.candidateId in poll.data.candidateIds &&
         data.createdAt is timestamp;
     }
 
