@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#17152b">
+    <title>STELLARS Radio — Today's Resonance</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="account.css">
+    <link rel="stylesheet" href="responsive.css">
+    <link rel="stylesheet" href="radio.css?v=radio-20261125">
+</head>
+
+<body class="radio-page">
+    <header class="site-header">
+        <nav class="site-nav" aria-label="Main navigation">
+            <a href="index.html" class="logo">Stellars</a>
+
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="lecturers.html">Lecturers</a></li>
+                <li><a href="crewmates.html">Crewmates</a></li>
+                <li><a href="library.html">Library</a></li>
+                <li><a href="academic.html">Academics</a></li>
+            </ul>
+
+            <div class="site-nav-actions">
+                <div class="site-account-wrap">
+                    <button class="site-account-button" id="siteAccountButton" type="button"
+                            aria-label="Open account menu" aria-haspopup="true" aria-expanded="false">
+                        <span id="siteAccountAvatar">★</span>
+                    </button>
+                    <div class="site-account-menu" id="siteAccountMenu" hidden>
+                        <div class="site-account-heading">
+                            <strong id="siteAccountName">Welcome, Star!</strong>
+                            <span id="siteAccountMeta">Sign in to see your profile</span>
+                        </div>
+                        <button id="siteAccountLoginButton" type="button">Sign In</button>
+                        <a id="siteAccountPortalLink" href="academic.html">Academic Results</a>
+                        <a id="siteAccountProfileLink" href="academic.html?profile=1" hidden>My Profile</a>
+                        <button id="siteAccountLogout" type="button" hidden>Log Out</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="radio-main">
+        <section class="radio-hero">
+            <div class="radio-hero-copy">
+                <p class="radio-kicker"><span>✦</span> STELLARS / OUTER SPACE / 01</p>
+                <h1>STELLARS <em>Radio</em></h1>
+                <p class="radio-hero-lead">One song. One story. A little piece of today.</p>
+                <p class="radio-hero-description">A daily corner for the songs that stay with us. Share what you're listening to, and the story behind it.</p>
+                <div class="radio-hero-tags">
+                    <span><i class="bx bx-calendar"></i> DAILY EDITION</span>
+                    <span><i class="bx bx-globe"></i> ALL STELLARS MEMBERS</span>
+                </div>
+            </div>
+
+            <div class="radio-orbit-art" aria-hidden="true">
+                <div class="orbit orbit-one"></div>
+                <div class="orbit orbit-two"></div>
+                <div class="orbit-disc"><i class="bx bx-music"></i></div>
+                <span class="orbit-star star-one">✦</span>
+                <span class="orbit-star star-two">✧</span>
+                <span class="orbit-star star-three">✦</span>
+                <span class="orbit-label">TODAY'S<br>RESONANCE</span>
+            </div>
+        </section>
+
+        <section class="radio-today-heading" aria-labelledby="todayTitle">
+            <div>
+                <p class="radio-section-kicker">THE DAILY MUSIC DIARY</p>
+                <h2 id="todayTitle">Today's Resonance<span>.</span></h2>
+                <p id="radioDateLabel" class="radio-date-label">Loading today's date…</p>
+            </div>
+            <div class="radio-countdown-card">
+                <span class="countdown-label"><i class="bx bx-time-five"></i> NEW DAY IN</span>
+                <strong id="radioCountdown">--:--:--</strong>
+                <small>Resets every day at 00:00 WIB</small>
+            </div>
+        </section>
+
+        <section class="radio-member-strip" aria-label="Daily participation">
+            <div class="radio-member-strip-copy">
+                <span class="strip-spark">✦</span>
+                <div>
+                    <strong id="radioSongCount">0 songs shared today</strong>
+                    <small>Every STELLARS member gets one song each day.</small>
+                </div>
+            </div>
+            <div class="radio-reset-note"><i class="bx bx-refresh"></i> Yesterday's entries disappear after the daily reset.</div>
+        </section>
+
+        <section class="radio-share-layout">
+            <div class="radio-share-card">
+                <div class="share-card-icon"><i class="bx bx-headphone"></i></div>
+                <div class="share-card-copy">
+                    <p class="radio-section-kicker">YOUR DAILY SONG</p>
+                    <h2>What's staying with you today?</h2>
+                    <p id="mySongStatus">Sign in with your STELLARS account to share a song with everyone.</p>
+                    <div class="share-card-actions">
+                        <button class="radio-primary-button" id="openSubmissionBtn" type="button" disabled>
+                            <i class="bx bx-plus"></i><span>Share today's song</span>
+                        </button>
+                        <button class="radio-text-button" id="radioSignInBtn" type="button">
+                            Sign in to participate <i class="bx bx-right-arrow-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="share-card-decoration" aria-hidden="true">♫</div>
+            </div>
+
+            <aside class="radio-prompt-card">
+                <span class="prompt-mark">A LITTLE PROMPT</span>
+                <p>Not sure what to share?</p>
+                <strong>Pick the song that matches your day, reminds you of someone, or simply makes you feel something.</strong>
+                <span class="prompt-footer">No perfect answer. Just your song.</span>
+            </aside>
+        </section>
+
+        <section class="radio-feed-section" aria-labelledby="radioFeedTitle">
+            <div class="radio-feed-heading">
+                <div>
+                    <p class="radio-section-kicker">FROM OUR LITTLE UNIVERSE</p>
+                    <h2 id="radioFeedTitle">Today's song wall<span>.</span></h2>
+                    <p>Listen to the stories your fellow stars are sharing today.</p>
+                </div>
+                <span class="radio-live-indicator"><i></i> LIVE TODAY</span>
+            </div>
+
+            <div class="radio-auth-gate" id="radioAuthGate">
+                <div class="gate-icon"><i class="bx bx-lock-alt"></i></div>
+                <div>
+                    <strong>Sign in to see today's song wall</strong>
+                    <p>Today's submissions are shared with active STELLARS members.</p>
+                </div>
+            </div>
+
+            <div class="radio-feed-grid" id="radioFeedGrid" aria-live="polite"></div>
+
+            <div class="radio-empty-state" id="radioEmptyState" hidden>
+                <div class="empty-note-icon"><i class="bx bx-music"></i></div>
+                <h3>The first song is waiting.</h3>
+                <p>No one has shared a song today. Add the first little story to the wall.</p>
+            </div>
+
+            <p class="radio-feed-footnote" id="radioFeedFootnote">Today's wall updates automatically when a member shares a song.</p>
+        </section>
+
+        <footer class="radio-footer">
+            <a href="index.html"><i class="bx bx-left-arrow-alt"></i> Back to STELLARS Home</a>
+            <span>STELLARS <i class="bx bxs-star"></i> BP11</span>
+        </footer>
+    </main>
+
+    <dialog class="radio-dialog" id="radioDialog" aria-labelledby="radioDialogTitle">
+        <form class="radio-form" id="radioForm">
+            <div class="radio-dialog-top">
+                <div>
+                    <p class="radio-section-kicker">YOUR DAILY RESONANCE</p>
+                    <h2 id="radioDialogTitle">Share a song.</h2>
+                </div>
+                <button class="radio-dialog-close" id="closeRadioDialog" type="button" aria-label="Close dialog">×</button>
+            </div>
+
+            <p class="radio-dialog-intro">Choose one song for today. You can edit your entry before the day resets.</p>
+
+            <div class="radio-form-grid">
+                <label class="radio-field">
+                    <span>Song title</span>
+                    <input id="songTitleInput" name="songTitle" type="text" maxlength="120" placeholder="e.g. Gethsemane" required>
+                </label>
+                <label class="radio-field">
+                    <span>Artist</span>
+                    <input id="artistNameInput" name="artistName" type="text" maxlength="100" placeholder="e.g. Sleep Token" required>
+                </label>
+            </div>
+
+            <div class="artwork-search-row">
+                <button class="radio-search-button" id="searchArtworkBtn" type="button">
+                    <i class="bx bx-search"></i> Find album artwork
+                </button>
+                <span>Search powered by Apple Music catalog</span>
+            </div>
+
+            <div class="radio-artwork-results" id="artworkResults" hidden></div>
+
+            <div class="radio-cover-editor">
+                <div class="radio-cover-preview" id="coverPreviewWrap">
+                    <div class="cover-placeholder" id="coverPlaceholder"><i class="bx bx-image"></i></div>
+                    <img id="coverPreview" alt="Selected album artwork preview" hidden>
+                </div>
+                <div class="radio-cover-copy">
+                    <strong id="coverSelectionTitle">No cover selected yet</strong>
+                    <p id="coverSelectionHint">Choose an artwork result, or use your own image if the match is incorrect.</p>
+                    <label class="radio-upload-button" for="artworkUploadInput">
+                        <i class="bx bx-upload"></i> Replace cover manually
+                    </label>
+                    <input id="artworkUploadInput" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+                    <small>JPG, PNG, or WebP · Maximum 5 MB</small>
+                </div>
+            </div>
+
+            <label class="radio-field radio-story-field">
+                <span>Why does this song matter today? <small>Optional · 240 characters</small></span>
+                <textarea id="songStoryInput" name="story" maxlength="240" rows="3" placeholder="A memory, a feeling, a little reason…"></textarea>
+                <small class="radio-character-count" id="storyCharacterCount">0 / 240</small>
+            </label>
+
+            <p class="radio-form-message" id="radioFormMessage" role="status" aria-live="polite"></p>
+            <div class="radio-form-actions">
+                <button class="radio-cancel-button" id="cancelRadioForm" type="button">Cancel</button>
+                <button class="radio-primary-button" id="submitRadioBtn" type="submit">
+                    <i class="bx bx-send"></i><span>Share with STELLARS</span>
+                </button>
+            </div>
+        </form>
+    </dialog>
+
+    <div class="radio-toast" id="radioToast" role="status" aria-live="polite"></div>
+
+    <script type="module" src="radio.js?v=radio-20261125"></script>
+    <script type="module" src="account.js"></script>
+</body>
+</html>
