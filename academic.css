@@ -3330,3 +3330,79 @@ body.academic-page {
         animation-iteration-count: infinite !important;
     }
 }
+
+
+/* Super Admin student identity repair */
+.admin-nim-repair-panel {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(230px, .72fr);
+    gap: 12px 18px;
+    align-items: end;
+    margin: 0 0 18px;
+    padding: 16px 18px;
+    border: 1px solid #e5def8;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #faf8ff, #fffdf9);
+}
+.admin-nim-repair-panel[hidden] {
+    display: none !important;
+}
+.admin-nim-repair-copy {
+    min-width: 0;
+}
+.admin-nim-repair-kicker {
+    margin: 0 0 5px;
+    color: #725bc2;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1.3px;
+}
+.admin-nim-repair-copy h3 {
+    margin: 0 0 5px;
+    color: #302b49;
+    font: 700 16px 'Ubuntu', sans-serif;
+}
+.admin-nim-repair-copy > p:last-child {
+    margin: 0;
+    color: #77748d;
+    font: 11px/1.6 'Roboto', sans-serif;
+}
+.admin-nim-repair-copy code {
+    color: #5b4a9c;
+}
+.admin-nim-repair-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+}
+.admin-nim-repair-controls .academic-import-field {
+    margin: 0;
+}
+.admin-nim-repair-controls button {
+    min-height: 39px;
+    justify-self: stretch;
+}
+.admin-nim-repair-status {
+    grid-column: 1 / -1;
+    min-height: 0;
+    margin: 0;
+    color: #77748d;
+    font: 11px/1.5 'Roboto', sans-serif;
+}
+.admin-nim-repair-status:empty {
+    display: none;
+}
+.admin-nim-repair-status[data-type="success"] {
+    color: #246b46;
+}
+.admin-nim-repair-status[data-type="error"] {
+    color: #9b2c48;
+}
+@media (max-width: 680px) {
+    .admin-nim-repair-panel {
+        grid-template-columns: minmax(0, 1fr);
+        align-items: stretch;
+    }
+}
