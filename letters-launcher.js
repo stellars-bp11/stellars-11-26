@@ -35,7 +35,7 @@
         <p class="stellars-drawer-description">Small spaces for the stories, memories, and moments we share as one crew.</p>
         <div class="stellars-drawer-divider"></div>
         <span class="stellars-drawer-section-label">YOUR STELLARS CORNERS</span>
-        <nav class="stellars-drawer-items" aria-label="STELLARS features">
+        <div class="stellars-drawer-items" role="navigation" aria-label="STELLARS features">
             <a class="stellars-drawer-item" href="letters.html">
                 <span class="stellars-drawer-item-icon"><i class="bx bx-envelope" aria-hidden="true"></i></span>
                 <span class="stellars-drawer-item-copy">
@@ -44,7 +44,7 @@
                 </span>
                 <i class="bx bx-chevron-right stellars-drawer-item-arrow" aria-hidden="true"></i>
             </a>
-        </nav>
+        </div>
         <div class="stellars-drawer-footer"><i class="bx bxs-star" aria-hidden="true"></i><span>MORE STELLARS FEATURES CAN FIND A HOME HERE.</span></div>
     `;
 
