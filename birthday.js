@@ -1,186 +1,145 @@
-(function () {
-    const ROSTER = [
-    {
-        "name": "Adeline Nadia Nicola",
-        "birthDate": "2008-02-29"
-    },
-    {
-        "name": "Andre Praditya Pratama",
-        "birthDate": "2008-04-15"
-    },
-    {
-        "name": "Anita Lestari Elisabet Siregar",
-        "birthDate": "2008-08-21"
-    },
-    {
-        "name": "Anjelie",
-        "birthDate": "2008-09-12"
-    },
-    {
-        "name": "Carmella Wibowo Widhianto",
-        "birthDate": "2008-06-07"
-    },
-    {
-        "name": "Chairine Aretha Nathania Chung",
-        "birthDate": "2008-12-25"
-    },
-    {
-        "name": "Chantika Anastasia",
-        "birthDate": "2008-09-21"
-    },
-    {
-        "name": "Danniel",
-        "birthDate": "2006-12-19"
-    },
-    {
-        "name": "Darren Leinad Cahaya",
-        "birthDate": "2008-05-18"
-    },
-    {
-        "name": "Delfina Calista Ciu Putri",
-        "birthDate": "2008-12-10"
-    },
-    {
-        "name": "Eilien Ardelia",
-        "birthDate": "2007-12-13"
-    },
-    {
-        "name": "Ellie Margaretta",
-        "birthDate": "2009-01-17"
-    },
-    {
-        "name": "Elmarsha Hannabella",
-        "birthDate": "2007-07-22"
-    },
-    {
-        "name": "Ersya Fely",
-        "birthDate": "2008-07-14"
-    },
-    {
-        "name": "Felicia Zefanya",
-        "birthDate": "2007-05-13"
-    },
-    {
-        "name": "Grace Abigail Wijaya",
-        "birthDate": "2007-11-30"
-    },
-    {
-        "name": "Gracielle Fellisca Tjoa",
-        "birthDate": "2008-04-21"
-    },
-    {
-        "name": "Hosea Bowie Immanuel",
-        "birthDate": "2008-05-13"
-    },
-    {
-        "name": "Jasper Vladino Alvis",
-        "birthDate": "2008-05-07"
-    },
-    {
-        "name": "Jean Romeo Junior Sembiring",
-        "birthDate": "2008-04-03"
-    },
-    {
-        "name": "Johanna Avrilla Hapsari Putri",
-        "birthDate": "2007-04-17"
-    },
-    {
-        "name": "Keely Michiko Mulyanto",
-        "birthDate": "2008-05-06"
-    },
-    {
-        "name": "Kelly Patricia Ongkodjojo",
-        "birthDate": "2008-01-22"
-    },
-    {
-        "name": "Kevano Mareto",
-        "birthDate": "2008-03-28"
-    },
-    {
-        "name": "Kioko Rei",
-        "birthDate": "2008-05-10"
-    },
-    {
-        "name": "Levinne Emerson Mulia",
-        "birthDate": "2008-09-01"
-    },
-    {
-        "name": "Mareshah Majesty Wales",
-        "birthDate": "2007-03-19"
-    },
-    {
-        "name": "Marsha Setiawan",
-        "birthDate": "2008-03-24"
-    },
-    {
-        "name": "Maya Caroline",
-        "birthDate": "2008-10-04"
-    },
-    {
-        "name": "Nicke Mega Amelia Truono",
-        "birthDate": "2007-03-10"
-    },
-    {
-        "name": "Pande Kadek Redita Julia Dewi",
-        "birthDate": "2006-07-30"
-    },
-    {
-        "name": "Patricia Devina",
-        "birthDate": "2007-11-28"
-    },
-    {
-        "name": "Putu Adelia Nariswari",
-        "birthDate": "2007-09-22"
-    },
-    {
-        "name": "Quinetta Aulya Winata",
-        "birthDate": "2008-08-20"
-    },
-    {
-        "name": "Raisya Thalita Jasmine",
-        "birthDate": "2008-07-16"
-    },
-    {
-        "name": "Reynard Christian",
-        "birthDate": "2008-09-14"
-    },
-    {
-        "name": "Samantha Angel",
-        "birthDate": "2008-08-16"
-    },
-    {
-        "name": "Shareen Tesalonika Setiawan",
-        "birthDate": "2008-04-14"
-    },
-    {
-        "name": "Stephanie Felita Widodo",
-        "birthDate": "2008-04-28"
-    },
-    {
-        "name": "Stevander Rusli",
-        "birthDate": "2008-05-11"
-    },
-    {
-        "name": "Tesalonika Uli Putri Silalahi",
-        "birthDate": "2007-06-19"
-    },
-    {
-        "name": "Vianney Yovella Kristanto",
-        "birthDate": "2008-10-01"
-    },
-    {
-        "name": "Vincent Farrelius",
-        "birthDate": "2008-06-03"
-    },
-    {
-        "name": "Vivian Renata Chandra",
-        "birthDate": "2008-06-17"
-    },
-    {
-        "name": "Zalika Afarin Azura",
-        "birthDate": "2007-03-26"
+import { getApp, getApps, initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import {
+    getFirestore, collection, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyD3ptwKTkLqFCmvrTVJFooFiVLE63mh83c",
+    authDomain: "class-web-7241e.firebaseapp.com",
+    projectId: "class-web-7241e",
+    storageBucket: "class-web-7241e.firebasestorage.app",
+    messagingSenderId: "167560389153",
+    appId: "1:167560389153:web:f61f4f821275c48373f960",
+    measurementId: "G-DTHTZNT135"
+};
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const accessGate = document.getElementById("birthdayAccessGate");
+const memberTools = document.getElementById("birthdayMemberTools");
+const memberStatus = document.getElementById("birthdayShareStatus");
+const shareButton = document.getElementById("birthdayShareButton");
+const stopShareButton = document.getElementById("birthdayStopShareButton");
+const directorySection = document.getElementById("birthdayDirectorySection");
+let currentUser = null;
+let currentProfile = null;
+let ownBirthdayShared = false;
+let authSequence = 0;
+
+function showBirthdayGate(message) {
+    accessGate.hidden = false;
+    accessGate.querySelector("p").textContent = message;
+    memberTools.hidden = true;
+    directorySection.hidden = true;
+}
+
+function formatBirthMonthDay(isoDate) {
+    const match = String(isoDate || "").match(/^\\d{4}-(\\d{2})-(\\d{2})$/);
+    if (!match) return null;
+    const month = Number(match[1]);
+    const day = Number(match[2]);
+    const check = new Date(2000, month - 1, day);
+    if (check.getMonth() !== month - 1 || check.getDate() !== day) return null;
+    return match[1] + "-" + match[2];
+}
+
+function updateShareControls() {
+    const monthDay = formatBirthMonthDay(currentProfile?.birthDate);
+    shareButton.disabled = !monthDay;
+    shareButton.textContent = ownBirthdayShared ? "Update shared birthday" : "Share my birthday";
+    stopShareButton.hidden = !ownBirthdayShared;
+
+    if (!monthDay) {
+        memberStatus.textContent = "Add your birthday in your account profile first. You can still view birthdays shared by other members.";
+        return;
     }
-];
+    memberStatus.textContent = ownBirthdayShared
+        ? "Your month and day are shared with active STELLARS members. Your birth year is not shared."
+        : "Your birthday is not shared yet. Only the month and day will be visible to active STELLARS members.";
+}
+
+async function refreshBirthdayRoster() {
+    const snapshot = await getDocs(collection(db, "birthdayRoster"));
+    const roster = snapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+    ownBirthdayShared = roster.some(item => item.id === currentUser.uid);
+    updateShareControls();
+    await renderRoster(roster);
+}
+
+shareButton.addEventListener("click", async () => {
+    if (!currentUser || !currentProfile || !currentProfile.isActive) return;
+    const birthMonthDay = formatBirthMonthDay(currentProfile.birthDate);
+    if (!birthMonthDay) {
+        memberStatus.textContent = "Add a valid birthday in your account profile before sharing.";
+        return;
+    }
+
+    shareButton.disabled = true;
+    try {
+        await setDoc(doc(db, "birthdayRoster", currentUser.uid), {
+            uid: currentUser.uid,
+            fullName: String(currentProfile.fullName || "STELLARS Member"),
+            birthMonthDay,
+            sharedAt: serverTimestamp()
+        });
+        await refreshBirthdayRoster();
+    } catch (error) {
+        console.error("Could not share birthday:", error);
+        memberStatus.textContent = "Could not share your birthday. Please try again.";
+        shareButton.disabled = false;
+    }
+});
+
+stopShareButton.addEventListener("click", async () => {
+    if (!currentUser) return;
+    stopShareButton.disabled = true;
+    try {
+        await deleteDoc(doc(db, "birthdayRoster", currentUser.uid));
+        await refreshBirthdayRoster();
+    } catch (error) {
+        console.error("Could not remove birthday share:", error);
+        memberStatus.textContent = "Could not remove your shared birthday. Please try again.";
+    } finally {
+        stopShareButton.disabled = false;
+    }
+});
+
+onAuthStateChanged(auth, async user => {
+    const sequence = ++authSequence;
+    currentUser = user || null;
+    currentProfile = null;
+    ownBirthdayShared = false;
+
+    if (!user) {
+        showBirthdayGate("Sign in with an active STELLARS account to view the birthday directory.");
+        return;
+    }
+
+    try {
+        const profileSnapshot = await getDoc(doc(db, "users", user.uid));
+        if (sequence !== authSequence || auth.currentUser?.uid !== user.uid) return;
+
+        const profile = profileSnapshot.exists() ? profileSnapshot.data() : null;
+        const allowedRoles = ["student", "admin", "superAdmin", "super_admin"];
+        if (!profile || profile.isActive !== true || !allowedRoles.includes(profile.role)) {
+            showBirthdayGate("This page is reserved for active STELLARS members. Please use an active student account.");
+            return;
+        }
+
+        currentProfile = profile;
+        accessGate.hidden = true;
+        memberTools.hidden = false;
+        directorySection.hidden = false;
+        updateShareControls();
+        await refreshBirthdayRoster();
+    } catch (error) {
+        console.error("Could not verify Birthday page access:", error);
+        showBirthdayGate("Membership could not be verified. Please refresh and try again.");
+    }
+});
+
     const FALLBACK = "images/placeholder.jpg";
     const PHOTO_ALIASES = {
         "anita lestari elisabet siregar": "anita lestari elisabet",
@@ -196,16 +155,15 @@
             .trim();
     }
 
-    function parseIsoBirthday(value) {
+    function parseMonthDay(value) {
         const parts = String(value || "").split("-");
-        if (parts.length !== 3 || parts[0].length !== 4 || parts[1].length !== 2 || parts[2].length !== 2) return null;
-        const year = Number(parts[0]);
-        const month = Number(parts[1]) - 1;
-        const day = Number(parts[2]);
-        if (![year, month, day].every(Number.isInteger)) return null;
-        const check = new Date(year, month, day);
-        if (check.getFullYear() !== year || check.getMonth() !== month || check.getDate() !== day) return null;
-        return { year, month, day };
+        if (parts.length !== 2 || parts[0].length !== 2 || parts[1].length !== 2) return null;
+        const month = Number(parts[0]) - 1;
+        const day = Number(parts[1]);
+        if (![month, day].every(Number.isInteger)) return null;
+        const check = new Date(2000, month, day);
+        if (check.getMonth() !== month || check.getDate() !== day) return null;
+        return { month, day };
     }
 
     function isLeapYear(year) {
@@ -408,7 +366,7 @@
         return article;
     }
 
-    async function init() {
+    async function renderRoster(rosterEntries) {
         const preview = document.getElementById("birthdayPreview");
         const directory = document.getElementById("birthdayDirectory");
         const count = document.getElementById("birthdayCount");
@@ -429,10 +387,10 @@
         }
         const fallbackImage = resolveAssetPath(FALLBACK, crewPageUrl);
 
-        const people = ROSTER.map(entry => {
-            const birthday = parseIsoBirthday(entry.birthDate);
+        const people = rosterEntries.map(entry => {
+            const birthday = parseMonthDay(entry.birthMonthDay);
             if (!birthday) return null;
-            const person = { name: entry.name, birthday, image: "", fallbackImage };
+            const person = { name: entry.fullName, birthday, image: "", fallbackImage };
             person.image = matchPhoto(person, photos) || fallbackImage;
             return person;
         }).filter(Boolean);
@@ -476,4 +434,4 @@
     }
 
     document.addEventListener("DOMContentLoaded", init);
-})();
+
