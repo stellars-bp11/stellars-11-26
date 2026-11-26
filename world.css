@@ -227,3 +227,29 @@ kbd { min-width: 55px; padding: 5px 6px; border: 1px solid rgba(201,186,255,.22)
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
+
+/* Guest access: World remains visible as a non-interactive preview. */
+.world-preview-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 18px;
+  padding: 12px 16px;
+  border: 1px solid rgba(184,166,255,.28);
+  border-radius: 12px;
+  color: #e7e0ff;
+  background: rgba(37,31,79,.72);
+  font: 11px Ubuntu, sans-serif;
+}
+.world-preview-banner[hidden] { display: none !important; }
+.world-preview-banner span,
+.world-preview-banner a { display: inline-flex; align-items: center; gap: 8px; }
+.world-preview-banner a { color: #fff; font-weight: 700; text-decoration: none; }
+.world-guest-preview .mobile-controls { opacity: .45; pointer-events: none; }
+.world-guest-preview #chooseJobButton,
+.world-guest-preview [data-move],
+.world-guest-preview [data-place],
+.world-guest-preview #mobileInteract { cursor: not-allowed; }
+.world-preview-banner i { font-size: 15px; }
