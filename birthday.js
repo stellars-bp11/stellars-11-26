@@ -30,7 +30,7 @@ const db = getFirestore(app);
 
     function parseMonthDay(value) {
         const parts = String(value || "").split("-");
-        if (parts.length !== 2 || parts.some(part => !/^\\d{2}$/.test(part))) return null;
+        if (parts.length !== 2 || parts.some(part => !/^\d{2}$/.test(part))) return null;
         const month = Number(parts[0]) - 1;
         const day = Number(parts[1]);
         const check = new Date(2000, month, day);
