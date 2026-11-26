@@ -42,8 +42,7 @@ const logoutButton = document.getElementById("siteAccountLogout");
 const memberOnlyElements = Array.from(new Set(
     Array.from(document.querySelectorAll(
         '.nav-links a[href^="library.html"], .nav-links a[href^="academic.html"], ' +
-        'a.quick-access-card[href^="library.html"], a.quick-access-card[href^="academic.html"], ' +
-        '.birthday-home-section'
+        'a.quick-access-card[href^="library.html"], a.quick-access-card[href^="academic.html"]'
     )).map(element => element.closest("li") || element)
 ));
 
