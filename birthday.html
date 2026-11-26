@@ -70,26 +70,6 @@
             <span class="birthday-orbit orbit-one"></span><span class="birthday-orbit orbit-two"></span>
         </section>
 
-        <section class="birthday-access-gate" id="birthdayAccessGate">
-            <span class="birthday-access-icon"><i class="bx bx-lock-alt"></i></span>
-            <div>
-                <strong>Members-only birthday orbit</strong>
-                <p>Sign in with an active STELLARS account to view birthdays shared by classmates.</p>
-            </div>
-            <a href="index.html?login=1">Sign in to STELLARS <i class="bx bx-right-arrow-alt"></i></a>
-        </section>
-
-        <section class="birthday-member-tools" id="birthdayMemberTools" hidden>
-            <div>
-                <strong>Your birthday privacy</strong>
-                <p id="birthdayShareStatus">Checking your sharing settings…</p>
-            </div>
-            <label class="birthday-share-toggle" for="birthdayShareToggle">
-                <input type="checkbox" id="birthdayShareToggle">
-                <span>Share my birthday with active STELLARS members</span>
-            </label>
-        </section>
-
         <section class="birthday-directory-section" id="birthdayDirectorySection" hidden>
             <div class="birthday-directory-heading">
                 <div>
@@ -122,7 +102,7 @@
             setTimeout(hideLoader, 5000);
         })();
     </script>
-    <script type="module" src="birthday.js?v=birthday-member-cache-v1-20261126"></script>
+    <script src="birthday.js?v=birthday-static-roster-v1-20261126" defer></script>
     <script type="module" src="account.js?v=account-security-v7-20261125"></script>
     <script src="letters-launcher.js?v=private-mail-notifications-v6-20261126" defer></script>
 </body>
