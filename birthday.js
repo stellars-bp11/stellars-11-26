@@ -37,41 +37,119 @@
         }).filter(Boolean);
     }
 
-    function safeImage(src) {
-        return src.startsWith("http://") || src.startsWith("https://") || src.startsWith("/") ? src : src;
+    function makeCountdownUnit(units, key, label) {
+        const unit = document.createElement("div");
+        unit.className = "birthday-countdown-unit";
+        const value = document.createElement("strong");
+        value.dataset.countdownUnit = key;
+        value.textContent = "00";
+        const caption = document.createElement("small");
+        caption.textContent = label;
+        unit.append(value, caption);
+        units.append(unit);
     }
 
-    function personCard(person, next, compact) {
+    function createPreviewCard(person, next) {
         const article = document.createElement("article");
-        article.className = compact ? "birthday-preview-card" : "birthday-person-card";
+        article.className = "birthday-preview-card";
+
         const img = document.createElement("img");
-        img.src = safeImage(person.image);
+        img.src = person.image || FALLBACK;
         img.alt = person.name;
         img.loading = "lazy";
         img.onerror = function () { this.onerror = null; this.src = FALLBACK; };
-        img.className = compact ? "" : "birthday-person-photo";
 
         const copy = document.createElement("div");
-        copy.className = compact ? "birthday-preview-copy" : "birthday-person-info";
-        if (compact) {
-            const name = document.createElement("strong");
-            name.textContent = person.name;
-            const date = document.createElement("span");
-            date.textContent = dateLabel(next.date);
-            const countdown = document.createElement("small");
-            countdown.textContent = next.days === 0 ? "Today is their day!" : next.days === 1 ? "Tomorrow" : "In " + next.days + " days";
-            copy.append(name, date, countdown);
-        } else {
-            const date = document.createElement("span");
-            date.className = "birthday-person-date";
-            date.innerHTML = '<i class="bx bx-cake" aria-hidden="true"></i>';
-            date.append(document.createTextNode(" " + dateLabel(next.date)));
-            const name = document.createElement("h3");
-            name.textContent = person.name;
-            const countdown = document.createElement("p");
-            countdown.textContent = next.days === 0 ? "Today is their day!" : next.days === 1 ? "Coming up tomorrow" : "In " + next.days + " days";
-            copy.append(date, name, countdown);
+        copy.className = "birthday-preview-copy";
+
+        const kicker = document.createElement("span");
+        kicker.className = "birthday-preview-kicker";
+        kicker.textContent = "NEXT UP IN THE CONSTELLATION";
+
+        const name = document.createElement("h3");
+        name.className = "birthday-preview-name";
+        name.textContent = person.name;
+
+        const date = document.createElement("p");
+        date.className = "birthday-preview-date";
+        const cakeIcon = document.createElement("i");
+        cakeIcon.className = "bx bx-cake";
+        cakeIcon.setAttribute("aria-hidden", "true");
+        date.append(cakeIcon, document.createTextNode(" " + dateLabel(next.date)));
+
+        const countdown = document.createElement("div");
+        countdown.className = "birthday-preview-countdown";
+        const countdownLabel = document.createElement("span");
+        countdownLabel.className = "birthday-countdown-label";
+        countdownLabel.textContent = "COUNTDOWN TO THE BIG DAY";
+
+        const units = document.createElement("div");
+        units.className = "birthday-countdown-units";
+        makeCountdownUnit(units, "days", "DAYS");
+        makeCountdownUnit(units, "hours", "HOURS");
+        makeCountdownUnit(units, "minutes", "MINUTES");
+        makeCountdownUnit(units, "seconds", "SECONDS");
+        countdown.append(countdownLabel, units);
+
+        function updateCountdown() {
+            const difference = next.date.getTime() - Date.now();
+            if (next.days === 0 || difference <= 0) {
+                countdownLabel.textContent = "IT'S THEIR BIRTHDAY!";
+                units.hidden = true;
+                article.classList.add("is-birthday-today");
+                return false;
+            }
+
+            const totalSeconds = Math.floor(difference / 1000);
+            const values = {
+                days: Math.floor(totalSeconds / 86400),
+                hours: Math.floor((totalSeconds % 86400) / 3600),
+                minutes: Math.floor((totalSeconds % 3600) / 60),
+                seconds: totalSeconds % 60
+            };
+            Object.entries(values).forEach(([key, value]) => {
+                const target = units.querySelector('[data-countdown-unit="' + key + '"]');
+                if (target) target.textContent = String(value).padStart(2, "0");
+            });
+            return true;
         }
+
+        copy.append(kicker, name, date, countdown);
+        article.append(img, copy);
+
+        if (updateCountdown()) {
+            const intervalId = window.setInterval(() => {
+                if (!updateCountdown()) window.clearInterval(intervalId);
+            }, 1000);
+        }
+
+        return article;
+    }
+
+    function personCard(person, next) {
+        const article = document.createElement("article");
+        article.className = "birthday-person-card";
+        const img = document.createElement("img");
+        img.src = person.image || FALLBACK;
+        img.alt = person.name;
+        img.loading = "lazy";
+        img.onerror = function () { this.onerror = null; this.src = FALLBACK; };
+        img.className = "birthday-person-photo";
+
+        const copy = document.createElement("div");
+        copy.className = "birthday-person-info";
+        const date = document.createElement("span");
+        date.className = "birthday-person-date";
+        const cakeIcon = document.createElement("i");
+        cakeIcon.className = "bx bx-cake";
+        cakeIcon.setAttribute("aria-hidden", "true");
+        date.append(cakeIcon, document.createTextNode(" " + dateLabel(next.date)));
+
+        const name = document.createElement("h3");
+        name.textContent = person.name;
+        const countdown = document.createElement("p");
+        countdown.textContent = next.days === 0 ? "Today is their day!" : next.days === 1 ? "Coming up tomorrow" : "In " + next.days + " days";
+        copy.append(date, name, countdown);
         article.append(img, copy);
         return article;
     }
@@ -87,7 +165,7 @@
             const people = readCrewCards(await response.text());
             const now = new Date();
             const upcoming = people.map(person => ({ person, next: nextBirthday(person.birthday, now) }))
-                .sort((a, b) => a.next.date - b.next.date);
+                .sort((a, b) => a.next.date - b.next.date || a.person.name.localeCompare(b.person.name));
 
             if (preview) {
                 preview.replaceChildren();
@@ -97,9 +175,11 @@
                     empty.textContent = "Birthday details are being prepared.";
                     preview.append(empty);
                 } else {
-                    upcoming.slice(0, 3).forEach(item => preview.append(personCard(item.person, item.next, true)));
+                    const next = upcoming[0];
+                    preview.append(createPreviewCard(next.person, next.next));
                 }
             }
+
             if (directory) {
                 directory.replaceChildren();
                 if (count) count.textContent = people.length + " crew birthdays";
@@ -109,7 +189,7 @@
                     empty.textContent = "Birthday details are being prepared.";
                     directory.append(empty);
                 } else {
-                    upcoming.forEach(item => directory.append(personCard(item.person, item.next, false)));
+                    upcoming.forEach(item => directory.append(personCard(item.person, item.next)));
                 }
             }
         } catch (error) {
