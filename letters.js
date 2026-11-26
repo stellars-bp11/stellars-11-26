@@ -5,9 +5,11 @@ import {
     doc,
     getDoc,
     getDocs,
+    limit,
     onSnapshot,
     orderBy,
     query,
+    where,
     serverTimestamp,
     setDoc,
     updateDoc,
@@ -54,7 +56,30 @@ const elements = {
     safetyPanel: document.getElementById("lettersSafetyPanel"),
     safetyClose: document.getElementById("lettersSafetyCloseButton"),
     safetyStatus: document.getElementById("lettersSafetyStatus"),
-    safetyFeed: document.getElementById("lettersSafetyFeed")
+    safetyFeed: document.getElementById("lettersSafetyFeed"),
+    viewTabs: document.querySelectorAll("[data-letters-view]"),
+    composeSection: document.getElementById("lettersComposeSection"),
+    wallSection: document.getElementById("lettersWallSection"),
+    privateWriteSection: document.getElementById("privateLetterWriteSection"),
+    privateInboxSection: document.getElementById("privateLetterInboxSection"),
+    privateSentSection: document.getElementById("privateLetterSentSection"),
+    privateForm: document.getElementById("privateLetterForm"),
+    recipientSearch: document.getElementById("privateRecipientSearch"),
+    recipientResults: document.getElementById("privateRecipientResults"),
+    recipientSelected: document.getElementById("privateRecipientSelected"),
+    recipientStatus: document.getElementById("privateRecipientStatus"),
+    privateTitle: document.getElementById("privateLetterTitleInput"),
+    privateMessage: document.getElementById("privateLetterMessageInput"),
+    privateAnonymous: document.getElementById("privateLetterAnonymousInput"),
+    privateCharacterCount: document.getElementById("privateLetterCharacterCount"),
+    privateFormMessage: document.getElementById("privateLetterFormMessage"),
+    privateSubmitButton: document.getElementById("privateLetterSubmitButton"),
+    privateResetButton: document.getElementById("privateLetterResetButton"),
+    inboxStatus: document.getElementById("privateInboxStatus"),
+    inboxList: document.getElementById("privateInboxList"),
+    inboxTabCount: document.getElementById("privateInboxTabCount"),
+    sentStatus: document.getElementById("privateSentStatus"),
+    sentList: document.getElementById("privateSentList")
 };
 
 let currentUser = null;
@@ -64,6 +89,9 @@ let ownLetterId = null;
 let hasPrivateOwnerRecord = false;
 let canReviewSafety = false;
 let cachedLetters = [];
+let memberDirectory = null;
+let selectedRecipient = null;
+let privateSubmitting = false;
 let feedLoaded = false;
 let unsubscribeLetters = null;
 let toastTimeout = null;
@@ -247,6 +275,331 @@ function renderSignedOutState() {
         "bx-lock-alt"
     );
     updateComposerState();
+}
+
+function switchLettersView(view) {
+    const isOpen = view === "open";
+    elements.composeSection.hidden = !isOpen;
+    elements.wallSection.hidden = !isOpen;
+    elements.privateWriteSection.hidden = view !== "write";
+    elements.privateInboxSection.hidden = view !== "inbox";
+    elements.privateSentSection.hidden = view !== "sent";
+
+    elements.viewTabs.forEach(button => {
+        const selected = button.dataset.lettersView === view;
+        button.classList.toggle("is-active", selected);
+        button.setAttribute("aria-selected", selected ? "true" : "false");
+    });
+
+    if (view !== "open") elements.safetyPanel.hidden = true;
+    if (view === "inbox") loadPrivateInbox();
+    if (view === "sent") loadPrivateSent();
+    if (view === "write") {
+        elements.recipientSearch.focus();
+    }
+}
+
+async function loadMemberDirectory() {
+    if (memberDirectory) return memberDirectory;
+    const directoryQuery = query(
+        collection(db, "nimIndex"),
+        where("isActive", "==", true),
+        limit(100)
+    );
+    const snapshot = await getDocs(directoryQuery);
+    memberDirectory = snapshot.docs.map(item => ({
+        nim: item.id,
+        uid: item.data().uid,
+        fullName: item.data().fullName
+    })).filter(member => member.uid && member.fullName && member.nim);
+    return memberDirectory;
+}
+
+function selectPrivateRecipient(member) {
+    selectedRecipient = member;
+    elements.recipientSearch.value = "";
+    elements.recipientResults.replaceChildren();
+    elements.recipientResults.hidden = true;
+    elements.recipientSelected.hidden = false;
+    elements.recipientSelected.textContent = `To: ${member.fullName} · NIM ${member.nim}`;
+    elements.recipientStatus.textContent = "Recipient selected. Check the name and NIM before sending.";
+}
+
+async function searchPrivateRecipients() {
+    const term = elements.recipientSearch.value.trim().toLowerCase();
+    selectedRecipient = null;
+    elements.recipientSelected.hidden = true;
+    elements.recipientSelected.textContent = "";
+    elements.recipientResults.replaceChildren();
+
+    if (term.length < 2) {
+        elements.recipientResults.hidden = true;
+        elements.recipientStatus.textContent = "Type at least 2 characters to search by name or NIM.";
+        return;
+    }
+
+    elements.recipientStatus.textContent = "Searching active STELLARS members…";
+    try {
+        const directory = await loadMemberDirectory();
+        const matches = directory.filter(member =>
+            member.uid !== currentUser?.uid &&
+            (member.fullName.toLowerCase().includes(term) || member.nim.includes(term))
+        ).slice(0, 8);
+
+        elements.recipientResults.hidden = matches.length === 0;
+        if (!matches.length) {
+            elements.recipientStatus.textContent = "No matching active member found. Check the spelling or NIM.";
+            return;
+        }
+
+        matches.forEach(member => {
+            const option = document.createElement("button");
+            option.type = "button";
+            option.className = "private-recipient-option";
+
+            const identity = document.createElement("span");
+            const name = document.createElement("strong");
+            name.textContent = member.fullName;
+            const nim = document.createElement("small");
+            nim.textContent = `NIM ${member.nim}`;
+            identity.append(name, nim);
+
+            const arrow = document.createElement("i");
+            arrow.className = "bx bx-chevron-right";
+            arrow.setAttribute("aria-hidden", "true");
+            option.append(identity, arrow);
+            option.addEventListener("click", () => selectPrivateRecipient(member));
+            elements.recipientResults.append(option);
+        });
+
+        elements.recipientStatus.textContent = `${matches.length} matching member(s). Select the intended recipient.`;
+    } catch (error) {
+        console.error("Could not load STELLARS member directory:", error);
+        elements.recipientStatus.textContent = error?.code === "permission-denied"
+            ? "Member lookup is unavailable. Publish the latest Firestore Rules."
+            : "Member lookup failed. Check your connection and try again.";
+    }
+}
+
+function formatPrivateDate(timestamp) {
+    return formatLetterDate(timestamp);
+}
+
+function createPrivateMailCard({ letter, mode }) {
+    const card = document.createElement("article");
+    const isUnread = mode === "inbox" && !letter.readAt;
+    card.className = "private-mail-card" + (isUnread ? " is-unread" : "");
+
+    const top = document.createElement("div");
+    top.className = "private-mail-card-top";
+
+    const identity = document.createElement("strong");
+    identity.textContent = mode === "inbox"
+        ? `From: ${letter.senderName || "A STELLARS Star"}`
+        : `To: ${letter.recipientName || "STELLARS member"}`;
+
+    const date = document.createElement("small");
+    date.textContent = formatPrivateDate(letter.createdAt);
+    top.append(identity, date);
+
+    const status = document.createElement("span");
+    status.className = "private-mail-status";
+    status.textContent = mode === "inbox"
+        ? (isUnread ? "UNREAD" : "READ")
+        : (letter.readAt ? "READ BY RECIPIENT" : "NOT OPENED YET");
+
+    const title = document.createElement("h3");
+    title.textContent = letter.title || "A little note";
+
+    const message = document.createElement("p");
+    message.textContent = letter.message || "";
+
+    card.append(top, status, title, message);
+
+    if (mode === "inbox" && isUnread) {
+        const actions = document.createElement("div");
+        actions.className = "private-mail-card-actions";
+        const markRead = document.createElement("button");
+        markRead.type = "button";
+        markRead.textContent = "Mark as read";
+        markRead.addEventListener("click", async () => {
+            markRead.disabled = true;
+            markRead.textContent = "Saving…";
+            try {
+                await updateDoc(doc(db, "privateLetters", letter.id), {
+                    readAt: serverTimestamp()
+                });
+                loadPrivateInbox();
+            } catch (error) {
+                console.error("Could not mark private letter as read:", error);
+                markRead.disabled = false;
+                markRead.textContent = "Try again";
+            }
+        });
+        actions.append(markRead);
+        card.append(actions);
+    }
+
+    return card;
+}
+
+async function loadPrivateInbox() {
+    if (!currentUser || currentProfile?.isActive !== true) return;
+    elements.inboxStatus.textContent = "Loading your received letters…";
+    elements.inboxList.replaceChildren();
+
+    try {
+        const inboxQuery = query(
+            collection(db, "privateLetters"),
+            where("recipientUid", "==", currentUser.uid),
+            limit(100)
+        );
+        const snapshot = await getDocs(inboxQuery);
+        const letters = snapshot.docs.map(item => ({ id: item.id, ...item.data() }))
+            .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+        const unread = letters.filter(letter => !letter.readAt).length;
+
+        elements.inboxTabCount.textContent = unread > 99 ? "99+" : String(unread);
+        elements.inboxTabCount.hidden = unread === 0;
+        elements.inboxStatus.textContent = letters.length
+            ? `${letters.length} private letter(s) received · ${unread} unread`
+            : "Your inbox is quiet for now. Private letters sent to you will appear here.";
+
+        letters.forEach(letter => elements.inboxList.append(
+            createPrivateMailCard({ letter, mode: "inbox" })
+        ));
+    } catch (error) {
+        console.error("Could not load private inbox:", error);
+        elements.inboxStatus.textContent = error?.code === "permission-denied"
+            ? "Inbox access denied. Publish the latest Firestore Rules, then refresh."
+            : "Your inbox could not be loaded. Please refresh and try again.";
+    }
+}
+
+async function loadPrivateSent() {
+    if (!currentUser || currentProfile?.isActive !== true) return;
+    elements.sentStatus.textContent = "Loading your sent letters…";
+    elements.sentList.replaceChildren();
+
+    try {
+        const sentQuery = query(
+            collection(db, "privateLetterSenders", currentUser.uid, "letters"),
+            orderBy("createdAt", "desc"),
+            limit(100)
+        );
+        const mappingSnapshot = await getDocs(sentQuery);
+        const letters = await Promise.all(mappingSnapshot.docs.map(async item => {
+            const letterSnapshot = await getDoc(doc(db, "privateLetters", item.id));
+            return letterSnapshot.exists()
+                ? { id: letterSnapshot.id, ...letterSnapshot.data() }
+                : null;
+        }));
+        const sent = letters.filter(Boolean).sort((a, b) =>
+            (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0)
+        );
+
+        const directory = await loadMemberDirectory();
+        const membersByUid = new Map(directory.map(member => [member.uid, member]));
+        elements.sentStatus.textContent = sent.length
+            ? `${sent.length} private letter(s) sent`
+            : "You have not sent a private letter yet.";
+
+        sent.forEach(letter => {
+            const recipient = membersByUid.get(letter.recipientUid);
+            elements.sentList.append(createPrivateMailCard({
+                letter: {
+                    ...letter,
+                    recipientName: recipient?.fullName || "STELLARS member"
+                },
+                mode: "sent"
+            }));
+        });
+    } catch (error) {
+        console.error("Could not load sent private letters:", error);
+        elements.sentStatus.textContent = error?.code === "permission-denied"
+            ? "Sent letters access denied. Publish the latest Firestore Rules, then refresh."
+            : "Your sent letters could not be loaded. Please refresh and try again.";
+    }
+}
+
+function clearPrivateLetterComposer() {
+    elements.privateForm.reset();
+    selectedRecipient = null;
+    elements.recipientResults.replaceChildren();
+    elements.recipientResults.hidden = true;
+    elements.recipientSelected.textContent = "";
+    elements.recipientSelected.hidden = true;
+    elements.recipientStatus.textContent = "Search for a member by name or NIM, then select the correct person.";
+    elements.privateCharacterCount.textContent = "0 / 2200";
+    elements.privateFormMessage.textContent = "";
+    elements.privateSubmitButton.disabled = false;
+    elements.privateSubmitButton.querySelector("span").textContent = "Send private letter";
+}
+
+async function submitPrivateLetter(event) {
+    event.preventDefault();
+    if (privateSubmitting || !currentUser || currentProfile?.isActive !== true) return;
+
+    if (!selectedRecipient) {
+        elements.privateFormMessage.textContent = "Select one recipient before sending.";
+        elements.recipientSearch.focus();
+        return;
+    }
+
+    const title = elements.privateTitle.value.trim();
+    const message = elements.privateMessage.value.trim();
+    const isAnonymous = elements.privateAnonymous.checked;
+    if (!message) {
+        elements.privateFormMessage.textContent = "Write a message before sending.";
+        elements.privateMessage.focus();
+        return;
+    }
+    if (title.length > 90 || message.length > 2200) {
+        elements.privateFormMessage.textContent = "Your letter is longer than the allowed limit.";
+        return;
+    }
+
+    privateSubmitting = true;
+    elements.privateSubmitButton.disabled = true;
+    elements.privateSubmitButton.querySelector("span").textContent = "Sending…";
+    elements.privateFormMessage.textContent = "Sending your private letter…";
+
+    try {
+        const senderName = isAnonymous
+            ? "Anonymous Star"
+            : String(currentProfile.fullName || currentUser.displayName || "A STELLARS Star").trim().slice(0, 100);
+        const letterRef = doc(collection(db, "privateLetters"));
+        const senderMapRef = doc(db, "privateLetterSenders", currentUser.uid, "letters", letterRef.id);
+        const batch = writeBatch(db);
+
+        batch.set(letterRef, {
+            recipientUid: selectedRecipient.uid,
+            senderName,
+            isAnonymous,
+            title,
+            message,
+            createdAt: serverTimestamp(),
+            readAt: null
+        });
+        batch.set(senderMapRef, {
+            letterId: letterRef.id,
+            createdAt: serverTimestamp()
+        });
+        await batch.commit();
+
+        clearPrivateLetterComposer();
+        showToast("Your private letter has been delivered.");
+        switchLettersView("sent");
+    } catch (error) {
+        console.error("Could not send a private STELLARS letter:", error);
+        elements.privateFormMessage.textContent = error?.code === "permission-denied"
+            ? "Private Letters access is not ready. Publish the latest Firestore Rules, then refresh."
+            : "Your letter could not be sent. Check your connection and try again.";
+    } finally {
+        privateSubmitting = false;
+        elements.privateSubmitButton.disabled = false;
+        elements.privateSubmitButton.querySelector("span").textContent = "Send private letter";
+    }
 }
 
 async function loadSafetyReview() {
@@ -487,6 +840,15 @@ elements.signInButton.addEventListener("click", () => {
     window.location.assign("letters.html?login=1");
 });
 elements.form.addEventListener("submit", submitLetter);
+elements.viewTabs.forEach(button => {
+    button.addEventListener("click", () => switchLettersView(button.dataset.lettersView));
+});
+elements.recipientSearch.addEventListener("input", searchPrivateRecipients);
+elements.privateForm.addEventListener("submit", submitPrivateLetter);
+elements.privateResetButton.addEventListener("click", clearPrivateLetterComposer);
+elements.privateMessage.addEventListener("input", () => {
+    elements.privateCharacterCount.textContent = `${elements.privateMessage.value.length} / 2200`;
+});
 elements.safetyButton.addEventListener("click", loadSafetyReview);
 elements.safetyClose.addEventListener("click", () => {
     elements.safetyPanel.hidden = true;
@@ -504,6 +866,8 @@ onAuthStateChanged(auth, async user => {
     currentUser = user;
     currentProfile = null;
     myLetter = null;
+    memberDirectory = null;
+    selectedRecipient = null;
     ownLetterId = null;
     hasPrivateOwnerRecord = false;
     canReviewSafety = false;
