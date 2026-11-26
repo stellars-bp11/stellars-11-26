@@ -426,9 +426,10 @@ function createPrivateMailCard({ letter, mode }) {
             markRead.disabled = true;
             markRead.textContent = "Saving…";
             try {
-                await updateDoc(doc(db, "privateLetters", letter.id), {
-                    readAt: serverTimestamp()
-                });
+                const readRef = letter._mailboxPath
+                    ? doc(db, "privateMailboxes", currentUser.uid, "received", letter.id)
+                    : doc(db, "privateLetters", letter.id);
+                await updateDoc(readRef, { readAt: serverTimestamp() });
                 loadPrivateInbox();
             } catch (error) {
                 console.error("Could not mark private letter as read:", error);
@@ -449,14 +450,36 @@ async function loadPrivateInbox() {
     elements.inboxList.replaceChildren();
 
     try {
-        const inboxQuery = query(
-            collection(db, "privateLetters"),
-            where("recipientUid", "==", currentUser.uid),
+        const mailboxSnapshot = await getDocs(query(
+            collection(db, "privateMailboxes", currentUser.uid, "received"),
             limit(100)
+        ));
+        const letters = mailboxSnapshot.docs.map(item => ({
+            id: item.id,
+            ...item.data(),
+            _mailboxPath: true
+        }));
+
+        // Keep old test messages readable while new sends use path-scoped inboxes.
+        try {
+            const legacySnapshot = await getDocs(query(
+                collection(db, "privateLetters"),
+                where("recipientUid", "==", currentUser.uid),
+                limit(100)
+            ));
+            const known = new Set(letters.map(letter => letter.id));
+            legacySnapshot.docs.forEach(item => {
+                if (!known.has(item.id)) {
+                    letters.push({ id: item.id, ...item.data(), _legacyPrivateLetter: true });
+                }
+            });
+        } catch (legacyError) {
+            console.warn("Legacy private inbox lookup skipped:", legacyError);
+        }
+
+        letters.sort((a, b) =>
+            (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0)
         );
-        const snapshot = await getDocs(inboxQuery);
-        const letters = snapshot.docs.map(item => ({ id: item.id, ...item.data() }))
-            .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
         const unread = letters.filter(letter => !letter.readAt).length;
 
         elements.inboxTabCount.textContent = unread > 99 ? "99+" : String(unread);
@@ -470,9 +493,8 @@ async function loadPrivateInbox() {
         ));
     } catch (error) {
         console.error("Could not load private inbox:", error);
-        elements.inboxStatus.textContent = error?.code === "permission-denied"
-            ? "Inbox access denied. Publish the latest Firestore Rules, then refresh."
-            : "Your inbox could not be loaded. Please refresh and try again.";
+        elements.inboxStatus.textContent =
+            `Inbox could not load (${error?.code || "unknown error"}). Check Firestore Rules and refresh.`;
     }
 }
 
@@ -482,62 +504,62 @@ async function loadPrivateSent() {
     elements.sentList.replaceChildren();
 
     try {
-        const sentQuery = query(
-            collection(db, "privateLetterSenders", currentUser.uid, "letters"),
-            orderBy("createdAt", "desc"),
+        const mailboxSnapshot = await getDocs(query(
+            collection(db, "privateMailboxes", currentUser.uid, "sent"),
             limit(100)
-        );
-        const mappingSnapshot = await getDocs(sentQuery);
-        const sent = await Promise.all(mappingSnapshot.docs.map(async item => {
-            const savedCopy = item.data();
-            if (typeof savedCopy.message === "string") {
-                return { id: item.id, ...savedCopy };
-            }
-
-            // Backward compatibility for test letters saved before the sender
-            // archive began storing a self-contained private copy.
-            try {
-                const legacySnapshot = await getDoc(doc(db, "privateLetters", item.id));
-                if (legacySnapshot.exists()) {
-                    return {
-                        id: item.id,
-                        ...legacySnapshot.data(),
-                        recipientName: savedCopy.recipientName || "STELLARS member"
-                    };
-                }
-            } catch (legacyError) {
-                console.warn("Could not load an older Sent letter copy:", legacyError);
-            }
-
-            return {
-                id: item.id,
-                ...savedCopy,
-                recipientName: savedCopy.recipientName || "STELLARS member",
-                message: savedCopy.message || "This older sent-letter copy is not available yet."
-            };
+        ));
+        const sent = mailboxSnapshot.docs.map(item => ({
+            id: item.id,
+            ...item.data(),
+            _mailboxPath: true
         }));
+
+        // Retain compatibility with test entries written before the mailbox-path migration.
+        try {
+            const legacySnapshot = await getDocs(query(
+                collection(db, "privateLetterSenders", currentUser.uid, "letters"),
+                limit(100)
+            ));
+            for (const item of legacySnapshot.docs) {
+                const savedCopy = item.data();
+                if (sent.some(letter => letter.id === item.id)) continue;
+                if (typeof savedCopy.message === "string") {
+                    sent.push({ id: item.id, ...savedCopy, _legacyPrivateLetter: true });
+                    continue;
+                }
+                try {
+                    const letterSnapshot = await getDoc(doc(db, "privateLetters", item.id));
+                    if (letterSnapshot.exists()) {
+                        sent.push({
+                            id: item.id,
+                            ...letterSnapshot.data(),
+                            recipientName: savedCopy.recipientName || "STELLARS member",
+                            _legacyPrivateLetter: true
+                        });
+                    }
+                } catch (legacyLetterError) {
+                    console.warn("Could not load an older Sent letter copy:", legacyLetterError);
+                }
+            }
+        } catch (legacyError) {
+            console.warn("Legacy private sent archive lookup skipped:", legacyError);
+        }
+
         sent.sort((a, b) =>
             (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0)
         );
-
         elements.sentStatus.textContent = sent.length
             ? `${sent.length} private letter(s) sent`
             : "You have not sent a private letter yet.";
 
-        sent.forEach(letter => {
-            elements.sentList.append(createPrivateMailCard({
-                letter: {
-                    ...letter,
-                    recipientName: letter.recipientName || "STELLARS member"
-                },
-                mode: "sent"
-            }));
-        });
+        sent.forEach(letter => elements.sentList.append(createPrivateMailCard({
+            letter: { ...letter, recipientName: letter.recipientName || "STELLARS member" },
+            mode: "sent"
+        })));
     } catch (error) {
         console.error("Could not load sent private letters:", error);
-        elements.sentStatus.textContent = error?.code === "permission-denied"
-            ? "Sent access denied for your private sender archive. Publish the latest Firestore Rules, then refresh."
-            : "Your sent letters could not be loaded. Please refresh and try again.";
+        elements.sentStatus.textContent =
+            `Sent archive could not load (${error?.code || "unknown error"}). Check Firestore Rules and refresh.`;
     }
 }
 
@@ -587,12 +609,14 @@ async function submitPrivateLetter(event) {
         const senderName = isAnonymous
             ? "Anonymous Star"
             : String(currentProfile.fullName || currentUser.displayName || "A STELLARS Star").trim().slice(0, 100);
-        const letterRef = doc(collection(db, "privateLetters"));
-        const senderMapRef = doc(db, "privateLetterSenders", currentUser.uid, "letters", letterRef.id);
+        const letterId = doc(collection(db, "privateMailboxes")).id;
+        const receivedRef = doc(db, "privateMailboxes", selectedRecipient.uid, "received", letterId);
+        const sentRef = doc(db, "privateMailboxes", currentUser.uid, "sent", letterId);
         const batch = writeBatch(db);
 
-        batch.set(letterRef, {
-            recipientUid: selectedRecipient.uid,
+        // Received document contains no sender UID. Anonymous Star stays anonymous
+        // to the recipient, while the sender keeps a separate private Sent copy.
+        batch.set(receivedRef, {
             senderName,
             isAnonymous,
             title,
@@ -600,8 +624,8 @@ async function submitPrivateLetter(event) {
             createdAt: serverTimestamp(),
             readAt: null
         });
-        batch.set(senderMapRef, {
-            letterId: letterRef.id,
+        batch.set(sentRef, {
+            letterId,
             recipientUid: selectedRecipient.uid,
             recipientName: selectedRecipient.fullName,
             senderName,
@@ -617,9 +641,8 @@ async function submitPrivateLetter(event) {
         switchLettersView("sent");
     } catch (error) {
         console.error("Could not send a private STELLARS letter:", error);
-        elements.privateFormMessage.textContent = error?.code === "permission-denied"
-            ? "Private Letters access is not ready. Publish the latest Firestore Rules, then refresh."
-            : "Your letter could not be sent. Check your connection and try again.";
+        elements.privateFormMessage.textContent =
+            `Letter could not be sent (${error?.code || "unknown error"}). Check Firestore Rules and try again.`;
     } finally {
         privateSubmitting = false;
         elements.privateSubmitButton.disabled = false;
