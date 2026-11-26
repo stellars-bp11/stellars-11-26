@@ -336,7 +336,92 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // Library media metadata. Legacy entries without visibility remain member-only.
+        // One-to-one private Letters. Sender UID is deliberately NOT stored on the
+    // recipient-readable message document, so Anonymous Star cannot be reverse-mapped.
+    function privateLetterPath(letterId) {
+      return /databases/$(database)/documents/privateLetters/$(letterId);
+    }
+
+    function privateSenderPath(senderUid, letterId) {
+      return /databases/$(database)/documents/privateLetterSenders/$(senderUid)/letters/$(letterId);
+    }
+
+    function validPrivateLetter() {
+      let data = request.resource.data;
+      let recipientPath = /databases/$(database)/documents/users/$(data.recipientUid);
+      return data.keys().hasAll([
+        'recipientUid', 'senderName', 'isAnonymous', 'title',
+        'message', 'createdAt', 'readAt'
+      ]) &&
+      data.keys().hasOnly([
+        'recipientUid', 'senderName', 'isAnonymous', 'title',
+        'message', 'createdAt', 'readAt'
+      ]) &&
+      data.recipientUid is string &&
+      data.recipientUid.size() > 0 &&
+      data.recipientUid != request.auth.uid &&
+      exists(recipientPath) &&
+      get(recipientPath).data.isActive == true &&
+      get(recipientPath).data.role in ['student', 'admin', 'superAdmin', 'super_admin'] &&
+      data.senderName is string &&
+      data.senderName.size() > 0 &&
+      data.senderName.size() <= 100 &&
+      data.isAnonymous is bool &&
+      (data.isAnonymous
+        ? data.senderName == 'Anonymous Star'
+        : data.senderName == get(profilePath()).data.fullName) &&
+      data.title is string &&
+      data.title.size() <= 90 &&
+      data.message is string &&
+      data.message.size() > 0 &&
+      data.message.size() <= 2200 &&
+      data.createdAt is timestamp &&
+      data.readAt == null;
+    }
+
+    match /privateLetters/{letterId} {
+      // The recipient can list their inbox. A sender can fetch only messages for
+      // which their private sent-index record exists; sender UID remains hidden.
+      allow get: if activeMember() && (
+        resource.data.recipientUid == request.auth.uid ||
+        exists(privateSenderPath(request.auth.uid, letterId))
+      );
+      allow list: if activeMember() &&
+        resource.data.recipientUid == request.auth.uid;
+
+      // The message and sender index must be created together in one batch.
+      allow create: if activeMember() &&
+        validPrivateLetter() &&
+        existsAfter(privateSenderPath(request.auth.uid, letterId)) &&
+        getAfter(privateSenderPath(request.auth.uid, letterId)).data.letterId == letterId;
+
+      // Only the recipient can mark a message as read. Content and participants
+      // become immutable once delivered.
+      allow update: if activeMember() &&
+        resource.data.recipientUid == request.auth.uid &&
+        resource.data.readAt == null &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readAt']) &&
+        request.resource.data.readAt is timestamp;
+      allow delete: if false;
+    }
+
+    // Sender-only index for the Sent view. The recipient cannot query this path.
+    match /privateLetterSenders/{senderUid}/letters/{letterId} {
+      allow get, list: if activeMember() && request.auth.uid == senderUid;
+      allow create: if activeMember() &&
+        request.auth.uid == senderUid &&
+        !exists(privateLetterPath(letterId)) &&
+        existsAfter(privateLetterPath(letterId)) &&
+        request.resource.data.keys().hasAll(['letterId', 'createdAt']) &&
+        request.resource.data.keys().hasOnly(['letterId', 'createdAt']) &&
+        request.resource.data.letterId == letterId &&
+        request.resource.data.createdAt is timestamp &&
+        getAfter(privateLetterPath(letterId)).data.recipientUid != senderUid &&
+        getAfter(privateLetterPath(letterId)).data.createdAt == request.resource.data.createdAt;
+      allow update, delete: if false;
+    }
+
+// Library media metadata. Legacy entries without visibility remain member-only.
     function validMemoryCreate() {
       let data = request.resource.data;
       return data.keys().hasAll([
@@ -556,7 +641,11 @@ service cloud.firestore {
     }
 
     match /nimIndex/{nim} {
-      allow read: if isAdmin();
+      // Active members can search the minimal directory fields (UID, name, NIM, status).
+      allow get: if activeMember() && resource.data.isActive == true;
+      allow list: if activeMember() &&
+        request.query.limit <= 100 &&
+        resource.data.isActive == true;
       allow create: if validStudentNimIndexCreate(nim);
       allow update, delete: if false;
     }
