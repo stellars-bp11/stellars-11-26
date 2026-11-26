@@ -99,15 +99,13 @@
                 : appModule.initializeApp(firebaseConfig);
             const auth = authModule.getAuth(app);
             const db = firestoreModule.getFirestore(app);
-            let stopInbox = null;
+            let stopInbox = [];
             let authGeneration = 0;
 
             authModule.onAuthStateChanged(auth, async user => {
                 const generation = ++authGeneration;
-                if (stopInbox) {
-                    stopInbox();
-                    stopInbox = null;
-                }
+                stopInbox.forEach(unsubscribe => unsubscribe());
+                stopInbox = [];
                 setUnreadMailCount(0);
                 if (!user) return;
 
@@ -118,18 +116,37 @@
                     if (generation !== authGeneration) return;
                     if (!profileSnapshot.exists() || profileSnapshot.data().isActive !== true) return;
 
+                    const unreadCounts = { mailbox: 0, legacy: 0 };
+                    const updateBadge = () => setUnreadMailCount(
+                        unreadCounts.mailbox + unreadCounts.legacy
+                    );
+
                     const inboxQuery = firestoreModule.query(
                         firestoreModule.collection(db, "privateMailboxes", user.uid, "received"),
                         firestoreModule.limit(100)
                     );
-                    stopInbox = firestoreModule.onSnapshot(inboxQuery, snapshot => {
+                    stopInbox.push(firestoreModule.onSnapshot(inboxQuery, snapshot => {
                         if (generation !== authGeneration) return;
-                        const unread = snapshot.docs.filter(item => !item.data().readAt).length;
-                        setUnreadMailCount(unread);
+                        unreadCounts.mailbox = snapshot.docs.filter(item => !item.data().readAt).length;
+                        updateBadge();
                     }, error => {
-                        console.warn("STELLARS unread private-letter counter unavailable:", error);
-                        setUnreadMailCount(0);
-                    });
+                        console.warn("STELLARS mailbox notification unavailable:", error);
+                    }));
+
+                    // Count old-format private letters too, so earlier test messages
+                    // remain reflected in the brand badge during the transition.
+                    const legacyInboxQuery = firestoreModule.query(
+                        firestoreModule.collection(db, "privateLetters"),
+                        firestoreModule.where("recipientUid", "==", user.uid),
+                        firestoreModule.limit(100)
+                    );
+                    stopInbox.push(firestoreModule.onSnapshot(legacyInboxQuery, snapshot => {
+                        if (generation !== authGeneration) return;
+                        unreadCounts.legacy = snapshot.docs.filter(item => !item.data().readAt).length;
+                        updateBadge();
+                    }, error => {
+                        console.warn("Legacy private-letter notification skipped:", error);
+                    }));
                 } catch (error) {
                     console.warn("STELLARS mail notification could not initialize:", error);
                     setUnreadMailCount(0);
