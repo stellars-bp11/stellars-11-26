@@ -119,8 +119,7 @@
                     if (!profileSnapshot.exists() || profileSnapshot.data().isActive !== true) return;
 
                     const inboxQuery = firestoreModule.query(
-                        firestoreModule.collection(db, "privateLetters"),
-                        firestoreModule.where("recipientUid", "==", user.uid),
+                        firestoreModule.collection(db, "privateMailboxes", user.uid, "received"),
                         firestoreModule.limit(100)
                     );
                     stopInbox = firestoreModule.onSnapshot(inboxQuery, snapshot => {
