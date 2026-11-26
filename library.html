@@ -320,6 +320,21 @@
                 </label>
 
 
+                <!-- PUBLIC VISIBILITY -->
+                <label class="modal-field">
+                    <span>Visibility</span>
+                    <select id="memoryVisibility" required>
+                        <option value="public" selected>Public — anyone can view</option>
+                        <option value="members" disabled>Class Only — protected media is not configured yet</option>
+                    </select>
+                    <small class="modal-hint">Class Only will become available after private media delivery is configured. For now, uploaded media uses public Cloudinary URLs.</small>
+                </label>
+
+                <label class="memory-public-consent" for="memoryPublicConsent">
+                    <input id="memoryPublicConsent" type="checkbox" required>
+                    <span>I have permission to publish this photo or video publicly, including from anyone identifiable in it.</span>
+                </label>
+
                 <!-- SUBMIT -->
 
                 <button
