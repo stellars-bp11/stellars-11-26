@@ -709,7 +709,8 @@ service cloud.firestore {
     }
 
     match /radioDays/{dayId}/songs/{memberId} {
-      allow read: if activeMember();
+      // Song Wall entries are public to read; posting and editing remain member-only.
+      allow read: if true;
       allow create: if activeMember() &&
         request.auth.uid == memberId &&
         isCurrentJakartaRadioDay(dayId) &&
