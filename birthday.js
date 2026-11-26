@@ -184,7 +184,9 @@
     const FALLBACK = "images/placeholder.jpg";
     const PHOTO_ALIASES = {
         "anita lestari elisabet siregar": "anita lestari elisabet",
-        "nicke mega amelia truono": "nicke mega amelia trijono"
+        "nicke mega amelia truono": "nicke mega amelia trijono",
+        "chairine aretha nathania chung": "chairine aretha nathania",
+        "mareshah majesty wales": "maresha majesty wales"
     };
 
     function normalizeName(value) {
@@ -237,7 +239,7 @@
     function readCrewPhotos(documentText) {
         const parsed = new DOMParser().parseFromString(documentText, "text/html");
         const photos = new Map();
-        parsed.querySelectorAll(".crew-card").forEach(card => {
+        parsed.querySelectorAll(".crew-card, .crewmate-card").forEach(card => {
             const name = card.querySelector(".crew-info h3")?.textContent?.trim();
             const image = card.querySelector(".crew-photo img")?.getAttribute("src");
             if (name && image) photos.set(normalizeName(name), image);
