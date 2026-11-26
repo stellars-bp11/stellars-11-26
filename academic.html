@@ -40,20 +40,19 @@
     </video>
     <div class="academic-background-overlay" aria-hidden="true"></div>
 
-    <header class="academic-header">
-        <nav class="academic-navbar" aria-label="STELLARS main navigation">
-            <div class="academic-brand-block">
-                <a class="academic-logo" href="index.html" aria-label="STELLARS home">Stellars</a>
-            </div>
-            <div class="academic-nav-links">
-                <a href="index.html">Home</a>
-                <a href="lecturers.html">Lecturers</a>
-                <a href="crewmates.html">Crewmates</a>
-                <a href="library.html">Library</a>
-                <a href="academic.html" aria-current="page">Academics</a>
-            </div>
-            <div class="academic-nav-actions">
-                <a class="academic-nav-pill" id="academicSignInLink"
+    <header class="site-header academic-header">
+    <nav class="site-nav academic-navbar" aria-label="STELLARS main navigation">
+        <a class="logo academic-logo" href="index.html" aria-label="STELLARS quick access" data-stellars-drawer-trigger aria-controls="stellarsFeatureDrawer" aria-expanded="false">
+            <span>Stellars</span><i class="bx bx-chevron-down stellars-drawer-chevron" aria-hidden="true"></i>
+        </a>
+        <ul class="nav-links academic-nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="lecturers.html">Lecturers</a></li>
+            <li><a href="crewmates.html">Crewmates</a></li>
+            <li><a href="library.html">Library</a></li>
+            <li><a href="academic.html" class="active" aria-current="page">Academics</a></li>
+        </ul>
+        <div class="site-nav-actions academic-nav-actions"><a class="academic-nav-pill" id="academicSignInLink"
                    href="index.html?login=1&amp;return=academic.html">
                     <i class="bx bx-log-in" aria-hidden="true"></i>
                     <span>Sign In</span>
@@ -82,9 +81,9 @@
                         </button>
                     </div>
                 </div>
-            </div>
-        </nav>
-    </header>
+        </div>
+    </nav>
+</header>
 
     <main class="academic-access-main" id="loginView">
         <section class="academic-access-card" aria-labelledby="academic-access-title">
