@@ -521,3 +521,93 @@
     line-height: 1.35;
     letter-spacing: -.025em;
 }
+
+
+/* Designated moderator-only Letters safety review */
+.letters-safety-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 15px;
+    border: 1px solid rgba(130, 117, 220, .32);
+    border-radius: 999px;
+    background: rgba(130, 117, 220, .09);
+    color: #6554a8;
+    font: 700 11px 'Ubuntu', sans-serif;
+    cursor: pointer;
+    transition: background .2s ease, border-color .2s ease, transform .2s ease;
+}
+.letters-safety-button:hover {
+    background: rgba(130, 117, 220, .15);
+    border-color: rgba(130, 117, 220, .55);
+    transform: translateY(-1px);
+}
+.letters-safety-button[hidden],
+.letters-safety-panel[hidden] { display: none !important; }
+.letters-safety-panel {
+    margin: -22px 0 44px;
+    padding: 24px;
+    border: 1px solid rgba(130, 117, 220, .2);
+    border-radius: 20px;
+    background: rgba(250, 248, 255, .88);
+}
+.letters-safety-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+}
+.letters-safety-heading h2 {
+    margin: 7px 0 5px;
+    color: #302650;
+    font: 700 26px 'Ubuntu', sans-serif;
+    letter-spacing: -.04em;
+}
+.letters-safety-heading h2 em { color: #7663ca; font-style: normal; }
+.letters-safety-heading p,
+.letters-safety-status {
+    color: #827b91;
+    font-size: 12px;
+    line-height: 1.6;
+}
+.letters-safety-close {
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(118, 99, 202, .1);
+    color: #6554a8;
+    font-size: 19px;
+    cursor: pointer;
+}
+.letters-safety-feed { display: grid; gap: 12px; margin-top: 15px; }
+.letters-safety-card {
+    padding: 16px 17px;
+    border: 1px solid rgba(130, 117, 220, .13);
+    border-radius: 14px;
+    background: #fff;
+}
+.letters-safety-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.letters-safety-card-top strong { color: #3a3156; font-size: 13px; }
+.letters-safety-card-top span {
+    color: #8b80ad;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .08em;
+}
+.letters-safety-card h4 { margin: 12px 0 6px; color: #3a3156; font-size: 14px; }
+.letters-safety-card p { margin: 0; color: #655f73; font-size: 12px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+.letters-safety-card small { display: block; margin-top: 10px; color: #9a93a8; font-size: 10px; }
+@media (max-width: 560px) {
+    .letters-safety-panel { padding: 17px; border-radius: 16px; }
+    .letters-safety-button { align-self: flex-start; }
+    .letters-safety-card-top { align-items: flex-start; flex-direction: column; }
+}
