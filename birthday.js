@@ -20,19 +20,25 @@ const db = getFirestore(app);
 const accessGate = document.getElementById("birthdayAccessGate");
 const memberTools = document.getElementById("birthdayMemberTools");
 const memberStatus = document.getElementById("birthdayShareStatus");
-const shareButton = document.getElementById("birthdayShareButton");
-const stopShareButton = document.getElementById("birthdayStopShareButton");
+const shareToggle = document.getElementById("birthdayShareToggle");
 const directorySection = document.getElementById("birthdayDirectorySection");
+const homeBirthdaySection = document.querySelector(".birthday-home-section");
 let currentUser = null;
 let currentProfile = null;
 let ownBirthdayShared = false;
+let currentRosterEntries = [];
+let crewPhotosPromise = null;
 let authSequence = 0;
 
 function showBirthdayGate(message) {
-    accessGate.hidden = false;
-    accessGate.querySelector("p").textContent = message;
-    memberTools.hidden = true;
-    directorySection.hidden = true;
+    if (accessGate) {
+        accessGate.hidden = false;
+        const gateMessage = accessGate.querySelector("p");
+        if (gateMessage) gateMessage.textContent = message;
+    }
+    if (memberTools) memberTools.hidden = true;
+    if (directorySection) directorySection.hidden = true;
+    if (homeBirthdaySection) homeBirthdaySection.hidden = true;
 }
 
 function formatBirthMonthDay(isoDate) {
@@ -47,64 +53,83 @@ function formatBirthMonthDay(isoDate) {
 
 function updateShareControls() {
     const monthDay = formatBirthMonthDay(currentProfile?.birthDate);
-    shareButton.disabled = !monthDay;
-    shareButton.textContent = ownBirthdayShared ? "Update shared birthday" : "Share my birthday";
-    stopShareButton.hidden = !ownBirthdayShared;
-
+    if (shareToggle) {
+        shareToggle.disabled = !monthDay;
+        shareToggle.checked = ownBirthdayShared;
+    }
+    if (!memberStatus) return;
     if (!monthDay) {
         memberStatus.textContent = "Add your birthday in your account profile first. You can still view birthdays shared by other members.";
         return;
     }
     memberStatus.textContent = ownBirthdayShared
         ? "Your month and day are shared with active STELLARS members. Your birth year is not shared."
-        : "Your birthday is not shared yet. Only the month and day will be visible to active STELLARS members.";
+        : "Your birthday is private. Turn on the switch only when you want to share the month and day with active members.";
 }
 
 async function refreshBirthdayRoster() {
+    if (!currentUser) return;
+    // Load once per active page entry; toggle changes update the local list without another read.
     const snapshot = await getDocs(collection(db, "birthdayRoster"));
-    const roster = snapshot.docs.map(item => ({ id: item.id, ...item.data() }));
-    ownBirthdayShared = roster.some(item => item.id === currentUser.uid);
+    currentRosterEntries = snapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+    ownBirthdayShared = currentRosterEntries.some(item => item.id === currentUser.uid);
     updateShareControls();
-    await renderRoster(roster);
+    await renderRoster(currentRosterEntries);
 }
 
-shareButton.addEventListener("click", async () => {
-    if (!currentUser || !currentProfile || !currentProfile.isActive) return;
-    const birthMonthDay = formatBirthMonthDay(currentProfile.birthDate);
-    if (!birthMonthDay) {
-        memberStatus.textContent = "Add a valid birthday in your account profile before sharing.";
-        return;
-    }
+if (shareToggle) {
+    shareToggle.addEventListener("change", async () => {
+        if (!currentUser || !currentProfile || currentProfile.isActive !== true) {
+            shareToggle.checked = ownBirthdayShared;
+            return;
+        }
 
-    shareButton.disabled = true;
-    try {
-        await setDoc(doc(db, "birthdayRoster", currentUser.uid), {
-            uid: currentUser.uid,
-            fullName: String(currentProfile.fullName || "STELLARS Member"),
-            birthMonthDay,
-            sharedAt: serverTimestamp()
-        });
-        await refreshBirthdayRoster();
-    } catch (error) {
-        console.error("Could not share birthday:", error);
-        memberStatus.textContent = "Could not share your birthday. Please try again.";
-        shareButton.disabled = false;
-    }
-});
+        const shouldShare = shareToggle.checked;
+        const birthMonthDay = formatBirthMonthDay(currentProfile.birthDate);
+        if (shouldShare && !birthMonthDay) {
+            shareToggle.checked = false;
+            if (memberStatus) memberStatus.textContent = "Add a valid birthday in your account profile before sharing.";
+            return;
+        }
 
-stopShareButton.addEventListener("click", async () => {
-    if (!currentUser) return;
-    stopShareButton.disabled = true;
-    try {
-        await deleteDoc(doc(db, "birthdayRoster", currentUser.uid));
-        await refreshBirthdayRoster();
-    } catch (error) {
-        console.error("Could not remove birthday share:", error);
-        memberStatus.textContent = "Could not remove your shared birthday. Please try again.";
-    } finally {
-        stopShareButton.disabled = false;
-    }
-});
+        shareToggle.disabled = true;
+        try {
+            const rosterRef = doc(db, "birthdayRoster", currentUser.uid);
+            if (shouldShare) {
+                const entry = {
+                    id: currentUser.uid,
+                    uid: currentUser.uid,
+                    fullName: String(currentProfile.fullName || "STELLARS Member"),
+                    birthMonthDay,
+                    sharedAt: serverTimestamp()
+                };
+                await setDoc(rosterRef, {
+                    uid: entry.uid,
+                    fullName: entry.fullName,
+                    birthMonthDay: entry.birthMonthDay,
+                    sharedAt: entry.sharedAt
+                });
+                currentRosterEntries = [
+                    ...currentRosterEntries.filter(item => item.id !== currentUser.uid),
+                    entry
+                ];
+            } else {
+                await deleteDoc(rosterRef);
+                currentRosterEntries = currentRosterEntries.filter(item => item.id !== currentUser.uid);
+            }
+
+            ownBirthdayShared = shouldShare;
+            updateShareControls();
+            await renderRoster(currentRosterEntries);
+        } catch (error) {
+            console.error("Could not update birthday sharing:", error);
+            shareToggle.checked = ownBirthdayShared;
+            if (memberStatus) memberStatus.textContent = "Could not update your birthday privacy. Please try again.";
+        } finally {
+            shareToggle.disabled = !formatBirthMonthDay(currentProfile?.birthDate);
+        }
+    });
+}
 
 onAuthStateChanged(auth, async user => {
     const sequence = ++authSequence;
@@ -129,9 +154,10 @@ onAuthStateChanged(auth, async user => {
         }
 
         currentProfile = profile;
-        accessGate.hidden = true;
-        memberTools.hidden = false;
-        directorySection.hidden = false;
+        if (accessGate) accessGate.hidden = true;
+        if (memberTools) memberTools.hidden = false;
+        if (directorySection) directorySection.hidden = false;
+        if (homeBirthdaySection) homeBirthdaySection.hidden = false;
         updateShareControls();
         await refreshBirthdayRoster();
     } catch (error) {
@@ -218,6 +244,28 @@ onAuthStateChanged(auth, async user => {
         const key = normalizeName(person.name);
         const aliasedKey = PHOTO_ALIASES[key] || key;
         return photos.get(key) || photos.get(aliasedKey) || "";
+    }
+
+    async function loadCrewPhotos() {
+        if (!crewPhotosPromise) {
+            crewPhotosPromise = (async () => {
+                let photos = new Map();
+                let crewPageUrl = new URL("crewmates.html", document.baseURI).href;
+                try {
+                    const response = await fetch(crewPageUrl, { cache: "force-cache" });
+                    if (response.ok) {
+                        crewPageUrl = response.url || crewPageUrl;
+                        photos = readCrewPhotos(await response.text(), crewPageUrl);
+                    } else {
+                        console.warn("STELLARS Birthday: Crewmates returned HTTP", response.status);
+                    }
+                } catch (error) {
+                    console.warn("STELLARS Birthday: Crew photos unavailable; using fallback portraits.", error);
+                }
+                return { photos, crewPageUrl };
+            })();
+        }
+        return crewPhotosPromise;
     }
 
     function makeCountdownUnit(units, key, label) {
@@ -372,19 +420,7 @@ onAuthStateChanged(auth, async user => {
         const count = document.getElementById("birthdayCount");
         if (!preview && !directory) return;
 
-        let photos = new Map();
-        let crewPageUrl = new URL("crewmates.html", document.baseURI).href;
-        try {
-            const response = await fetch(crewPageUrl, { cache: "no-store" });
-            if (response.ok) {
-                crewPageUrl = response.url || crewPageUrl;
-                photos = readCrewPhotos(await response.text(), crewPageUrl);
-            } else {
-                console.warn("STELLARS Birthday: Crewmates returned HTTP", response.status);
-            }
-        } catch (error) {
-            console.warn("STELLARS Birthday: Crew photos unavailable; using fallback portraits.", error);
-        }
+        const { photos, crewPageUrl } = await loadCrewPhotos();
         const fallbackImage = resolveAssetPath(FALLBACK, crewPageUrl);
 
         const people = rosterEntries.map(entry => {
