@@ -4,16 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>STELLARS Birthday</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    
     <link rel="stylesheet" href="account.css?v=activation-v1-20261125">
     <link rel="stylesheet" href="responsive.css">
+    <link rel="stylesheet" href="radio.css?v=radio-navbar-layer-fix-20261125">
     <link rel="stylesheet" href="playful-theme.css?v=simple-motion-20261125">
-    <link rel="stylesheet" href="birthday.css?v=full-width-navbar-v2-20261126">
+    <link rel="stylesheet" href="birthday.css?v=radio-navbar-shared-v3-20261126">
     <link rel="icon" type="image/svg+xml" href="favicon.svg?v=stellars-constellation-20261125">
     <meta name="theme-color" content="#17152D">
 </head>
-<body class="birthday-page">
+<body class="birthday-page radio-page">
     <div id="stellars-loader">
         <div class="star-wrap">
             <div class="orbit"></div><span class="kelip"></span><span class="kelip"></span><span class="kelip"></span><span class="kelip"></span>
@@ -26,6 +30,7 @@
     <header class="site-header">
         <nav class="site-nav" aria-label="Main navigation">
             <a href="index.html" class="logo">Stellars</a>
+
             <ul class="nav-links">
                 <li><a href="index.html">Home</a></li>
                 <li><a href="lecturers.html">Lecturers</a></li>
@@ -33,11 +38,18 @@
                 <li><a href="library.html">Library</a></li>
                 <li><a href="academic.html">Academics</a></li>
             </ul>
+
             <div class="site-nav-actions">
                 <div class="site-account-wrap">
-                    <button class="site-account-button" id="siteAccountButton" type="button" aria-label="Open account menu" aria-haspopup="true" aria-expanded="false"><span id="siteAccountAvatar">★</span></button>
+                    <button class="site-account-button" id="siteAccountButton" type="button"
+                            aria-label="Open account menu" aria-haspopup="true" aria-expanded="false">
+                        <span id="siteAccountAvatar">★</span>
+                    </button>
                     <div class="site-account-menu" id="siteAccountMenu" hidden>
-                        <div class="site-account-heading"><strong id="siteAccountName">Welcome, Star!</strong><span id="siteAccountMeta">Sign in to see your profile</span></div>
+                        <div class="site-account-heading">
+                            <strong id="siteAccountName">Welcome, Star!</strong>
+                            <span id="siteAccountMeta">Sign in to see your profile</span>
+                        </div>
                         <button id="siteAccountLoginButton" type="button">Sign In</button>
                         <a id="siteAccountPortalLink" href="academic.html">Academic Results</a>
                         <a id="siteAccountProfileLink" href="academic.html?profile=1" hidden>My Profile</a>
