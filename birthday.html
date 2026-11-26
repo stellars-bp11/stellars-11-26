@@ -84,10 +84,10 @@
                 <strong>Your birthday privacy</strong>
                 <p id="birthdayShareStatus">Checking your sharing settings…</p>
             </div>
-            <div class="birthday-share-actions">
-                <button type="button" id="birthdayShareButton">Share my birthday</button>
-                <button type="button" id="birthdayStopShareButton" hidden>Stop sharing</button>
-            </div>
+            <label class="birthday-share-toggle" for="birthdayShareToggle">
+                <input type="checkbox" id="birthdayShareToggle">
+                <span>Share my birthday with active STELLARS members</span>
+            </label>
         </section>
 
         <section class="birthday-directory-section" id="birthdayDirectorySection" hidden>
@@ -122,7 +122,7 @@
             setTimeout(hideLoader, 5000);
         })();
     </script>
-    <script type="module" src="birthday.js?v=birthday-opt-in-v2-20261126"></script>
+    <script type="module" src="birthday.js?v=birthday-member-cache-v1-20261126"></script>
     <script type="module" src="account.js?v=account-security-v7-20261125"></script>
     <script src="letters-launcher.js?v=private-mail-notifications-v6-20261126" defer></script>
 </body>
