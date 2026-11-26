@@ -2037,3 +2037,22 @@ body {
     .memory-edit { opacity: 1; top: 15px; right: 57px; }
     .memory-delete { opacity: 1; }
 }
+
+
+/* CLASS ONLY badge — marks protected Library media */
+.memory-visibility-badge {
+    position: absolute;
+    top: 18px;
+    left: 18px;
+    z-index: 5;
+    padding: 6px 10px;
+    color: #fff;
+    background: rgba(36, 31, 78, .82);
+    border: 1px solid rgba(209, 198, 255, .42);
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
