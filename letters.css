@@ -796,3 +796,51 @@
     .letters-private-view { padding: 19px; border-radius: 17px; }
     .private-mail-card { padding: 15px; }
 }
+
+
+.private-recipient-selected {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid rgba(108,153,132,.24);
+    border-radius: 11px;
+    color: #466d59;
+    background: rgba(108,153,132,.08);
+}
+.private-recipient-selected > i {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    color: #477a5d;
+    background: rgba(108,153,132,.13);
+    font-size: 18px;
+}
+.private-recipient-selected-copy {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+}
+.private-recipient-selected-copy strong {
+    color: #355c47;
+    font-size: 12px;
+}
+.private-recipient-selected-copy small {
+    color: #678b75;
+    font-size: 10px;
+}
+.private-recipient-selected-label {
+    margin-left: auto;
+    color: #71977d;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: .07em;
+    white-space: nowrap;
+}
+@media (max-width: 500px) {
+    .private-recipient-selected { gap: 8px; padding: 10px; }
+    .private-recipient-selected-label { font-size: 7px; }
+}
