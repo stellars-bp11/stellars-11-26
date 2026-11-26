@@ -242,6 +242,9 @@ service cloud.firestore {
       data.authorName.size() > 0 &&
       data.authorName.size() <= 100 &&
       data.isAnonymous is bool &&
+      (data.isAnonymous == true
+        ? data.authorName == 'Anonymous Star'
+        : data.authorName == get(profilePath()).data.fullName) &&
       data.title is string &&
       data.title.size() <= 90 &&
       data.message is string &&
