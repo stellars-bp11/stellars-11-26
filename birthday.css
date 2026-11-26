@@ -204,3 +204,65 @@
         padding: 12px 0;
     }
 }
+
+
+/* Birthday privacy: guest gate and member opt-in controls. */
+.birthday-directory-section[hidden],
+.birthday-member-tools[hidden] { display: none !important; }
+.birthday-access-gate,
+.birthday-member-tools {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin: 28px auto;
+    padding: 20px 22px;
+    border: 1px solid rgba(187,173,255,.2);
+    border-radius: 18px;
+    color: #f5f2ff;
+    background: rgba(31,27,65,.78);
+    box-shadow: 0 12px 30px rgba(8,7,30,.14);
+}
+.birthday-access-gate > div,
+.birthday-member-tools > div:first-child { flex: 1; min-width: 0; }
+.birthday-access-icon {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 42px;
+    border-radius: 13px;
+    color: #ddd5ff;
+    background: rgba(145,126,220,.18);
+    font-size: 21px;
+}
+.birthday-access-gate strong,
+.birthday-member-tools strong { display: block; margin-bottom: 5px; font-size: 15px; }
+.birthday-access-gate p,
+.birthday-member-tools p { margin: 0; color: rgba(238,234,255,.68); font-size: 12px; line-height: 1.6; }
+.birthday-access-gate a,
+.birthday-share-actions button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 14px;
+    border: 1px solid rgba(205,194,255,.25);
+    border-radius: 10px;
+    color: #fff;
+    background: rgba(121,99,198,.28);
+    font: 700 11px Ubuntu, sans-serif;
+    text-decoration: none;
+    cursor: pointer;
+}
+.birthday-share-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.birthday-share-actions button:disabled { opacity: .45; cursor: not-allowed; }
+.birthday-share-actions #birthdayStopShareButton { background: rgba(147,67,83,.22); }
+@media (max-width: 650px) {
+    .birthday-access-gate,
+    .birthday-member-tools { align-items: flex-start; flex-wrap: wrap; }
+    .birthday-access-gate a,
+    .birthday-share-actions { width: 100%; }
+    .birthday-share-actions button { flex: 1; }
+}
