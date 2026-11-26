@@ -73,6 +73,7 @@ const LIKES_KEY = "stellars-library-likes";
 ========================================================= */
 
 let isSuperAdmin = false;
+let isLibraryEditor = false;
 let isActiveMember = false;
 let stopMemoriesListener = null;
 let editingMemoryId = null;
@@ -520,7 +521,10 @@ function saveLikedIds(ids) {
 ========================================================= */
 
 function updateDeleteButtons() {
-    document.querySelectorAll(".memory-delete, .memory-edit").forEach((button) => {
+    document.querySelectorAll(".memory-edit").forEach(button => {
+        button.style.display = isLibraryEditor ? "flex" : "none";
+    });
+    document.querySelectorAll(".memory-delete").forEach(button => {
         button.style.display = isSuperAdmin ? "flex" : "none";
     });
 
@@ -583,6 +587,7 @@ function startMemoriesListener() {
 onAuthStateChanged(auth, async (user) => {
     isActiveMember = false;
     isSuperAdmin = false;
+    isLibraryEditor = false;
     updateDeleteButtons();
 
     if (user) {
@@ -597,10 +602,13 @@ onAuthStateChanged(auth, async (user) => {
                 allowedRoles.includes(profile.role);
             isSuperAdmin = isActiveMember &&
                 ["superAdmin", "super_admin"].includes(profile.role);
+            isLibraryEditor = isActiveMember &&
+                (isSuperAdmin || profile.canManageLibrary === true);
         } catch (error) {
             console.error("Could not verify Library member role:", error);
             isActiveMember = false;
             isSuperAdmin = false;
+            isLibraryEditor = false;
         }
     }
 
@@ -852,8 +860,8 @@ memoryForm.addEventListener("submit", async (event) => {
         requestMemberSignIn();
         return;
     }
-    if (editingMemoryId && !isSuperAdmin) {
-        alert("Only the active SuperAdmin can edit existing Library memories.");
+    if (editingMemoryId && !isLibraryEditor) {
+        alert("This account does not have permission to edit existing Library memories.");
         return;
     }
 
@@ -993,7 +1001,7 @@ async function deleteCloudMemory(card) {
     */
 
     if (!isSuperAdmin) {
-        alert("Only an active superAdmin can delete memories.");
+        alert("Only an active SuperAdmin can delete memories.");
         return;
     }
 
@@ -1057,7 +1065,7 @@ libraryGrid.addEventListener("click", async (event) => {
     /* EDIT */
 
     if (action === "edit") {
-        if (!isSuperAdmin) return;
+        if (!isLibraryEditor) return;
         const memory = memoryCache.get(card.dataset.id);
         if (memory) openModal(memory);
         return;
