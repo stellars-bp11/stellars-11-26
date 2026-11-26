@@ -31,6 +31,11 @@ service cloud.firestore {
       return activeMember() && currentRole() in ['superAdmin', 'super_admin'];
     }
 
+    // Only the explicitly designated SuperAdmin account can review anonymous Letters authorship.
+    function isLetterModerator() {
+      return isSuperAdmin() && get(profilePath()).data.canModerateLetters == true;
+    }
+
     // A trusted profile flag grants Library editing only, without admin privileges elsewhere.
     function canManageLibrary() {
       return isSuperAdmin() ||
@@ -260,26 +265,75 @@ service cloud.firestore {
       data.updatedAt is timestamp;
     }
 
-    match /openLetters/{memberId} {
+    function letterOwnerPath(memberId) {
+      return /databases/$(database)/documents/openLetterOwners/$(memberId);
+    }
+
+    function ownsOpenLetter(letterId) {
+      let ownerPath = letterOwnerPath(request.auth.uid);
+      return activeMember() && (
+        request.auth.uid == letterId ||
+        (exists(ownerPath) && get(ownerPath).data.letterId == letterId)
+      );
+    }
+
+    function hasMatchingLetterOwnerAfter(letterId) {
+      let ownerPath = letterOwnerPath(request.auth.uid);
+      return existsAfter(ownerPath) &&
+        getAfter(ownerPath).data.letterId == letterId &&
+        getAfter(ownerPath).data.fullName == get(profilePath()).data.fullName;
+    }
+
+    function validOpenLetterOwner(memberId) {
+      let data = request.resource.data;
+      return data.keys().hasAll(['letterId', 'fullName', 'createdAt']) &&
+        data.keys().hasOnly(['letterId', 'fullName', 'createdAt']) &&
+        data.letterId is string &&
+        data.letterId.size() > 0 &&
+        data.letterId.size() <= 128 &&
+        data.fullName == get(profilePath()).data.fullName &&
+        data.createdAt is timestamp;
+    }
+
+    match /openLetters/{letterId} {
+      // Public letter content is available only to active STELLARS members.
+      // New document IDs are random and do not expose the author's UID.
       allow get, list: if activeMember();
 
-      // Document ID is the member UID, so each account has one permanent slot.
       allow create: if activeMember() &&
-        request.auth.uid == memberId &&
-        !exists(/databases/$(database)/documents/openLetters/$(memberId)) &&
-        validOpenLetter();
+        validOpenLetter() &&
+        hasMatchingLetterOwnerAfter(letterId);
 
-      // Members may revise their own existing letter, but cannot create another one.
-      allow update: if activeMember() &&
-        request.auth.uid == memberId &&
+      // Owners may update a random-ID letter through their private owner mapping.
+      // The UID-keyed condition is retained only for legacy letters awaiting migration.
+      allow update: if ownsOpenLetter(letterId) &&
         request.resource.data.createdAt == resource.data.createdAt &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'authorName', 'isAnonymous', 'title', 'message', 'updatedAt'
         ]) &&
         validOpenLetter();
 
-      // Admins can remove content that needs moderation; members cannot delete and repost.
-      allow delete: if isAdmin();
+      // An owner can remove a legacy UID-keyed letter only as part of an atomic move
+      // to a random ID with a newly created private owner mapping.
+      allow delete: if isAdmin() || (
+        activeMember() &&
+        request.auth.uid == letterId &&
+        existsAfter(letterOwnerPath(request.auth.uid)) &&
+        getAfter(letterOwnerPath(request.auth.uid)).data.letterId != letterId
+      );
+    }
+
+    // Private mapping between a member account and its public random-ID letter.
+    // Only that member and the designated safety moderator can read it.
+    match /openLetterOwners/{memberId} {
+      allow get: if (activeMember() && request.auth.uid == memberId) ||
+        isLetterModerator();
+      allow list: if isLetterModerator();
+      allow create: if activeMember() &&
+        request.auth.uid == memberId &&
+        !exists(letterOwnerPath(memberId)) &&
+        validOpenLetterOwner(memberId);
+      allow update, delete: if false;
     }
 
     // Library media metadata. Legacy entries without visibility remain member-only.
