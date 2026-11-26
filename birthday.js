@@ -236,13 +236,22 @@
         return next.observedLeapDay ? label + " (29 Februari)" : label;
     }
 
-    function readCrewPhotos(documentText) {
+    function resolveAssetPath(path, baseUrl) {
+        try {
+            return new URL(path || FALLBACK, baseUrl).href;
+        } catch (error) {
+            console.warn("STELLARS Birthday: Could not resolve image path:", path, error);
+            return FALLBACK;
+        }
+    }
+
+    function readCrewPhotos(documentText, baseUrl) {
         const parsed = new DOMParser().parseFromString(documentText, "text/html");
         const photos = new Map();
         parsed.querySelectorAll(".crew-card, .crewmate-card").forEach(card => {
-            const name = card.querySelector(".crew-info h3")?.textContent?.trim();
+            const name = card.querySelector(".crew-info h3, .crewmate-info h3")?.textContent?.trim();
             const image = card.querySelector(".crew-photo img, .crewmate-photo img")?.getAttribute("src");
-            if (name && image) photos.set(normalizeName(name), image);
+            if (name && image) photos.set(normalizeName(name), resolveAssetPath(image, baseUrl));
         });
         return photos;
     }
@@ -250,7 +259,7 @@
     function matchPhoto(person, photos) {
         const key = normalizeName(person.name);
         const aliasedKey = PHOTO_ALIASES[key] || key;
-        return photos.get(key) || photos.get(aliasedKey) || FALLBACK;
+        return photos.get(key) || photos.get(aliasedKey) || "";
     }
 
     function makeCountdownUnit(units, key, label) {
@@ -273,7 +282,7 @@
         img.src = person.image;
         img.alt = person.name;
         img.loading = "lazy";
-        img.onerror = function () { this.onerror = null; this.src = FALLBACK; };
+        img.onerror = function () { this.onerror = null; this.src = person.fallbackImage || FALLBACK; };
 
         const copy = document.createElement("div");
         copy.className = "birthday-preview-copy";
@@ -396,18 +405,25 @@
         if (!preview && !directory) return;
 
         let photos = new Map();
+        let crewPageUrl = new URL("crewmates.html", document.baseURI).href;
         try {
-            const response = await fetch("crewmates.html", { cache: "no-store" });
-            if (response.ok) photos = readCrewPhotos(await response.text());
+            const response = await fetch(crewPageUrl, { cache: "no-store" });
+            if (response.ok) {
+                crewPageUrl = response.url || crewPageUrl;
+                photos = readCrewPhotos(await response.text(), crewPageUrl);
+            } else {
+                console.warn("STELLARS Birthday: Crewmates returned HTTP", response.status);
+            }
         } catch (error) {
             console.warn("STELLARS Birthday: Crew photos unavailable; using fallback portraits.", error);
         }
+        const fallbackImage = resolveAssetPath(FALLBACK, crewPageUrl);
 
         const people = ROSTER.map(entry => {
             const birthday = parseIsoBirthday(entry.birthDate);
             if (!birthday) return null;
-            const person = { name: entry.name, birthday, image: FALLBACK };
-            person.image = matchPhoto(person, photos);
+            const person = { name: entry.name, birthday, image: "", fallbackImage };
+            person.image = matchPhoto(person, photos) || fallbackImage;
             return person;
         }).filter(Boolean);
 
