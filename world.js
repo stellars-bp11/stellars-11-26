@@ -733,7 +733,8 @@ function startAuth() {
     const sequence = ++authSequence;
     playerUser = user || null;
     const profile = await loadMemberProfile(user);
-    if (sequence !== authSequence || auth.currentUser?.uid !== (user?.uid || null)) return;
+    const currentUid = auth.currentUser ? auth.currentUser.uid : null;
+    if (sequence !== authSequence || currentUid !== (user?.uid || null)) return;
 
     canPlayWorld = profile.active;
     player.name = canPlayWorld ? profile.name : "Star Visitor";
