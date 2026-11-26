@@ -189,19 +189,18 @@
 
     function normalizeName(value) {
         return String(value || "")
-            .normalize("NFD")
-            .replace(/[\\u0300-\\u036f]/g, "")
             .toLocaleLowerCase("id-ID")
             .replace(/[^a-z0-9]+/g, " ")
             .trim();
     }
 
     function parseIsoBirthday(value) {
-        const match = String(value || "").match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);
-        if (!match) return null;
-        const year = Number(match[1]);
-        const month = Number(match[2]) - 1;
-        const day = Number(match[3]);
+        const parts = String(value || "").split("-");
+        if (parts.length !== 3 || parts[0].length !== 4 || parts[1].length !== 2 || parts[2].length !== 2) return null;
+        const year = Number(parts[0]);
+        const month = Number(parts[1]) - 1;
+        const day = Number(parts[2]);
+        if (![year, month, day].every(Number.isInteger)) return null;
         const check = new Date(year, month, day);
         if (check.getFullYear() !== year || check.getMonth() !== month || check.getDate() !== day) return null;
         return { year, month, day };
