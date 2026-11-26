@@ -62,63 +62,36 @@
          NAVBAR
     ========================================== -->
 
-    <nav class="navbar">
-
-        <!-- LOGO -->
-        <a href="index.html" class="logo">
-            Stellars
-        </a>
-
-
-        <!-- NAVIGATION LINKS -->
-        <div class="links">
-
-            <a href="index.html" aria-current="page">
-                Home
-            </a>
-
-            <a href="lecturers.html">
-                Lecturers
-            </a>
-
-            <a href="crewmates.html">
-                Crewmates
-            </a>
-
-            <a href="library.html">
-                Library
-            </a>
-
-            <a href="academic.html">
-                Academics
-            </a>
-
-        </div>
-
-
-        <!-- SOCIAL + ACCOUNT ACTIONS -->
-
-            <div class="site-nav-actions">
-                <div class="site-account-wrap">
-                    <button class="site-account-button" id="siteAccountButton" type="button"
-                            aria-label="Open account menu" aria-haspopup="true" aria-expanded="false">
-                        <span id="siteAccountAvatar">★</span>
-                    </button>
-                    <div class="site-account-menu" id="siteAccountMenu" hidden>
-                        <div class="site-account-heading">
-                            <strong id="siteAccountName">Welcome, Star!</strong>
-                            <span id="siteAccountMeta">Sign in to see your profile</span>
-                        </div>
-                        <button id="siteAccountLoginButton" type="button">Sign In</button>
-                        <a id="siteAccountPortalLink" href="academic.html">Academic Results</a>
-                        <a id="siteAccountProfileLink" href="academic.html?profile=1" hidden>My Profile</a>
-                        <button id="siteAccountLogout" type="button" hidden>Log Out</button>
+    <header class="site-header">
+    <nav class="site-nav" aria-label="Main navigation">
+        <a href="index.html" class="logo" data-stellars-drawer-trigger aria-controls="stellarsFeatureDrawer" aria-expanded="false"><span>Stellars</span><i class="bx bx-chevron-down stellars-drawer-chevron" aria-hidden="true"></i></a>
+        <ul class="nav-links">
+            <li><a href="index.html" class="active" aria-current="page">Home</a></li>
+            <li><a href="lecturers.html">Lecturers</a></li>
+            <li><a href="crewmates.html">Crewmates</a></li>
+            <li><a href="library.html">Library</a></li>
+            <li><a href="academic.html">Academics</a></li>
+        </ul>
+        <div class="site-nav-actions">
+            <div class="site-account-wrap">
+                <button class="site-account-button" id="siteAccountButton" type="button"
+                        aria-label="Open account menu" aria-haspopup="true" aria-expanded="false">
+                    <span id="siteAccountAvatar">★</span>
+                </button>
+                <div class="site-account-menu" id="siteAccountMenu" hidden>
+                    <div class="site-account-heading">
+                        <strong id="siteAccountName">Welcome, Star!</strong>
+                        <span id="siteAccountMeta">Sign in to see your profile</span>
                     </div>
+                    <button id="siteAccountLoginButton" type="button">Sign In</button>
+                    <a id="siteAccountPortalLink" href="academic.html">Academic Results</a>
+                    <a id="siteAccountProfileLink" href="academic.html?profile=1" hidden>My Profile</a>
+                    <button id="siteAccountLogout" type="button" hidden>Log Out</button>
                 </div>
             </div>
-
-
+        </div>
     </nav>
+</header>
 
 
 
