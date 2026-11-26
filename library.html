@@ -325,9 +325,9 @@
                     <span>Visibility</span>
                     <select id="memoryVisibility" required>
                         <option value="public" selected>Public — anyone can view</option>
-                        <option value="members" disabled>Class Only — protected media is not configured yet</option>
+                        <option value="members">Class Only — active STELLARS members</option>
                     </select>
-                    <small class="modal-hint">Class Only will become available after private media delivery is configured. For now, uploaded media uses public Cloudinary URLs.</small>
+                    <small class="modal-hint">Class Only files are stored privately and can only be loaded by active STELLARS members.</small>
                 </label>
 
                 <label class="memory-public-consent" for="memoryPublicConsent">
@@ -375,7 +375,7 @@
 
     <script
         type="module"
-        src="library.js?v=library-editor-v4-20261126"
+        src="library.js?v=library-class-only-v1-20261126"
     ></script>
 
     <script type="module" src="account.js?v=account-security-v7-20261125"></script>
