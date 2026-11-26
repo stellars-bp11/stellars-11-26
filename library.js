@@ -16,8 +16,17 @@ import {
     serverTimestamp,
     getDoc,
     updateDoc,
+    setDoc,
     where
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+import {
+    getStorage,
+    ref as storageRef,
+    uploadBytesResumable,
+    getBlob,
+    deleteObject
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-storage.js";
 
 import {
     getAuth,
@@ -58,6 +67,7 @@ const MAX_VIDEO_SIZE = 50 * 1024 * 1024;    // 50 MB
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+const storage = getStorage(app);
 const memoriesRef = collection(db, "memories");
 
 
@@ -77,6 +87,7 @@ let isLibraryEditor = false;
 let isActiveMember = false;
 let stopMemoriesListener = null;
 let editingMemoryId = null;
+let modalPreviewObjectUrl = null;
 const memoryCache = new Map();
 
 
@@ -282,6 +293,31 @@ function resolveMediaType(memory) {
 
 }
 
+function releaseMemoryCardMedia(card) {
+    card.querySelectorAll("video").forEach(video => video.pause());
+    if (card.dataset.objectUrl) {
+        URL.revokeObjectURL(card.dataset.objectUrl);
+        delete card.dataset.objectUrl;
+    }
+}
+
+async function loadProtectedMemoryMedia(media, memory, card) {
+    try {
+        const fileBlob = await getBlob(storageRef(storage, memory.storagePath));
+        if (!card.isConnected || !media.isConnected) return;
+
+        const objectUrl = URL.createObjectURL(fileBlob);
+        card.dataset.objectUrl = objectUrl;
+        media.src = objectUrl;
+    } catch (error) {
+        console.error("Could not load Class Only Library media:", error);
+        if (!card.isConnected) return;
+        if (media.tagName === "IMG") {
+            media.alt = "Class Only media could not be loaded";
+        }
+    }
+}
+
 
 /* =========================================================
    MODAL HELPERS
@@ -289,7 +325,7 @@ function resolveMediaType(memory) {
 
 function clearPreview() {
 
-    // hentikan video preview sebelum dibuang
+    // Hentikan video dan lepaskan URL Blob lokal untuk media Class Only.
     modalPreview
         .querySelectorAll("video")
         .forEach((video) => {
@@ -297,6 +333,11 @@ function clearPreview() {
             video.removeAttribute("src");
             video.load();
         });
+
+    if (modalPreviewObjectUrl) {
+        URL.revokeObjectURL(modalPreviewObjectUrl);
+        modalPreviewObjectUrl = null;
+    }
 
     modalPreview.innerHTML = "";
     modalPreview.classList.remove("show");
@@ -315,6 +356,21 @@ function requestMemberSignIn() {
     }
 }
 
+function updateMemoryConsentText() {
+    const consentText = memoryPublicConsentInput.closest("label")?.querySelector("span");
+    if (!consentText) return;
+
+    consentText.textContent = memoryVisibilityInput.value === "members"
+        ? "I have permission to share this photo or video with active STELLARS members, including anyone identifiable in it."
+        : "I have permission to publish this photo or video publicly, including from anyone identifiable in it.";
+}
+
+memoryVisibilityInput.addEventListener("change", () => {
+    updateMemoryConsentText();
+    memoryPublicConsentInput.checked = false;
+    memoryPublicConsentInput.disabled = false;
+});
+
 function openModal(memory = null) {
     if (!isActiveMember) {
         requestMemberSignIn();
@@ -326,25 +382,31 @@ function openModal(memory = null) {
     clearPreview();
 
     memoryPhotoInput.required = !memory;
-    memoryVisibilityInput.value = "public";
-    memoryPublicConsentInput.checked = false;
-    memoryPublicConsentInput.disabled = false;
+    memoryVisibilityInput.value = memory?.visibility || "public";
+    // Changing an existing item's privacy requires an explicit media replacement.
+    // Keep its current visibility fixed while editing metadata.
+    memoryVisibilityInput.disabled = Boolean(memory);
+    updateMemoryConsentText();
+
+    const hasExistingConsent = memory
+        ? (memory.visibility === "members"
+            ? memory.sharingConsent === true
+            : memory.publicConsent === true)
+        : false;
+    memoryPublicConsentInput.checked = hasExistingConsent;
+    memoryPublicConsentInput.disabled = hasExistingConsent;
 
     if (memory) {
         modalTitle.textContent = "Edit a Memory";
         memoryCategoryInput.value = memory.category || "";
         memoryTitleInput.value = memory.title || "";
         memoryDescriptionInput.value = memory.description || "";
-        const previouslyConfirmedPublic = memory.visibility === "public" && memory.publicConsent === true;
-        memoryPublicConsentInput.checked = previouslyConfirmedPublic;
-        memoryPublicConsentInput.disabled = previouslyConfirmedPublic;
         submitBtn.textContent = "Save Changes";
 
-        if (memory.imageUrl) {
+        if (memory.imageUrl || memory.storagePath) {
             const preview = resolveMediaType(memory) === "video"
                 ? document.createElement("video")
                 : document.createElement("img");
-            preview.src = memory.imageUrl;
             preview.alt = memory.title || "Existing memory";
             if (preview.tagName === "VIDEO") {
                 preview.controls = true;
@@ -353,6 +415,18 @@ function openModal(memory = null) {
             }
             modalPreview.appendChild(preview);
             modalPreview.classList.add("show");
+
+            if (memory.storagePath) {
+                getBlob(storageRef(storage, memory.storagePath))
+                    .then(fileBlob => {
+                        if (!modalPreview.contains(preview)) return;
+                        modalPreviewObjectUrl = URL.createObjectURL(fileBlob);
+                        preview.src = modalPreviewObjectUrl;
+                    })
+                    .catch(error => console.error("Could not load Class Only edit preview:", error));
+            } else {
+                preview.src = memory.imageUrl;
+            }
         }
     } else {
         modalTitle.textContent = "Add a Memory";
@@ -375,7 +449,9 @@ function closeModal() {
     clearPreview();
     editingMemoryId = null;
     memoryPhotoInput.required = true;
+    memoryVisibilityInput.disabled = false;
     memoryPublicConsentInput.disabled = false;
+    updateMemoryConsentText();
     modalTitle.textContent = "Add a Memory";
 
     submitBtn.disabled = false;
@@ -556,7 +632,7 @@ function startMemoriesListener() {
 
     stopMemoriesListener = onSnapshot(memoriesQuery, (snapshot) => {
         libraryGrid.querySelectorAll(".cloud-memory").forEach((card) => {
-            card.querySelectorAll("video").forEach((video) => video.pause());
+            releaseMemoryCardMedia(card);
             card.remove();
         });
 
@@ -640,7 +716,7 @@ function buildMemoryCard(memory) {
     if (mediaType === "video") {
 
         media = document.createElement("video");
-        media.src = memory.imageUrl || "";
+        if (!memory.storagePath && memory.imageUrl) media.src = memory.imageUrl;
         media.controls = true;
         media.preload = "metadata";
         media.playsInline = true;
@@ -655,7 +731,7 @@ function buildMemoryCard(memory) {
     } else {
 
         media = document.createElement("img");
-        media.src = memory.imageUrl || "";
+        if (!memory.storagePath && memory.imageUrl) media.src = memory.imageUrl;
         media.alt = memory.title || "Memory";
         media.loading = "lazy";
         media.decoding = "async";
@@ -669,6 +745,17 @@ function buildMemoryCard(memory) {
     }
 
     imageWrapper.appendChild(media);
+
+    if (memory.storagePath) {
+        loadProtectedMemoryMedia(media, memory, card);
+    }
+
+    if (memory.visibility === "members") {
+        const visibilityBadge = document.createElement("span");
+        visibilityBadge.className = "memory-visibility-badge";
+        visibilityBadge.textContent = "CLASS ONLY";
+        imageWrapper.appendChild(visibilityBadge);
+    }
 
 
     /* ---------- DELETE ---------- */
@@ -847,6 +934,34 @@ function uploadToCloudinary(file, mediaType, onProgress) {
 
 }
 
+function uploadToFirebaseStorage(file, memoryId, onProgress) {
+    const safeFileName = (file.name || "memory-upload")
+        .replace(/[^a-zA-Z0-9._-]/g, "_")
+        .slice(-80) || "memory-upload";
+    const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}-${safeFileName}`;
+    const path = `library-class-only/${memoryId}/${uniqueName}`;
+    const fileRef = storageRef(storage, path);
+    const uploadTask = uploadBytesResumable(fileRef, file, {
+        contentType: file.type,
+        customMetadata: {
+            visibility: "members",
+            uploadedBy: auth.currentUser.uid
+        }
+    });
+
+    return new Promise((resolve, reject) => {
+        uploadTask.on("state_changed",
+            snapshot => {
+                if (snapshot.totalBytes > 0 && onProgress) {
+                    onProgress(Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100));
+                }
+            },
+            reject,
+            () => resolve({ storagePath: uploadTask.snapshot.ref.fullPath })
+        );
+    });
+}
+
 
 /* =========================================================
    ADD MEMORY
@@ -869,17 +984,25 @@ memoryForm.addEventListener("submit", async (event) => {
     const category = memoryCategoryInput.value.trim();
     const title = memoryTitleInput.value.trim();
     const description = memoryDescriptionInput.value.trim();
+    const visibility = memoryVisibilityInput.value;
+    const existingMemory = editingMemoryId ? memoryCache.get(editingMemoryId) : null;
 
     if ((!editingMemoryId && !file) || !category || !title || !description) {
         alert("Please complete all required fields.");
         return;
     }
     if (!memoryPublicConsentInput.checked) {
-        alert("Please confirm that you have permission to publish this media publicly.");
+        alert(visibility === "members"
+            ? "Please confirm that you have permission to share this media with active STELLARS members."
+            : "Please confirm that you have permission to publish this media publicly.");
         return;
     }
-    if (memoryVisibilityInput.value !== "public") {
-        alert("Class Only uploads are unavailable until protected media delivery is configured.");
+    if (!["public", "members"].includes(visibility)) {
+        alert("Please choose a valid visibility setting.");
+        return;
+    }
+    if (editingMemoryId && !existingMemory) {
+        alert("The selected memory could not be found. Refresh the Library and try again.");
         return;
     }
 
@@ -891,56 +1014,84 @@ memoryForm.addEventListener("submit", async (event) => {
         }
     }
 
-    const mediaType = file ? getMediaType(file) : null;
-
-
-    /* BUTTON */
+    const mediaType = file ? getMediaType(file) : (existingMemory?.mediaType || "image");
+    const targetMemoryRef = editingMemoryId
+        ? doc(db, "memories", editingMemoryId)
+        : doc(memoriesRef);
 
     submitBtn.disabled = true;
     submitBtn.textContent = "Uploading...";
 
+    let upload = null;
+    let saveCompleted = false;
 
     try {
-        let upload = null;
-
         if (file) {
-            upload = await uploadToCloudinary(file, mediaType, (percent) => {
+            const reportProgress = percent => {
                 submitBtn.textContent = `Uploading... ${percent}%`;
-            });
+            };
+
+            upload = visibility === "members"
+                ? await uploadToFirebaseStorage(file, targetMemoryRef.id, reportProgress)
+                : await uploadToCloudinary(file, mediaType, reportProgress);
         }
 
         submitBtn.textContent = editingMemoryId ? "Updating..." : "Saving...";
 
+        const mediaFields = upload
+            ? (visibility === "members"
+                ? {
+                    imageUrl: null,
+                    cloudinaryPublicId: null,
+                    storagePath: upload.storagePath
+                }
+                : {
+                    imageUrl: upload.imageUrl,
+                    cloudinaryPublicId: upload.publicId,
+                    storagePath: null
+                })
+            : {
+                imageUrl: existingMemory?.imageUrl ?? null,
+                cloudinaryPublicId: existingMemory?.cloudinaryPublicId ?? null,
+                storagePath: existingMemory?.storagePath ?? null
+            };
+
         if (editingMemoryId) {
             const payload = {
+                ...mediaFields,
+                mediaType,
                 category,
                 title,
                 description,
-                visibility: "public",
-                publicConsent: true,
+                visibility,
+                publicConsent: visibility === "public",
+                sharingConsent: true,
                 updatedAt: serverTimestamp(),
                 updatedBy: auth.currentUser.uid
             };
-            if (upload) {
-                payload.imageUrl = upload.imageUrl;
-                payload.mediaType = mediaType;
-                payload.cloudinaryPublicId = upload.publicId;
+
+            await updateDoc(targetMemoryRef, payload);
+            saveCompleted = true;
+
+            const oldStoragePath = existingMemory.storagePath;
+            if (oldStoragePath && oldStoragePath !== mediaFields.storagePath) {
+                deleteObject(storageRef(storage, oldStoragePath))
+                    .catch(error => console.warn("Old protected media could not be cleaned up:", error));
             }
-            await updateDoc(doc(db, "memories", editingMemoryId), payload);
         } else {
-            if (!upload) throw new Error("Please select a photo or video.");
-            await addDoc(memoriesRef, {
-                imageUrl: upload.imageUrl,
+            await setDoc(targetMemoryRef, {
+                ...mediaFields,
                 mediaType,
-                cloudinaryPublicId: upload.publicId,
                 category,
                 title,
                 description,
                 createdAt: serverTimestamp(),
                 uploadedBy: auth.currentUser.uid,
-                visibility: "public",
-                publicConsent: true
+                visibility,
+                publicConsent: visibility === "public",
+                sharingConsent: true
             });
+            saveCompleted = true;
         }
 
         const isEditing = Boolean(editingMemoryId);
@@ -952,17 +1103,25 @@ memoryForm.addEventListener("submit", async (event) => {
             pesan: isEditing
                 ? "The Library memory has been updated."
                 : (mediaType === "video"
-                    ? "Your video has been added to the Library."
-                    : "Your photo has been added to the Library."),
+                    ? (visibility === "members"
+                        ? "Your video has been added for active STELLARS members."
+                        : "Your video has been added to the Library.")
+                    : (visibility === "members"
+                        ? "Your photo has been added for active STELLARS members."
+                        : "Your photo has been added to the Library.")),
             urlPreview: upload?.imageUrl || null,
-            jenis: mediaType || "image",
+            jenis: mediaType,
             onUtama: () => libraryGrid.scrollIntoView({ behavior: "smooth", block: "start" }),
             onKedua: isActiveMember ? () => openModal() : null
         });
 
     } catch (error) {
+        console.error("Library save error:", error);
 
-        console.error("Upload error:", error);
+        if (!saveCompleted && upload?.storagePath) {
+            deleteObject(storageRef(storage, upload.storagePath))
+                .catch(cleanupError => console.warn("Uncommitted protected media cleanup failed:", cleanupError));
+        }
 
         submitBtn.disabled = false;
         submitBtn.textContent = editingMemoryId ? "Save Changes" : "Save Memory";
@@ -974,7 +1133,6 @@ memoryForm.addEventListener("submit", async (event) => {
             teksUtama: "Coba lagi",
             teksKedua: "Tutup"
         });
-
     }
 
 });
@@ -1024,10 +1182,19 @@ async function deleteCloudMemory(card) {
 
     try {
 
+        const memory = memoryCache.get(cardId);
         await deleteDoc(doc(db, "memories", cardId));
 
-        // onSnapshot() otomatis menghapus card dari UI.
+        // Hapus file Class Only setelah metadata berhasil dihapus.
+        if (memory?.storagePath) {
+            try {
+                await deleteObject(storageRef(storage, memory.storagePath));
+            } catch (storageError) {
+                console.warn("The Library record was deleted, but its protected file could not be cleaned up:", storageError);
+            }
+        }
 
+        // onSnapshot() otomatis menghapus card dari UI.
         saveLikedIds(
             getLikedIds().filter((id) => id !== cardId)
         );
