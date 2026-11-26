@@ -77,6 +77,24 @@ const academicSignInLink = document.getElementById("academicSignInLink");
 const academicAccessMessage = document.getElementById("academicAccessMessage");
 
 const profileArea = document.getElementById("profileArea");
+
+const memberOnlyElements = Array.from(new Set(
+    Array.from(document.querySelectorAll(
+        '.academic-nav-links a[href^="library.html"], .academic-nav-links a[href^="academic.html"]'
+    )).map(element => element.closest("li") || element)
+));
+function setMemberOnlyVisibility(visible) {
+    memberOnlyElements.forEach(element => {
+        if (visible) {
+            element.style.removeProperty("display");
+            element.hidden = false;
+        } else {
+            element.hidden = true;
+            element.style.setProperty("display", "none", "important");
+        }
+    });
+}
+setMemberOnlyVisibility(false);
 const profileMenuButton = document.getElementById("profileMenuButton");
 const profileMenu = document.getElementById("profileMenu");
 const logoutButton = document.getElementById("logoutButton");
@@ -170,6 +188,7 @@ function getInitials(name) {
 }
 
 function showLogin(message = "") {
+    setMemberOnlyVisibility(false);
     currentProfile = null;
     currentAuthUser = null;
     loginView.hidden = false;
@@ -197,6 +216,7 @@ function openProfileMenu() {
 }
 
 function showProfile(profile, authUser) {
+    setMemberOnlyVisibility(true);
     currentProfile = profile;
     currentAuthUser = authUser;
 
