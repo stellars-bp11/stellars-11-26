@@ -1,0 +1,76 @@
+/* STELLARS — unified full-width navbar surface
+   The outer header owns the gradient; inner navigation stays transparent. */
+.site-header,
+.academic-header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    display: block;
+    width: 100%;
+    max-width: none;
+    height: 80px;
+    min-height: 80px;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    border: 0;
+    border-bottom: 1px solid rgba(255,255,255,.12);
+    border-radius: 0;
+    background: linear-gradient(120deg, rgba(15,33,130,.96), rgba(75,42,173,.96));
+    box-shadow: 0 6px 20px rgba(15,20,60,.18);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+.site-header::before,
+.site-header::after,
+.academic-header::before,
+.academic-header::after {
+    content: none !important;
+    display: none !important;
+}
+
+.site-header > .site-nav,
+.academic-header > .academic-navbar,
+.academic-header > .site-nav {
+    position: relative;
+    top: auto;
+    z-index: auto;
+    width: min(calc(100% - 64px), 1440px);
+    max-width: 1440px;
+    height: 80px;
+    min-height: 80px;
+    margin: 0 auto;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+@media (max-width: 760px) {
+    .site-header,
+    .academic-header {
+        height: auto;
+        min-height: 0;
+    }
+
+    .site-header > .site-nav,
+    .academic-header > .academic-navbar,
+    .academic-header > .site-nav {
+        width: calc(100% - 32px);
+        height: auto;
+        min-height: 0;
+        padding: 12px 0;
+    }
+}
+
+@media (max-width: 380px) {
+    .site-header > .site-nav,
+    .academic-header > .academic-navbar,
+    .academic-header > .site-nav {
+        width: calc(100% - 20px);
+    }
+}
