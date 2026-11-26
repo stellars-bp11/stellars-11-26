@@ -557,65 +557,54 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-// Library media metadata. Class Only assets are stored in Firebase Storage.
-    function validMemoryMediaFields(data) {
-      return data.sharingConsent == true &&
-        data.mediaType in ['image', 'video'] &&
-        (
-          (
-            data.visibility == 'public' &&
-            data.publicConsent == true &&
-            data.imageUrl is string &&
-            data.imageUrl.matches('^https://.*') &&
-            data.imageUrl.size() <= 2048 &&
-            data.storagePath == null &&
-            (data.cloudinaryPublicId == null ||
-             (data.cloudinaryPublicId is string && data.cloudinaryPublicId.size() <= 255))
-          ) ||
-          (
-            data.visibility == 'members' &&
-            data.publicConsent == false &&
-            data.imageUrl == null &&
-            data.cloudinaryPublicId == null &&
-            data.storagePath is string &&
-            data.storagePath.size() <= 500 &&
-            data.storagePath.matches('^library-class-only/[^/]+/[^/]+$')
-          )
-        );
-    }
-
+// Library media metadata. Legacy entries without visibility remain member-only.
     function validMemoryCreate() {
       let data = request.resource.data;
       return data.keys().hasAll([
-        'imageUrl', 'mediaType', 'cloudinaryPublicId', 'storagePath',
-        'category', 'title', 'description', 'createdAt', 'uploadedBy',
-        'visibility', 'publicConsent', 'sharingConsent'
+        'imageUrl', 'mediaType', 'cloudinaryPublicId', 'category',
+        'title', 'description', 'createdAt', 'uploadedBy',
+        'visibility', 'publicConsent'
       ]) &&
       data.keys().hasOnly([
-        'imageUrl', 'mediaType', 'cloudinaryPublicId', 'storagePath',
-        'category', 'title', 'description', 'createdAt', 'uploadedBy',
-        'visibility', 'publicConsent', 'sharingConsent'
+        'imageUrl', 'mediaType', 'cloudinaryPublicId', 'category',
+        'title', 'description', 'createdAt', 'uploadedBy',
+        'visibility', 'publicConsent'
       ]) &&
-      validMemoryMediaFields(data) &&
+      data.imageUrl is string &&
+      data.imageUrl.matches('^https://.*') &&
+      data.imageUrl.size() <= 2048 &&
+      data.mediaType in ['image', 'video'] &&
+      (data.cloudinaryPublicId == null ||
+       (data.cloudinaryPublicId is string && data.cloudinaryPublicId.size() <= 255)) &&
       data.category is string && data.category.size() > 0 && data.category.size() <= 40 &&
       data.title is string && data.title.size() > 0 && data.title.size() <= 80 &&
       data.description is string && data.description.size() <= 300 &&
       data.createdAt is timestamp &&
-      data.uploadedBy == request.auth.uid;
+      data.uploadedBy == request.auth.uid &&
+      data.visibility == 'public' &&
+      data.publicConsent == true;
     }
 
     function validMemoryAdminUpdate() {
       let data = request.resource.data;
       let changed = data.diff(resource.data).affectedKeys();
       return changed.hasOnly([
-        'imageUrl', 'mediaType', 'cloudinaryPublicId', 'storagePath',
+        'imageUrl', 'mediaType', 'cloudinaryPublicId',
         'category', 'title', 'description', 'visibility',
-        'publicConsent', 'sharingConsent', 'updatedAt', 'updatedBy'
+        'publicConsent', 'updatedAt', 'updatedBy'
       ]) &&
-      validMemoryMediaFields(data) &&
+      data.imageUrl is string &&
+      data.imageUrl.matches('^https://.*') &&
+      data.imageUrl.size() <= 2048 &&
+      (!data.keys().hasAny(['mediaType']) || data.mediaType in ['image', 'video']) &&
+      (!data.keys().hasAny(['cloudinaryPublicId']) ||
+       data.cloudinaryPublicId == null ||
+       (data.cloudinaryPublicId is string && data.cloudinaryPublicId.size() <= 255)) &&
       data.category is string && data.category.size() > 0 && data.category.size() <= 40 &&
       data.title is string && data.title.size() > 0 && data.title.size() <= 80 &&
       data.description is string && data.description.size() <= 300 &&
+      data.visibility == 'public' &&
+      data.publicConsent == true &&
       (!resource.data.keys().hasAny(['uploadedBy']) ||
        data.uploadedBy == resource.data.uploadedBy) &&
       data.createdAt == resource.data.createdAt &&
@@ -624,9 +613,8 @@ service cloud.firestore {
     }
 
     match /memories/{memoryId} {
-      // Guests can query only documents explicitly marked public.
-      // Active members can also read older records without a visibility field.
-      allow get, list: if activeMember() || resource.data.visibility == 'public';
+      // Library is a private STELLARS member space.
+      allow get, list: if activeMember();
       allow create: if activeMember() && validMemoryCreate();
       allow update: if canManageLibrary() && validMemoryAdminUpdate();
       // Deletion remains reserved for SuperAdmin, never Library Editors.
