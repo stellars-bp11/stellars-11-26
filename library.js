@@ -334,8 +334,9 @@ function openModal(memory = null) {
         memoryCategoryInput.value = memory.category || "";
         memoryTitleInput.value = memory.title || "";
         memoryDescriptionInput.value = memory.description || "";
-        memoryPublicConsentInput.checked = true;
-        memoryPublicConsentInput.disabled = true;
+        const previouslyConfirmedPublic = memory.visibility === "public" && memory.publicConsent === true;
+        memoryPublicConsentInput.checked = previouslyConfirmedPublic;
+        memoryPublicConsentInput.disabled = previouslyConfirmedPublic;
         submitBtn.textContent = "Save Changes";
 
         if (memory.imageUrl) {
@@ -547,7 +548,7 @@ function startMemoriesListener() {
     // Guest queries must explicitly constrain results to public records.
     const memoriesQuery = isActiveMember
         ? query(memoriesRef, orderBy("createdAt", "desc"))
-        : query(memoriesRef, where("visibility", "==", "public"), orderBy("createdAt", "desc"));
+        : query(memoriesRef, where("visibility", "==", "public"));
 
     stopMemoriesListener = onSnapshot(memoriesQuery, (snapshot) => {
         libraryGrid.querySelectorAll(".cloud-memory").forEach((card) => {
@@ -556,8 +557,15 @@ function startMemoriesListener() {
         });
 
         memoryCache.clear();
-        snapshot.forEach((memoryDoc) => {
-            const memory = { id: memoryDoc.id, ...memoryDoc.data() };
+        const visibleMemories = snapshot.docs.map(memoryDoc => ({
+            id: memoryDoc.id,
+            ...memoryDoc.data()
+        })).sort((a, b) => {
+            const aTime = a.createdAt?.toMillis?.() || 0;
+            const bTime = b.createdAt?.toMillis?.() || 0;
+            return bTime - aTime;
+        });
+        visibleMemories.forEach(memory => {
             memoryCache.set(memory.id, memory);
             libraryGrid.appendChild(buildMemoryCard(memory));
         });
@@ -858,7 +866,7 @@ memoryForm.addEventListener("submit", async (event) => {
         alert("Please complete all required fields.");
         return;
     }
-    if (!memoryPublicConsentInput.checked && !editingMemoryId) {
+    if (!memoryPublicConsentInput.checked) {
         alert("Please confirm that you have permission to publish this media publicly.");
         return;
     }
@@ -949,7 +957,7 @@ memoryForm.addEventListener("submit", async (event) => {
         console.error("Upload error:", error);
 
         submitBtn.disabled = false;
-        submitBtn.textContent = "Save Memory";
+        submitBtn.textContent = editingMemoryId ? "Save Changes" : "Save Memory";
 
         tampilkanPopup({
             tipe: "gagal",
