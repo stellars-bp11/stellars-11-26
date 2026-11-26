@@ -229,6 +229,50 @@ service cloud.firestore {
          data.score <= data.maxScore));
     }
 
+    // STELLARS Open Letters — one persistent letter per active member account.
+    function validOpenLetter() {
+      let data = request.resource.data;
+      return data.keys().hasAll([
+        'authorName', 'isAnonymous', 'title', 'message', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'authorName', 'isAnonymous', 'title', 'message', 'createdAt', 'updatedAt'
+      ]) &&
+      data.authorName is string &&
+      data.authorName.size() > 0 &&
+      data.authorName.size() <= 100 &&
+      data.isAnonymous is bool &&
+      data.title is string &&
+      data.title.size() <= 90 &&
+      data.message is string &&
+      data.message.size() > 0 &&
+      data.message.size() <= 2200 &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    match /openLetters/{memberId} {
+      allow get, list: if activeMember();
+
+      // Document ID is the member UID, so each account has one permanent slot.
+      allow create: if activeMember() &&
+        request.auth.uid == memberId &&
+        !exists(/databases/$(database)/documents/openLetters/$(memberId)) &&
+        validOpenLetter();
+
+      // Members may revise their own existing letter, but cannot create another one.
+      allow update: if activeMember() &&
+        request.auth.uid == memberId &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'authorName', 'isAnonymous', 'title', 'message', 'updatedAt'
+        ]) &&
+        validOpenLetter();
+
+      // Admins can remove content that needs moderation; members cannot delete and repost.
+      allow delete: if isAdmin();
+    }
+
     // Existing STELLARS Library access is retained.
     match /memories/{memoryId} {
       allow read: if true;
