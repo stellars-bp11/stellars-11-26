@@ -39,6 +39,29 @@ const profileLink = document.getElementById("siteAccountProfileLink");
 const loginButton = document.getElementById("siteAccountLoginButton");
 const logoutButton = document.getElementById("siteAccountLogout");
 
+const memberOnlyElements = Array.from(new Set(
+    Array.from(document.querySelectorAll(
+        '.nav-links a[href^="library.html"], .nav-links a[href^="academic.html"], ' +
+        'a.quick-access-card[href^="library.html"], a.quick-access-card[href^="academic.html"], ' +
+        '.birthday-home-section'
+    )).map(element => element.closest("li") || element)
+));
+
+function setMemberOnlyVisibility(visible) {
+    memberOnlyElements.forEach(element => {
+        if (visible) {
+            element.style.removeProperty("display");
+            element.hidden = false;
+        } else {
+            element.hidden = true;
+            element.style.setProperty("display", "none", "important");
+        }
+    });
+}
+setMemberOnlyVisibility(false);
+portalLink.hidden = true;
+profileLink.hidden = true;
+
 const securityMenuButton = document.createElement("button");
 securityMenuButton.type = "button";
 securityMenuButton.id = "siteAccountSecurityButton";
@@ -833,6 +856,9 @@ authReady
         if (registrationInProgress) return;
 
         if (!user) {
+            setMemberOnlyVisibility(false);
+            portalLink.hidden = true;
+            profileLink.hidden = true;
             avatar.textContent = "★";
             nameLabel.textContent = "Welcome, Star!";
             metaLabel.textContent = "Not signed in";
@@ -851,6 +877,9 @@ authReady
         }
 
         shouldAutoOpenLogin = false;
+        setMemberOnlyVisibility(false);
+        portalLink.hidden = true;
+        profileLink.hidden = true;
         avatar.textContent = initials(user.displayName || "S");
         nameLabel.textContent = user.displayName || "STELLARS Member";
         metaLabel.textContent = "Signed in";
@@ -877,6 +906,9 @@ authReady
                 const canSecureAccount =
                     ["student", "admin", "superAdmin", "super_admin"].includes(profile.role) &&
                     profile.isActive === true;
+                setMemberOnlyVisibility(canSecureAccount);
+                portalLink.hidden = !canSecureAccount;
+                profileLink.hidden = !canSecureAccount;
                 securityMenuButton.hidden = !canSecureAccount;
 
                 if (shouldAutoOpenSecurity) {
