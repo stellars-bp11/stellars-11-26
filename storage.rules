@@ -43,7 +43,10 @@ service firebase.storage {
 
       // Replacements and cleanup are reserved for Library editors and SuperAdmins.
       allow update: if canManageLibrary() && validLibraryMediaUpload();
-      allow delete: if canManageLibrary();
+      allow delete: if activeMember() && (
+        canManageLibrary() ||
+        resource.metadata.uploadedBy == request.auth.uid
+      );
     }
   }
 }
