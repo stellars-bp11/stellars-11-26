@@ -449,6 +449,114 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // Path-scoped private mailbox: received and sent copies live under the owner's UID.
+    // The recipient's copy never stores the sender UID, so anonymous senders stay anonymous.
+    function mailboxReceivedPath(recipientUid, letterId) {
+      return /databases/$(database)/documents/privateMailboxes/$(recipientUid)/received/$(letterId);
+    }
+
+    function mailboxSentPath(senderUid, letterId) {
+      return /databases/$(database)/documents/privateMailboxes/$(senderUid)/sent/$(letterId);
+    }
+
+    function validMailboxSent(ownerUid, letterId) {
+      let data = request.resource.data;
+      let recipientProfilePath = /databases/$(database)/documents/users/$(data.recipientUid);
+      let receivedPath = mailboxReceivedPath(data.recipientUid, letterId);
+      return ownerUid == request.auth.uid &&
+        data.keys().hasAll([
+          'letterId', 'recipientUid', 'recipientName', 'senderName',
+          'isAnonymous', 'title', 'message', 'createdAt'
+        ]) &&
+        data.keys().hasOnly([
+          'letterId', 'recipientUid', 'recipientName', 'senderName',
+          'isAnonymous', 'title', 'message', 'createdAt'
+        ]) &&
+        data.letterId == letterId &&
+        data.recipientUid is string &&
+        data.recipientUid != ownerUid &&
+        exists(recipientProfilePath) &&
+        get(recipientProfilePath).data.isActive == true &&
+        get(recipientProfilePath).data.role in ['student', 'admin', 'superAdmin', 'super_admin'] &&
+        data.recipientName is string &&
+        data.recipientName.size() > 0 &&
+        data.recipientName.size() <= 100 &&
+        data.senderName is string &&
+        data.senderName.size() > 0 &&
+        data.senderName.size() <= 100 &&
+        data.isAnonymous is bool &&
+        (data.isAnonymous
+          ? data.senderName == 'Anonymous Star'
+          : data.senderName == get(profilePath()).data.fullName) &&
+        data.title is string &&
+        data.title.size() <= 90 &&
+        data.message is string &&
+        data.message.size() > 0 &&
+        data.message.size() <= 2200 &&
+        data.createdAt is timestamp &&
+        existsAfter(receivedPath) &&
+        getAfter(receivedPath).data.senderName == data.senderName &&
+        getAfter(receivedPath).data.isAnonymous == data.isAnonymous &&
+        getAfter(receivedPath).data.title == data.title &&
+        getAfter(receivedPath).data.message == data.message &&
+        getAfter(receivedPath).data.createdAt == data.createdAt;
+    }
+
+    function validMailboxReceived(ownerUid, letterId) {
+      let data = request.resource.data;
+      let senderPath = mailboxSentPath(request.auth.uid, letterId);
+      return ownerUid != request.auth.uid &&
+        data.keys().hasAll([
+          'senderName', 'isAnonymous', 'title', 'message', 'createdAt', 'readAt'
+        ]) &&
+        data.keys().hasOnly([
+          'senderName', 'isAnonymous', 'title', 'message', 'createdAt', 'readAt'
+        ]) &&
+        data.senderName is string &&
+        data.senderName.size() > 0 &&
+        data.senderName.size() <= 100 &&
+        data.isAnonymous is bool &&
+        (data.isAnonymous
+          ? data.senderName == 'Anonymous Star'
+          : data.senderName is string) &&
+        data.title is string &&
+        data.title.size() <= 90 &&
+        data.message is string &&
+        data.message.size() > 0 &&
+        data.message.size() <= 2200 &&
+        data.createdAt is timestamp &&
+        data.readAt == null &&
+        existsAfter(senderPath) &&
+        getAfter(senderPath).data.recipientUid == ownerUid &&
+        getAfter(senderPath).data.senderName == data.senderName &&
+        getAfter(senderPath).data.isAnonymous == data.isAnonymous &&
+        getAfter(senderPath).data.title == data.title &&
+        getAfter(senderPath).data.message == data.message &&
+        getAfter(senderPath).data.createdAt == data.createdAt;
+    }
+
+    match /privateMailboxes/{ownerUid}/{folder}/{letterId} {
+      // Each member can read only their own Received and Sent subcollections.
+      allow get, list: if activeMember() &&
+        request.auth.uid == ownerUid &&
+        folder in ['received', 'sent'];
+
+      // Both recipient and sender copies must be created atomically.
+      allow create: if activeMember() && (
+        (folder == 'sent' && validMailboxSent(ownerUid, letterId)) ||
+        (folder == 'received' && validMailboxReceived(ownerUid, letterId))
+      );
+
+      // Only the recipient can change readAt, and only once.
+      allow update: if activeMember() &&
+        request.auth.uid == ownerUid &&
+        folder == 'received' &&
+        resource.data.readAt == null &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readAt']) &&
+        request.resource.data.readAt is timestamp;
+      allow delete: if false;
+    }
+
 // Library media metadata. Legacy entries without visibility remain member-only.
     function validMemoryCreate() {
       let data = request.resource.data;
