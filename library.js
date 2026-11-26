@@ -14,7 +14,9 @@ import {
     query,
     orderBy,
     serverTimestamp,
-    getDoc
+    getDoc,
+    updateDoc,
+    where
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 import {
@@ -71,6 +73,10 @@ const LIKES_KEY = "stellars-library-likes";
 ========================================================= */
 
 let isSuperAdmin = false;
+let isActiveMember = false;
+let stopMemoriesListener = null;
+let editingMemoryId = null;
+const memoryCache = new Map();
 
 
 /* =========================================================
@@ -86,6 +92,9 @@ const memoryPhotoInput = document.getElementById("memoryPhoto");
 const memoryCategoryInput = document.getElementById("memoryCategory");
 const memoryTitleInput = document.getElementById("memoryTitle");
 const memoryDescriptionInput = document.getElementById("memoryDescription");
+const memoryVisibilityInput = document.getElementById("memoryVisibility");
+const memoryPublicConsentInput = document.getElementById("memoryPublicConsent");
+const modalTitle = document.getElementById("modalTitle");
 const modalPreview = document.getElementById("modalPreview");
 const submitBtn = document.querySelector(".modal-submit");
 
@@ -294,12 +303,63 @@ function clearPreview() {
 }
 
 
-function openModal() {
+function requestMemberSignIn() {
+    const accountButton = document.getElementById("siteAccountButton");
+    const loginButton = document.getElementById("siteAccountLoginButton");
+    if (accountButton && loginButton) {
+        accountButton.click();
+        loginButton.click();
+    } else {
+        alert("Sign in with an active STELLARS account to upload a memory.");
+    }
+}
+
+function openModal(memory = null) {
+    if (!isActiveMember) {
+        requestMemberSignIn();
+        return;
+    }
+
+    editingMemoryId = memory?.id || null;
+    memoryForm.reset();
+    clearPreview();
+
+    memoryPhotoInput.required = !memory;
+    memoryVisibilityInput.value = "public";
+    memoryPublicConsentInput.checked = false;
+    memoryPublicConsentInput.disabled = false;
+
+    if (memory) {
+        modalTitle.textContent = "Edit a Memory";
+        memoryCategoryInput.value = memory.category || "";
+        memoryTitleInput.value = memory.title || "";
+        memoryDescriptionInput.value = memory.description || "";
+        memoryPublicConsentInput.checked = true;
+        memoryPublicConsentInput.disabled = true;
+        submitBtn.textContent = "Save Changes";
+
+        if (memory.imageUrl) {
+            const preview = resolveMediaType(memory) === "video"
+                ? document.createElement("video")
+                : document.createElement("img");
+            preview.src = memory.imageUrl;
+            preview.alt = memory.title || "Existing memory";
+            if (preview.tagName === "VIDEO") {
+                preview.controls = true;
+                preview.muted = true;
+                preview.playsInline = true;
+            }
+            modalPreview.appendChild(preview);
+            modalPreview.classList.add("show");
+        }
+    } else {
+        modalTitle.textContent = "Add a Memory";
+        submitBtn.textContent = "Save Memory";
+    }
 
     modalOverlay.classList.add("open");
     modalOverlay.setAttribute("aria-hidden", "false");
     document.body.classList.add("modal-open");
-
 }
 
 
@@ -311,6 +371,10 @@ function closeModal() {
 
     memoryForm.reset();
     clearPreview();
+    editingMemoryId = null;
+    memoryPhotoInput.required = true;
+    memoryPublicConsentInput.disabled = false;
+    modalTitle.textContent = "Add a Memory";
 
     submitBtn.disabled = false;
     submitBtn.textContent = "Save Memory";
@@ -322,7 +386,13 @@ function closeModal() {
    ADD MEMORY MODAL EVENTS
 ========================================================= */
 
-addMemoryBtn.addEventListener("click", openModal);
+addMemoryBtn.addEventListener("click", () => {
+    if (!isActiveMember) {
+        requestMemberSignIn();
+        return;
+    }
+    openModal();
+});
 
 modalCloseBtn.addEventListener("click", closeModal);
 
@@ -449,47 +519,85 @@ function saveLikedIds(ids) {
 ========================================================= */
 
 function updateDeleteButtons() {
+    document.querySelectorAll(".memory-delete, .memory-edit").forEach((button) => {
+        button.style.display = isSuperAdmin ? "flex" : "none";
+    });
 
-    document
-        .querySelectorAll(".memory-delete")
-        .forEach((button) => {
-            button.style.display = isSuperAdmin ? "flex" : "none";
+    if (addMemoryBtn) {
+        addMemoryBtn.innerHTML = isActiveMember
+            ? '<i class="bx bx-plus"></i> Add Memory'
+            : '<i class="bx bx-lock-alt"></i> Sign in to upload';
+        addMemoryBtn.setAttribute("aria-label", isActiveMember ? "Add Memory" : "Sign in to upload a memory");
+    }
+
+    document.querySelectorAll(".memory-like").forEach(button => {
+        button.style.display = isActiveMember ? "flex" : "none";
+        button.disabled = !isActiveMember;
+        button.title = isActiveMember ? "Like memory" : "Sign in to use member features";
+    });
+}
+
+function startMemoriesListener() {
+    if (stopMemoriesListener) {
+        stopMemoriesListener();
+        stopMemoriesListener = null;
+    }
+    memoryCache.clear();
+
+    // Guest queries must explicitly constrain results to public records.
+    const memoriesQuery = isActiveMember
+        ? query(memoriesRef, orderBy("createdAt", "desc"))
+        : query(memoriesRef, where("visibility", "==", "public"), orderBy("createdAt", "desc"));
+
+    stopMemoriesListener = onSnapshot(memoriesQuery, (snapshot) => {
+        libraryGrid.querySelectorAll(".cloud-memory").forEach((card) => {
+            card.querySelectorAll("video").forEach((video) => video.pause());
+            card.remove();
         });
 
+        memoryCache.clear();
+        snapshot.forEach((memoryDoc) => {
+            const memory = { id: memoryDoc.id, ...memoryDoc.data() };
+            memoryCache.set(memory.id, memory);
+            libraryGrid.appendChild(buildMemoryCard(memory));
+        });
+
+        applyLikedState();
+        updateDeleteButtons();
+        sembunyikanLoading();
+    }, (error) => {
+        console.error("Firestore Library read failed:", error);
+        libraryGrid.querySelectorAll(".cloud-memory").forEach(card => card.remove());
+        sembunyikanLoading();
+    });
 }
 
 onAuthStateChanged(auth, async (user) => {
-
-    // Hide delete controls until the shared account role is verified.
+    isActiveMember = false;
     isSuperAdmin = false;
     updateDeleteButtons();
 
-    if (!user) return;
+    if (user) {
+        try {
+            const profileSnapshot = await getDoc(doc(db, "users", user.uid));
+            if (auth.currentUser?.uid !== user.uid) return;
 
-    try {
-
-        const profileSnapshot = await getDoc(doc(db, "users", user.uid));
-
-        // Ignore a stale lookup if the signed-in account changed meanwhile.
-        if (auth.currentUser?.uid !== user.uid) return;
-
-        const profile = profileSnapshot.exists()
-            ? profileSnapshot.data()
-            : null;
-
-        isSuperAdmin = !!profile &&
-            profile.isActive === true &&
-            profile.role === "superAdmin";
-
-    } catch (error) {
-
-        console.error("Could not verify Library superAdmin role:", error);
-        isSuperAdmin = false;
-
+            const profile = profileSnapshot.exists() ? profileSnapshot.data() : null;
+            const allowedRoles = ["student", "admin", "superAdmin", "super_admin"];
+            isActiveMember = !!profile &&
+                profile.isActive === true &&
+                allowedRoles.includes(profile.role);
+            isSuperAdmin = isActiveMember &&
+                ["superAdmin", "super_admin"].includes(profile.role);
+        } catch (error) {
+            console.error("Could not verify Library member role:", error);
+            isActiveMember = false;
+            isSuperAdmin = false;
+        }
     }
 
     updateDeleteButtons();
-
+    startMemoriesListener();
 });
 
 
@@ -548,6 +656,16 @@ function buildMemoryCard(memory) {
 
 
     /* ---------- DELETE ---------- */
+
+    const editButton = document.createElement("button");
+    editButton.type = "button";
+    editButton.className = "memory-edit";
+    editButton.dataset.action = "edit";
+    editButton.title = "Edit memory";
+    editButton.setAttribute("aria-label", "Edit memory");
+    editButton.style.display = isSuperAdmin ? "flex" : "none";
+    editButton.innerHTML = '<i class="bx bx-edit-alt"></i>';
+    imageWrapper.appendChild(editButton);
 
     const deleteButton = document.createElement("button");
 
@@ -722,27 +840,42 @@ memoryForm.addEventListener("submit", async (event) => {
 
     event.preventDefault();
 
+    if (!isActiveMember) {
+        requestMemberSignIn();
+        return;
+    }
+    if (editingMemoryId && !isSuperAdmin) {
+        alert("Only the active SuperAdmin can edit existing Library memories.");
+        return;
+    }
+
     const file = memoryPhotoInput.files[0];
     const category = memoryCategoryInput.value.trim();
     const title = memoryTitleInput.value.trim();
     const description = memoryDescriptionInput.value.trim();
 
-
-    /* VALIDATION */
-
-    if (!file || !category || !title || !description) {
-        alert("Please complete all fields.");
+    if ((!editingMemoryId && !file) || !category || !title || !description) {
+        alert("Please complete all required fields.");
+        return;
+    }
+    if (!memoryPublicConsentInput.checked && !editingMemoryId) {
+        alert("Please confirm that you have permission to publish this media publicly.");
+        return;
+    }
+    if (memoryVisibilityInput.value !== "public") {
+        alert("Class Only uploads are unavailable until protected media delivery is configured.");
         return;
     }
 
-    const fileError = validateFile(file);
-
-    if (fileError) {
-        alert(fileError);
-        return;
+    if (file) {
+        const fileError = validateFile(file);
+        if (fileError) {
+            alert(fileError);
+            return;
+        }
     }
 
-    const mediaType = getMediaType(file);
+    const mediaType = file ? getMediaType(file) : null;
 
 
     /* BUTTON */
@@ -752,54 +885,63 @@ memoryForm.addEventListener("submit", async (event) => {
 
 
     try {
+        let upload = null;
 
-        /* 1. CLOUDINARY */
-
-        const upload = await uploadToCloudinary(
-            file,
-            mediaType,
-            (percent) => {
+        if (file) {
+            upload = await uploadToCloudinary(file, mediaType, (percent) => {
                 submitBtn.textContent = `Uploading... ${percent}%`;
+            });
+        }
+
+        submitBtn.textContent = editingMemoryId ? "Updating..." : "Saving...";
+
+        if (editingMemoryId) {
+            const payload = {
+                category,
+                title,
+                description,
+                visibility: "public",
+                publicConsent: true,
+                updatedAt: serverTimestamp(),
+                updatedBy: auth.currentUser.uid
+            };
+            if (upload) {
+                payload.imageUrl = upload.imageUrl;
+                payload.mediaType = mediaType;
+                payload.cloudinaryPublicId = upload.publicId;
             }
-        );
+            await updateDoc(doc(db, "memories", editingMemoryId), payload);
+        } else {
+            if (!upload) throw new Error("Please select a photo or video.");
+            await addDoc(memoriesRef, {
+                imageUrl: upload.imageUrl,
+                mediaType,
+                cloudinaryPublicId: upload.publicId,
+                category,
+                title,
+                description,
+                createdAt: serverTimestamp(),
+                uploadedBy: auth.currentUser.uid,
+                visibility: "public",
+                publicConsent: true
+            });
+        }
 
-        submitBtn.textContent = "Saving...";
-
-
-        /* 2. FIRESTORE */
-
-        await addDoc(memoriesRef, {
-
-            imageUrl: upload.imageUrl,   // tetap dipakai sebagai URL media
-            mediaType: mediaType,        // "image" atau "video"
-            cloudinaryPublicId: upload.publicId,
-            category: category,
-            title: title,
-            description: description,
-            createdAt: serverTimestamp()
-
-        });
-
+        const isEditing = Boolean(editingMemoryId);
         closeModal();
-
-
-        /* 3. POPUP SUKSES */
 
         tampilkanPopup({
             tipe: "sukses",
-            judul: "Memori tersimpan!",
-            pesan: mediaType === "video"
-                ? "Videomu sudah masuk ke Library."
-                : "Fotomu sudah masuk ke Library.",
-            urlPreview: upload.imageUrl,
-            jenis: mediaType,
-            onUtama: () => {
-                libraryGrid.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start"
-                });
-            },
-            onKedua: openModal
+            judul: isEditing ? "Memory updated!" : "Memory saved!",
+            pesan: isEditing
+                ? "The Library memory has been updated."
+                : (mediaType === "video"
+                    ? "Your video has been added to the Library."
+                    : "Your photo has been added to the Library."),
+            urlPreview: upload?.imageUrl || null,
+            jenis: mediaType || "image",
+            onUtama: () => libraryGrid.scrollIntoView({ behavior: "smooth", block: "start" }),
+            onKedua: isActiveMember ? () => openModal() : null
         });
 
     } catch (error) {
@@ -824,61 +966,10 @@ memoryForm.addEventListener("submit", async (event) => {
 
 /* =========================================================
    FIRESTORE LISTENER
+   Started only after the visitor/member role is resolved.
 ========================================================= */
 
-const memoriesQuery = query(
-    memoriesRef,
-    orderBy("createdAt", "desc")
-);
 
-
-onSnapshot(
-
-    memoriesQuery,
-
-    (snapshot) => {
-
-        // Hapus hanya card Firebase, card HTML statis tidak disentuh.
-        libraryGrid
-            .querySelectorAll(".cloud-memory")
-            .forEach((card) => {
-
-                // hentikan video sebelum card dibuang
-                card.querySelectorAll("video").forEach((video) => {
-                    video.pause();
-                });
-
-                card.remove();
-
-            });
-
-        snapshot.forEach((memoryDoc) => {
-
-            const memory = {
-                id: memoryDoc.id,
-                ...memoryDoc.data()
-            };
-
-            libraryGrid.appendChild(buildMemoryCard(memory));
-
-        });
-
-        applyLikedState();
-        updateDeleteButtons();
-        sembunyikanLoading();
-
-    },
-
-    (error) => {
-
-        console.error("Firestore error:", error);
-        console.error("Check Firestore Rules and database configuration.");
-
-        sembunyikanLoading();
-
-    }
-
-);
 
 
 /* =========================================================
@@ -955,6 +1046,15 @@ libraryGrid.addEventListener("click", async (event) => {
     const action = button.dataset.action;
 
 
+    /* EDIT */
+
+    if (action === "edit") {
+        if (!isSuperAdmin) return;
+        const memory = memoryCache.get(card.dataset.id);
+        if (memory) openModal(memory);
+        return;
+    }
+
     /* DELETE */
 
     if (action === "delete") {
@@ -969,6 +1069,7 @@ libraryGrid.addEventListener("click", async (event) => {
     /* LIKE */
 
     if (action === "like") {
+        if (!isActiveMember) return;
 
         const cardId = card.dataset.id;
         const likedIds = getLikedIds();
