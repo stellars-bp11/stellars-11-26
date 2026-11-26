@@ -278,11 +278,29 @@
         const article = document.createElement("article");
         article.className = "birthday-preview-card";
 
-        const img = document.createElement("img");
-        img.src = person.image;
-        img.alt = person.name;
-        img.loading = "lazy";
-        img.onerror = function () { this.onerror = null; this.src = person.fallbackImage || FALLBACK; };
+        const photoGroup = document.createElement("div");
+        photoGroup.className = "birthday-preview-people " +
+            (sameDayPeople.length > 1 ? "is-shared" : "is-single");
+
+        sameDayPeople.forEach(member => {
+            const figure = document.createElement("figure");
+            figure.className = "birthday-preview-person";
+
+            const img = document.createElement("img");
+            img.src = member.image;
+            img.alt = member.name;
+            img.loading = "lazy";
+            img.onerror = function () {
+                this.onerror = null;
+                this.src = member.fallbackImage || FALLBACK;
+            };
+
+            const caption = document.createElement("figcaption");
+            caption.textContent = member.name;
+
+            figure.append(img, caption);
+            photoGroup.append(figure);
+        });
 
         const copy = document.createElement("div");
         copy.className = "birthday-preview-copy";
@@ -290,12 +308,14 @@
         const kicker = document.createElement("span");
         kicker.className = "birthday-preview-kicker";
         kicker.textContent = sameDayPeople.length > 1
-            ? "NEXT UP · " + sameDayPeople.length + " STARS SHARE THIS DAY"
+            ? "SHARED BIRTHDAY · " + sameDayPeople.length + " STARS"
             : "NEXT UP IN THE CONSTELLATION";
 
         const name = document.createElement("h3");
         name.className = "birthday-preview-name";
-        name.textContent = person.name;
+        name.textContent = sameDayPeople.length > 1
+            ? "Two stars. One celebration."
+            : person.name;
 
         const date = document.createElement("p");
         date.className = "birthday-preview-date";
@@ -342,18 +362,8 @@
         }
 
         copy.append(kicker, name, date, countdown);
+        article.append(photoGroup, copy);
 
-        if (sameDayPeople.length > 1) {
-            const shared = document.createElement("p");
-            shared.className = "birthday-preview-shared";
-            shared.textContent = "Also celebrating: " + sameDayPeople
-                .filter(item => item.name !== person.name)
-                .map(item => item.name)
-                .join(", ");
-            copy.append(shared);
-        }
-
-        article.append(img, copy);
         if (updateCountdown()) {
             const intervalId = window.setInterval(() => {
                 if (!updateCountdown()) window.clearInterval(intervalId);
@@ -362,7 +372,7 @@
         return article;
     }
 
-    function personCard(person, next) {
+        function personCard(person, next) {
         const article = document.createElement("article");
         article.className = "birthday-person-card";
 
