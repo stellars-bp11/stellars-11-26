@@ -4,12 +4,14 @@ import {
     collection,
     doc,
     getDoc,
+    getDocs,
     onSnapshot,
     orderBy,
     query,
     serverTimestamp,
     setDoc,
-    updateDoc
+    updateDoc,
+    writeBatch
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 
@@ -47,12 +49,21 @@ const elements = {
     characterCount: document.getElementById("lettersCharacterCount"),
     formMessage: document.getElementById("lettersFormMessage"),
     submitButton: document.getElementById("lettersSubmitButton"),
-    toast: document.getElementById("lettersToast")
+    toast: document.getElementById("lettersToast"),
+    safetyButton: document.getElementById("lettersSafetyReviewButton"),
+    safetyPanel: document.getElementById("lettersSafetyPanel"),
+    safetyClose: document.getElementById("lettersSafetyCloseButton"),
+    safetyStatus: document.getElementById("lettersSafetyStatus"),
+    safetyFeed: document.getElementById("lettersSafetyFeed")
 };
 
 let currentUser = null;
 let currentProfile = null;
 let myLetter = null;
+let ownLetterId = null;
+let hasPrivateOwnerRecord = false;
+let canReviewSafety = false;
+let cachedLetters = [];
 let feedLoaded = false;
 let unsubscribeLetters = null;
 let toastTimeout = null;
@@ -204,7 +215,11 @@ function renderLetters(snapshot) {
         ...item.data()
     }));
 
-    myLetter = letters.find(letter => letter.id === currentUser?.uid) || null;
+    cachedLetters = letters;
+    myLetter = letters.find(letter =>
+        letter.id === ownLetterId ||
+        (!hasPrivateOwnerRecord && letter.id === currentUser?.uid)
+    ) || null;
     feedLoaded = true;
     elements.feed.replaceChildren();
     elements.count.textContent = letters.length + " LETTER" + (letters.length === 1 ? "" : "S");
@@ -232,6 +247,89 @@ function renderSignedOutState() {
         "bx-lock-alt"
     );
     updateComposerState();
+}
+
+async function loadSafetyReview() {
+    if (!canReviewSafety) return;
+
+    elements.safetyPanel.hidden = false;
+    elements.safetyStatus.textContent = "Loading private authorship records…";
+    elements.safetyFeed.replaceChildren();
+
+    try {
+        const ownerSnapshot = await getDocs(collection(db, "openLetterOwners"));
+        const ownersByLetterId = new Map(
+            ownerSnapshot.docs.map(item => [item.data().letterId, {
+                uid: item.id,
+                ...item.data()
+            }])
+        );
+
+        const records = [];
+        for (const letter of cachedLetters) {
+            const owner = ownersByLetterId.get(letter.id);
+            let authorName = owner?.fullName || "";
+            const legacy = !owner;
+
+            if (!authorName && legacy) {
+                try {
+                    const profileSnapshot = await getDoc(doc(db, "users", letter.id));
+                    authorName = profileSnapshot.exists()
+                        ? String(profileSnapshot.data().fullName || "")
+                        : "";
+                } catch (profileError) {
+                    console.warn("Could not resolve a legacy letter author:", profileError);
+                }
+            }
+
+            records.push({ letter, authorName: authorName || "Author not resolved", legacy });
+        }
+
+        elements.safetyFeed.replaceChildren();
+        if (!records.length) {
+            elements.safetyStatus.textContent = "There are no letters to review.";
+            return;
+        }
+
+        records.forEach(({ letter, authorName, legacy }) => {
+            const card = document.createElement("article");
+            card.className = "letters-safety-card";
+
+            const top = document.createElement("div");
+            top.className = "letters-safety-card-top";
+
+            const name = document.createElement("strong");
+            name.textContent = authorName;
+
+            const tag = document.createElement("span");
+            tag.textContent = letter.isAnonymous
+                ? "PUBLISHED ANONYMOUSLY"
+                : "NAME SHOWN ON WALL";
+            top.append(name, tag);
+
+            const title = document.createElement("h4");
+            title.textContent = letter.title || "Untitled letter";
+
+            const message = document.createElement("p");
+            message.textContent = letter.message || "";
+
+            const note = document.createElement("small");
+            note.textContent = legacy
+                ? "Legacy entry · author resolved from its original account record"
+                : "Private author record · visible only to the designated moderator";
+
+            card.append(top, title, message, note);
+            elements.safetyFeed.append(card);
+        });
+
+        elements.safetyStatus.textContent =
+            "Private review view. Authorship is shown here only to the designated STELLARS SuperAdmin moderator.";
+    } catch (error) {
+        console.error("STELLARS Letters safety review failed:", error);
+        elements.safetyStatus.textContent = error?.code === "permission-denied"
+            ? "Access denied. Check the deployed Firestore Rules and this account’s canModerateLetters permission."
+            : "The private review list could not be loaded. Refresh and try again.";
+    }
 }
 
 function startLettersFeed() {
@@ -323,15 +421,49 @@ async function submitLetter(event) {
     setFormMessage("Saving your letter…", "info");
 
     try {
-        const ownLetterRef = doc(db, "openLetters", currentUser.uid);
+        const ownerRef = doc(db, "openLetterOwners", currentUser.uid);
 
-        if (myLetter) {
-            await updateDoc(ownLetterRef, payload);
-        } else {
-            await setDoc(ownLetterRef, {
+        if (myLetter && hasPrivateOwnerRecord) {
+            await updateDoc(doc(db, "openLetters", ownLetterId), payload);
+        } else if (myLetter) {
+            // Migrate this account's legacy UID-keyed letter to a random public document ID.
+            const newLetterRef = doc(collection(db, "openLetters"));
+            const batch = writeBatch(db);
+            batch.set(ownerRef, {
+                letterId: newLetterRef.id,
+                fullName: String(currentProfile.fullName || currentUser.displayName || "A STELLARS Star").trim().slice(0, 100),
+                createdAt: serverTimestamp()
+            });
+            batch.set(newLetterRef, {
+                ...payload,
+                createdAt: myLetter.createdAt || serverTimestamp()
+            });
+            batch.delete(doc(db, "openLetters", myLetter.id));
+            await batch.commit();
+            ownLetterId = newLetterRef.id;
+            hasPrivateOwnerRecord = true;
+        } else if (hasPrivateOwnerRecord && ownLetterId) {
+            await setDoc(doc(db, "openLetters", ownLetterId), {
                 ...payload,
                 createdAt: serverTimestamp()
             });
+        } else {
+            // New posts use random IDs; the private owner mapping is readable only by
+            // the author and the designated moderation account.
+            const newLetterRef = doc(collection(db, "openLetters"));
+            const batch = writeBatch(db);
+            batch.set(ownerRef, {
+                letterId: newLetterRef.id,
+                fullName: String(currentProfile.fullName || currentUser.displayName || "A STELLARS Star").trim().slice(0, 100),
+                createdAt: serverTimestamp()
+            });
+            batch.set(newLetterRef, {
+                ...payload,
+                createdAt: serverTimestamp()
+            });
+            await batch.commit();
+            ownLetterId = newLetterRef.id;
+            hasPrivateOwnerRecord = true;
         }
 
         elements.dialog.close();
@@ -355,6 +487,10 @@ elements.signInButton.addEventListener("click", () => {
     window.location.assign("letters.html?login=1");
 });
 elements.form.addEventListener("submit", submitLetter);
+elements.safetyButton.addEventListener("click", loadSafetyReview);
+elements.safetyClose.addEventListener("click", () => {
+    elements.safetyPanel.hidden = true;
+});
 elements.message.addEventListener("input", () => {
     elements.characterCount.textContent = elements.message.value.length + " / 2200";
 });
@@ -368,6 +504,12 @@ onAuthStateChanged(auth, async user => {
     currentUser = user;
     currentProfile = null;
     myLetter = null;
+    ownLetterId = null;
+    hasPrivateOwnerRecord = false;
+    canReviewSafety = false;
+    cachedLetters = [];
+    elements.safetyButton.hidden = true;
+    elements.safetyPanel.hidden = true;
     feedLoaded = false;
 
     if (unsubscribeLetters) {
@@ -402,6 +544,24 @@ onAuthStateChanged(auth, async user => {
         }
 
         currentProfile = profile;
+        canReviewSafety =
+            ["superAdmin", "super_admin"].includes(profile.role) &&
+            profile.canModerateLetters === true;
+        elements.safetyButton.hidden = !canReviewSafety;
+        elements.safetyPanel.hidden = true;
+
+        try {
+            const ownerSnapshot = await getDoc(doc(db, "openLetterOwners", user.uid));
+            hasPrivateOwnerRecord = ownerSnapshot.exists();
+            ownLetterId = hasPrivateOwnerRecord
+                ? String(ownerSnapshot.data().letterId || user.uid)
+                : user.uid;
+        } catch (ownerError) {
+            console.warn("Private Letters owner record is not available yet:", ownerError);
+            hasPrivateOwnerRecord = false;
+            ownLetterId = user.uid;
+        }
+
         startLettersFeed();
     } catch (error) {
         console.error("Could not verify STELLARS Letters membership:", error);
