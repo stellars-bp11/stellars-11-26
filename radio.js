@@ -314,7 +314,21 @@ function renderFeed(songs) {
         elements.feed.append(buildSongCard(song, song.uid));
     });
 
-    mySubmission = songs.find(song => song.uid === currentUser?.uid) || null;
+    const canParticipate = Boolean(currentUser && currentProfile?.isActive === true);
+    mySubmission = canParticipate
+        ? songs.find(song => song.uid === currentUser.uid) || null
+        : null;
+
+    if (!canParticipate) {
+        elements.mySongStatus.textContent = currentUser
+            ? "Only active STELLARS members can share or edit a song. You can still browse today's wall."
+            : "The song wall is open to everyone. Sign in with an active STELLARS account to share a song.";
+        elements.openButton.querySelector("span").textContent = "Share today's song";
+        elements.openButton.disabled = true;
+        elements.signInButton.hidden = Boolean(currentUser);
+        return;
+    }
+
     if (mySubmission) {
         elements.mySongStatus.textContent = `You've shared “${mySubmission.songTitle}” by ${mySubmission.artistName}. You can edit it until the daily reset.`;
         elements.openButton.querySelector("span").textContent = "Edit today's song";
@@ -323,19 +337,18 @@ function renderFeed(songs) {
         elements.openButton.querySelector("span").textContent = "Share today's song";
     }
     elements.openButton.disabled = false;
+    elements.signInButton.hidden = true;
 }
 
 function renderSignedOutState() {
-    elements.feed.replaceChildren();
-    elements.count.textContent = "Sign in to see today's songs";
-    elements.empty.hidden = true;
-    elements.authGate.hidden = false;
-    elements.authGate.querySelector("strong").textContent = "Sign in to see today's song wall";
-    elements.authGate.querySelector("p").textContent = "Today's submissions are shared with active STELLARS members.";
+    elements.authGate.hidden = true;
     elements.footnote.hidden = false;
-    elements.mySongStatus.textContent = "Sign in with your STELLARS account to share a song with everyone.";
+    elements.mySongStatus.textContent = currentUser
+        ? "Only active STELLARS members can share or edit a song. You can still browse today's wall."
+        : "The song wall is open to everyone. Sign in with an active STELLARS account to share a song.";
     elements.openButton.disabled = true;
-    elements.signInButton.hidden = false;
+    elements.signInButton.hidden = Boolean(currentUser);
+    startDailyFeed();
 }
 
 function startDailyFeed() {
@@ -349,8 +362,9 @@ function startDailyFeed() {
     elements.feed.replaceChildren();
     elements.empty.hidden = true;
     elements.count.textContent = "Loading today's songs…";
-    elements.openButton.disabled = false;
-    elements.signInButton.hidden = true;
+    const canParticipate = Boolean(currentUser && currentProfile?.isActive === true);
+    elements.openButton.disabled = !canParticipate;
+    elements.signInButton.hidden = Boolean(currentUser);
 
     const dailySongs = collection(db, "radioDays", activeDayKey, "songs");
     const dailyQuery = query(dailySongs, orderBy("createdAt", "desc"));
@@ -638,11 +652,6 @@ onAuthStateChanged(auth, async user => {
         const profile = profileSnapshot.exists() ? profileSnapshot.data() : null;
         if (!profile || profile.isActive !== true) {
             renderSignedOutState();
-            elements.count.textContent = "Active membership required";
-            elements.mySongStatus.textContent = "This account does not have an active STELLARS member profile.";
-            elements.authGate.querySelector("strong").textContent = "Active STELLARS membership required";
-            elements.authGate.querySelector("p").textContent = "Only active member accounts can view and share today's songs.";
-            elements.signInButton.hidden = true;
             return;
         }
 
@@ -651,8 +660,8 @@ onAuthStateChanged(auth, async user => {
     } catch (error) {
         console.error("Could not verify STELLARS Radio membership:", error);
         renderSignedOutState();
-        elements.mySongStatus.textContent = "Membership could not be checked. Please refresh and try again.";
-        elements.count.textContent = "Unable to verify membership";
+        elements.mySongStatus.textContent = "Membership could not be checked. You can still browse today's song wall.";
+
     }
 });
 
