@@ -56,6 +56,8 @@ let player = { x: 8, y: 9, facing: "down", name: "Star Visitor" };
 let save = { job: "", coins: 100, xp: 0, townProgress: 0, homeDecor: 0 };
 let storageKey = SAVE_PREFIX + ":guest";
 let playerUser = null;
+let canPlayWorld = false;
+let lastAccessNoticeAt = 0;
 let walkTarget = null;
 let lastMoveAt = 0;
 let lastKeyboardMoveAt = 0;
@@ -133,7 +135,43 @@ function showToast(message) {
   toastTimer = setTimeout(() => toast.classList.remove("show"), 2100);
 }
 
+function requireWorldMember() {
+  if (canPlayWorld) return true;
+  const now = Date.now();
+  if (now - lastAccessNoticeAt > 1800) {
+    showToast("Preview mode — sign in with an active STELLARS account to play.");
+    lastAccessNoticeAt = now;
+  }
+  return false;
+}
+
+function updateWorldAccessUI() {
+  document.body.classList.toggle("world-guest-preview", !canPlayWorld);
+  const banner = $("worldPreviewBanner");
+  if (banner) banner.hidden = canPlayWorld;
+
+  [
+    $("chooseJobButton"),
+    $("mobileInteract"),
+    ...document.querySelectorAll("[data-move], [data-place]")
+  ].forEach(control => {
+    if (!control) return;
+    control.disabled = !canPlayWorld;
+    control.setAttribute("aria-disabled", String(!canPlayWorld));
+  });
+
+  $("saveState").textContent = canPlayWorld ? "● MEMBER SAVE ON" : "● PREVIEW MODE";
+  if (!canPlayWorld) {
+    $("taskHint").textContent = "You're viewing a preview. Sign in with an active STELLARS account to explore and play.";
+  } else {
+    $("taskHint").textContent = save.job
+      ? "Your path: " + (jobs.find(item => item.id === save.job)?.name || "your profession") + ". Find your workplace and press E."
+      : "Choose a profession, then explore the town.";
+  }
+}
+
 function setJob(id) {
+  if (!requireWorldMember()) return;
   const job = jobs.find(item => item.id === id);
   if (!job) return;
   save.job = job.id;
@@ -144,6 +182,7 @@ function setJob(id) {
 }
 
 function openJobs() {
+  if (!requireWorldMember()) return;
   const grid = $("jobGrid");
   grid.replaceChildren();
   jobs.forEach(job => {
@@ -437,6 +476,7 @@ function isBlocked(x, y) {
 }
 
 function step(dx, dy) {
+  if (!requireWorldMember()) return false;
   const nx = player.x + dx;
   const ny = player.y + dy;
   if (isBlocked(nx, ny)) return false;
@@ -475,6 +515,7 @@ function moveTowardTarget() {
 }
 
 function setTargetFromPointer(event) {
+  if (!requireWorldMember()) return;
   const rect = canvas.getBoundingClientRect();
   const sx = (event.clientX - rect.left) * canvas.width / rect.width;
   const sy = (event.clientY - rect.top) * canvas.height / rect.height;
@@ -517,6 +558,7 @@ function addReward(coins, xp, progress, message) {
 }
 
 function interact() {
+  if (!requireWorldMember()) return;
   const now = Date.now();
   if (now - lastActionAt < 1100) {
     showToast("One task at a time, Star!");
@@ -657,6 +699,7 @@ function bindControls() {
 
   document.querySelectorAll("[data-place]").forEach(button => {
     button.addEventListener("click", () => {
+      if (!requireWorldMember()) return;
       const building = buildings.find(item => item.id === button.dataset.place);
       if (!building) return;
       const target = { x: building.x, y: building.y + 1 };
@@ -667,23 +710,38 @@ function bindControls() {
   });
 }
 
-async function loadMemberName(user) {
-  if (!user) return "Star Visitor";
+async function loadMemberProfile(user) {
+  if (!user) return { name: "Star Visitor", active: false };
   try {
     const snapshot = await getDoc(doc(db, "users", user.uid));
-    if (snapshot.exists()) return snapshot.data().fullName || user.displayName || "STELLARS Member";
+    if (!snapshot.exists()) return { name: "Star Visitor", active: false };
+    const profile = snapshot.data();
+    const validRole = ["student", "admin", "superAdmin", "super_admin"].includes(profile.role);
+    return {
+      name: profile.fullName || user.displayName || "STELLARS Member",
+      active: profile.isActive === true && validRole
+    };
   } catch (error) {
-    console.warn("Could not load STELLARS profile name:", error);
+    console.warn("Could not load STELLARS profile:", error);
+    return { name: user.displayName || "Star Visitor", active: false };
   }
-  return user.displayName || "STELLARS Member";
 }
 
 function startAuth() {
+  let authSequence = 0;
   onAuthStateChanged(auth, async user => {
+    const sequence = ++authSequence;
     playerUser = user || null;
-    player.name = await loadMemberName(user);
-    storageKey = SAVE_PREFIX + (user ? ":member:" + user.uid : ":guest");
+    const profile = await loadMemberProfile(user);
+    if (sequence !== authSequence || auth.currentUser?.uid !== (user?.uid || null)) return;
+
+    canPlayWorld = profile.active;
+    player.name = canPlayWorld ? profile.name : "Star Visitor";
+    storageKey = canPlayWorld && user
+      ? SAVE_PREFIX + ":member:" + user.uid
+      : SAVE_PREFIX + ":guest-preview";
     applySave();
+    updateWorldAccessUI();
   });
 }
 
