@@ -1,0 +1,54 @@
+.letters-launcher {
+    position: fixed;
+    z-index: 950;
+    right: 26px;
+    bottom: 26px;
+    width: 58px;
+    height: 58px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(255,255,255,.72);
+    border-radius: 50%;
+    color: #fff;
+    background: linear-gradient(145deg, #8b79dc, #483486);
+    box-shadow: 0 12px 30px rgba(38,27,89,.25), inset 0 1px 0 rgba(255,255,255,.25);
+    text-decoration: none;
+    transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+}
+.letters-launcher:hover {
+    transform: translateY(-3px);
+    filter: brightness(1.06);
+    box-shadow: 0 16px 34px rgba(38,27,89,.31), inset 0 1px 0 rgba(255,255,255,.3);
+}
+.letters-launcher:focus-visible { outline: 3px solid #d7ceff; outline-offset: 4px; }
+.letters-launcher svg { width: 25px; height: 25px; }
+.letters-launcher-tooltip {
+    position: absolute;
+    right: 70px;
+    padding: 9px 12px;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 9px;
+    color: #fff;
+    background: #2e2656;
+    box-shadow: 0 8px 24px rgba(24,19,57,.18);
+    font: 500 11px 'Ubuntu', sans-serif;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(5px);
+    transition: opacity .16s ease, transform .16s ease, visibility .16s ease;
+}
+.letters-launcher:hover .letters-launcher-tooltip,
+.letters-launcher:focus-visible .letters-launcher-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+}
+@media (max-width: 600px) {
+    .letters-launcher { right: 16px; bottom: 16px; width: 53px; height: 53px; }
+    .letters-launcher-tooltip { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .letters-launcher, .letters-launcher-tooltip { transition: none; }
+    .letters-launcher:hover { transform: none; }
+}
