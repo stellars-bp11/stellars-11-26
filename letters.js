@@ -406,7 +406,7 @@ function createPrivateMailCard({ letter, mode }) {
     status.className = "private-mail-status";
     status.textContent = mode === "inbox"
         ? (isUnread ? "UNREAD" : "READ")
-        : (letter.readAt ? "READ BY RECIPIENT" : "NOT OPENED YET");
+        : "SENT PRIVATELY";
 
     const title = document.createElement("h3");
     title.textContent = letter.title || "A little note";
@@ -488,28 +488,22 @@ async function loadPrivateSent() {
             limit(100)
         );
         const mappingSnapshot = await getDocs(sentQuery);
-        const letters = await Promise.all(mappingSnapshot.docs.map(async item => {
-            const letterSnapshot = await getDoc(doc(db, "privateLetters", item.id));
-            return letterSnapshot.exists()
-                ? { id: letterSnapshot.id, ...letterSnapshot.data() }
-                : null;
-        }));
-        const sent = letters.filter(Boolean).sort((a, b) =>
+        const sent = mappingSnapshot.docs.map(item => ({
+            id: item.id,
+            ...item.data()
+        })).sort((a, b) =>
             (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0)
         );
 
-        const directory = await loadMemberDirectory();
-        const membersByUid = new Map(directory.map(member => [member.uid, member]));
         elements.sentStatus.textContent = sent.length
             ? `${sent.length} private letter(s) sent`
             : "You have not sent a private letter yet.";
 
         sent.forEach(letter => {
-            const recipient = membersByUid.get(letter.recipientUid);
             elements.sentList.append(createPrivateMailCard({
                 letter: {
                     ...letter,
-                    recipientName: recipient?.fullName || "STELLARS member"
+                    recipientName: letter.recipientName || "STELLARS member"
                 },
                 mode: "sent"
             }));
@@ -517,7 +511,7 @@ async function loadPrivateSent() {
     } catch (error) {
         console.error("Could not load sent private letters:", error);
         elements.sentStatus.textContent = error?.code === "permission-denied"
-            ? "Sent letters access denied. Publish the latest Firestore Rules, then refresh."
+            ? "Sent access denied for your private sender archive. Publish the latest Firestore Rules, then refresh."
             : "Your sent letters could not be loaded. Please refresh and try again.";
     }
 }
@@ -583,6 +577,12 @@ async function submitPrivateLetter(event) {
         });
         batch.set(senderMapRef, {
             letterId: letterRef.id,
+            recipientUid: selectedRecipient.uid,
+            recipientName: selectedRecipient.fullName,
+            senderName,
+            isAnonymous,
+            title,
+            message,
             createdAt: serverTimestamp()
         });
         await batch.commit();
