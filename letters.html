@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="responsive.css">
     <link rel="stylesheet" href="radio.css?v=radio-navbar-layer-fix-20261125">
     <link rel="stylesheet" href="playful-theme.css?v=simple-motion-20261125">
-    <link rel="stylesheet" href="letters.css?v=open-letters-safety-v2-20261126">
+    <link rel="stylesheet" href="letters.css?v=private-mail-v3-20261126">
     <link rel="icon" type="image/svg+xml" href="favicon.svg?v=stellars-constellation-20261125">
     <link rel="stylesheet" href="navbar-unification.css?v=full-width-v1-20261126">
 </head>
@@ -80,7 +80,22 @@
             </div>
         </section>
 
-        <section class="letters-compose-section" aria-labelledby="letters-compose-title">
+        <nav class="letters-view-tabs" id="lettersViewTabs" role="tablist" aria-label="Letters mailbox">
+            <button type="button" class="letters-view-tab is-active" data-letters-view="open" role="tab" aria-selected="true">
+                <i class="bx bx-world" aria-hidden="true"></i><span>Open Letters</span>
+            </button>
+            <button type="button" class="letters-view-tab" data-letters-view="write" role="tab" aria-selected="false">
+                <i class="bx bx-edit-alt" aria-hidden="true"></i><span>Write privately</span>
+            </button>
+            <button type="button" class="letters-view-tab" data-letters-view="inbox" role="tab" aria-selected="false">
+                <i class="bx bx-inbox" aria-hidden="true"></i><span>Received</span><b class="letters-tab-count" id="privateInboxTabCount" hidden>0</b>
+            </button>
+            <button type="button" class="letters-view-tab" data-letters-view="sent" role="tab" aria-selected="false">
+                <i class="bx bx-send" aria-hidden="true"></i><span>Sent</span>
+            </button>
+        </nav>
+
+        <section class="letters-compose-section" id="lettersComposeSection" aria-labelledby="letters-compose-title">
             <div class="letters-compose-copy">
                 <span class="letters-section-kicker">YOUR SPACE IN THE CONSTELLATION</span>
                 <h2 id="letters-compose-title">One star.<br><em>One letter.</em></h2>
@@ -96,7 +111,7 @@
             </div>
         </section>
 
-        <section class="letters-wall-section" aria-labelledby="letters-wall-title">
+        <section class="letters-wall-section" id="lettersWallSection" aria-labelledby="letters-wall-title">
             <div class="letters-wall-heading">
                 <div>
                     <span class="letters-section-kicker">WORDS LEFT IN OUR LITTLE UNIVERSE</span>
@@ -116,6 +131,62 @@
                     <p>Gathering the words shared by our stars.</p>
                 </div>
             </div>
+        </section>
+
+        <section class="private-letter-compose letters-private-view" id="privateLetterWriteSection" hidden aria-labelledby="privateLetterWriteTitle">
+            <div class="letters-private-heading">
+                <span class="letters-section-kicker">ONE NOTE / ONE PERSON</span>
+                <h2 id="privateLetterWriteTitle">Send a little <em>something.</em></h2>
+                <p>Choose one active STELLARS member. Your letter will go only to that person.</p>
+            </div>
+            <form id="privateLetterForm" class="private-letter-form">
+                <label for="privateRecipientSearch">To: recipient</label>
+                <input id="privateRecipientSearch" type="search" autocomplete="off" maxlength="100" placeholder="Search by full name or NIM..." required>
+                <div class="private-recipient-results" id="privateRecipientResults" hidden></div>
+                <div class="private-recipient-selected" id="privateRecipientSelected" hidden></div>
+                <p class="private-letter-helper" id="privateRecipientStatus">Search for a member by name or NIM, then select the correct person.</p>
+
+                <label for="privateLetterTitleInput">Subject <span>OPTIONAL</span></label>
+                <input id="privateLetterTitleInput" type="text" maxlength="90" placeholder="A little note for you...">
+
+                <label for="privateLetterMessageInput">Your letter</label>
+                <textarea id="privateLetterMessageInput" rows="8" maxlength="2200" required placeholder="Dear ..."></textarea>
+                <div class="letters-form-bottomline">
+                    <small id="privateLetterCharacterCount">0 / 2200</small>
+                    <label class="letters-anonymous-option" for="privateLetterAnonymousInput">
+                        <input id="privateLetterAnonymousInput" type="checkbox">
+                        <span>Send as Anonymous Star</span>
+                    </label>
+                </div>
+                <p class="private-letter-helper">The recipient will see your real name, or “Anonymous Star” when selected.</p>
+                <p class="letters-form-message" id="privateLetterFormMessage" role="status" aria-live="polite"></p>
+                <div class="letters-form-actions">
+                    <button class="letters-cancel-button" id="privateLetterResetButton" type="button">Clear</button>
+                    <button class="letters-primary-button" id="privateLetterSubmitButton" type="submit">
+                        <i class="bx bx-send" aria-hidden="true"></i><span>Send private letter</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="letters-private-view" id="privateLetterInboxSection" hidden aria-labelledby="privateLetterInboxTitle">
+            <div class="letters-private-heading">
+                <span class="letters-section-kicker">LETTERS ADDRESSED TO YOU</span>
+                <h2 id="privateLetterInboxTitle">Received <em>letters.</em></h2>
+                <p>Private notes sent directly to your STELLARS account.</p>
+            </div>
+            <p class="letters-private-status" id="privateInboxStatus" role="status" aria-live="polite">Your inbox will appear here.</p>
+            <div class="letters-private-list" id="privateInboxList"></div>
+        </section>
+
+        <section class="letters-private-view" id="privateLetterSentSection" hidden aria-labelledby="privateLetterSentTitle">
+            <div class="letters-private-heading">
+                <span class="letters-section-kicker">NOTES YOU HAVE SENT</span>
+                <h2 id="privateLetterSentTitle">Your <em>outbox.</em></h2>
+                <p>Keep track of the letters you have shared with someone.</p>
+            </div>
+            <p class="letters-private-status" id="privateSentStatus" role="status" aria-live="polite">Your sent letters will appear here.</p>
+            <div class="letters-private-list" id="privateSentList"></div>
         </section>
 
         <section class="letters-safety-panel" id="lettersSafetyPanel" hidden aria-labelledby="lettersSafetyTitle">
@@ -173,7 +244,7 @@
 
     <div class="letters-toast" id="lettersToast" role="status" aria-live="polite"></div>
 
-    <script type="module" src="letters.js?v=open-letters-safety-v2-20261126"></script>
+    <script type="module" src="letters.js?v=private-mail-v3-20261126"></script>
     <script type="module" src="account.js?v=account-security-v7-20261125"></script>
     <script src="letters-launcher.js?v=open-letters-drawer-v3-20261126" defer></script>
 </body>
