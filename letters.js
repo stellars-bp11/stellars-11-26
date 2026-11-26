@@ -320,8 +320,28 @@ function selectPrivateRecipient(member) {
     elements.recipientSearch.value = "";
     elements.recipientResults.replaceChildren();
     elements.recipientResults.hidden = true;
+    elements.recipientSelected.replaceChildren();
+
+    const icon = document.createElement("i");
+    icon.className = "bx bx-user-check";
+    icon.setAttribute("aria-hidden", "true");
+
+    const copy = document.createElement("span");
+    copy.className = "private-recipient-selected-copy";
+
+    const name = document.createElement("strong");
+    name.textContent = member.fullName;
+
+    const nim = document.createElement("small");
+    nim.textContent = `NIM ${member.nim}`;
+
+    const label = document.createElement("span");
+    label.className = "private-recipient-selected-label";
+    label.textContent = "RECIPIENT SELECTED";
+
+    copy.append(name, nim);
+    elements.recipientSelected.append(icon, copy, label);
     elements.recipientSelected.hidden = false;
-    elements.recipientSelected.textContent = `To: ${member.fullName} · NIM ${member.nim}`;
     elements.recipientStatus.textContent = "Recipient selected. Check the name and NIM before sending.";
 }
 
