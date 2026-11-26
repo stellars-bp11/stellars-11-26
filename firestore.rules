@@ -474,6 +474,98 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Birthday dates are shared only by explicit member opt-in.
+    // Store month/day only; never expose the birth year.
+    match /birthdayRoster/{memberId} {
+      allow get, list: if activeMember();
+      allow create, update: if activeMember() &&
+        request.auth.uid == memberId &&
+        request.resource.data.keys().hasAll([
+          'uid', 'fullName', 'birthMonthDay', 'sharedAt'
+        ]) &&
+        request.resource.data.keys().hasOnly([
+          'uid', 'fullName', 'birthMonthDay', 'sharedAt'
+        ]) &&
+        request.resource.data.uid == memberId &&
+        request.resource.data.fullName == get(profilePath()).data.fullName &&
+        request.resource.data.birthMonthDay is string &&
+        request.resource.data.birthMonthDay.matches('^(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])
+
+    match /nimIndex/{nim} {
+      allow read: if isAdmin();
+      allow create: if validStudentNimIndexCreate(nim);
+      allow update, delete: if false;
+    }
+
+    match /subjects/{subjectId} {
+      allow read: if activeMember();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /assessments/{assessmentId} {
+      allow get, list: if isAdmin() ||
+        (activeMember() && resource.data.isPublished == true);
+
+      allow create: if validAssessmentData() && (
+        (isAdmin() && request.resource.data.isPublished == false) ||
+        (canPublish() && request.resource.data.isPublished == true)
+      );
+
+      allow update: if validAssessmentData() && (
+        (isAdmin() &&
+         resource.data.isPublished == false &&
+         request.resource.data.isPublished == false) ||
+        canPublish()
+      );
+
+      allow delete: if canPublish() ||
+        (isAdmin() && resource.data.isPublished == false);
+    }
+
+    match /publishedImports/{uploadId} {
+      allow get, list: if isAdmin() ||
+        (isStudent() && resource.data.status == 'published');
+      allow create, update, delete: if canPublish();
+    }
+
+    match /scores/{scoreId} {
+      allow get, list: if isAdmin() ||
+        (isStudent() &&
+         resource.data.studentId == request.auth.uid &&
+         resource.data.isPublished == true &&
+         sourceImportIsPublished());
+
+      allow create: if validScoreData() && (
+        (isAdmin() && request.resource.data.isPublished == false) ||
+        (canPublish() && request.resource.data.isPublished == true)
+      );
+
+      allow update: if validScoreData() && (
+        (isAdmin() &&
+         resource.data.isPublished == false &&
+         request.resource.data.isPublished == false) ||
+        canPublish()
+      );
+
+      allow delete: if canPublish() ||
+        (isAdmin() && resource.data.isPublished == false);
+    }
+
+    match /uploads/{uploadId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /activityLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+      allow update, delete: if false;
+    }
+  }
+}) &&
+        request.resource.data.sharedAt is timestamp;
+      allow delete: if activeMember() && request.auth.uid == memberId;
+    }
+
     match /nimIndex/{nim} {
       allow read: if isAdmin();
       allow create: if validStudentNimIndexCreate(nim);
