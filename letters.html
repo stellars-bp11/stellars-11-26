@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#17152D">
+    <meta name="description" content="Letters from the Stars — an open letter wall for the STELLARS community.">
+    <title>Letters from the Stars — STELLARS</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="account.css?v=activation-v1-20261125">
+    <link rel="stylesheet" href="responsive.css">
+    <link rel="stylesheet" href="radio.css?v=radio-navbar-layer-fix-20261125">
+    <link rel="stylesheet" href="playful-theme.css?v=simple-motion-20261125">
+    <link rel="stylesheet" href="letters.css?v=open-letters-v1-20261126">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=stellars-constellation-20261125">
+</head>
+
+<body class="radio-page letters-page">
+    <header class="site-header">
+        <nav class="site-nav" aria-label="Main navigation">
+            <a href="index.html" class="logo">Stellars</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="lecturers.html">Lecturers</a></li>
+                <li><a href="crewmates.html">Crewmates</a></li>
+                <li><a href="library.html">Library</a></li>
+                <li><a href="academic.html">Academics</a></li>
+            </ul>
+            <div class="site-nav-actions">
+                <div class="site-account-wrap">
+                    <button class="site-account-button" id="siteAccountButton" type="button"
+                            aria-label="Open account menu" aria-haspopup="true" aria-expanded="false">
+                        <span id="siteAccountAvatar">★</span>
+                    </button>
+                    <div class="site-account-menu" id="siteAccountMenu" hidden>
+                        <div class="site-account-heading">
+                            <strong id="siteAccountName">Welcome, Star!</strong>
+                            <span id="siteAccountMeta">Sign in to see your profile</span>
+                        </div>
+                        <button id="siteAccountLoginButton" type="button">Sign In</button>
+                        <a id="siteAccountPortalLink" href="academic.html">Academic Results</a>
+                        <a id="siteAccountProfileLink" href="academic.html?profile=1" hidden>My Profile</a>
+                        <button id="siteAccountLogout" type="button" hidden>Log Out</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="letters-main">
+        <section class="letters-hero">
+            <div class="letters-hero-copy">
+                <p class="letters-kicker"><span>✦</span> STELLARS / OUTER SPACE / OPEN LETTERS</p>
+                <h1>Letters from<br><em>the Stars.</em></h1>
+                <p class="letters-hero-lead">Some words deserve a place beyond the moment they were written.</p>
+                <p class="letters-hero-description">A quiet corner for the thoughts you have been keeping, the things you never got to say, and the little pieces of your story you feel ready to share.</p>
+                <div class="letters-hero-tags">
+                    <span><i class="bx bx-envelope"></i> ONE LETTER PER STAR</span>
+                    <span><i class="bx bx-lock-open-alt"></i> STELLARS MEMBERS</span>
+                    <span><i class="bx bx-message-square-x"></i> NO REPLIES, JUST LETTERS</span>
+                </div>
+            </div>
+            <div class="letters-hero-art" aria-hidden="true">
+                <span class="letters-art-orbit orbit-a"></span>
+                <span class="letters-art-orbit orbit-b"></span>
+                <span class="letters-art-star star-a">✦</span>
+                <span class="letters-art-star star-b">✧</span>
+                <span class="letters-art-star star-c">✦</span>
+                <div class="letters-envelope">
+                    <i class="bx bx-envelope-open"></i>
+                    <span class="envelope-spark">✦</span>
+                </div>
+                <span class="letters-art-caption">A LITTLE PIECE OF YOU</span>
+            </div>
+        </section>
+
+        <section class="letters-compose-section" aria-labelledby="letters-compose-title">
+            <div class="letters-compose-copy">
+                <span class="letters-section-kicker">YOUR SPACE IN THE CONSTELLATION</span>
+                <h2 id="letters-compose-title">One star.<br><em>One letter.</em></h2>
+                <p>Write about anything you want to put into words. It can be a thank-you, a memory, a hope, a confession, or just a thought from an ordinary day.</p>
+            </div>
+            <div class="letters-compose-action">
+                <div class="letters-compose-mark"><i class="bx bx-quill-pen"></i></div>
+                <p id="lettersComposerStatus">Sign in with your active STELLARS account to read and write letters.</p>
+                <button class="letters-primary-button" id="lettersOpenButton" type="button" disabled>
+                    <i class="bx bx-edit-alt"></i><span>Write your letter</span>
+                </button>
+                <button class="letters-signin-button" id="lettersSignInButton" type="button">Sign in to STELLARS <i class="bx bx-right-arrow-alt"></i></button>
+            </div>
+        </section>
+
+        <section class="letters-wall-section" aria-labelledby="letters-wall-title">
+            <div class="letters-wall-heading">
+                <div>
+                    <span class="letters-section-kicker">WORDS LEFT IN OUR LITTLE UNIVERSE</span>
+                    <h2 id="letters-wall-title">The open <em>mailbox.</em></h2>
+                    <p>Every letter is a small reminder that everyone carries a story.</p>
+                </div>
+                <span class="letters-wall-count" id="lettersCount">MEMBERS ONLY</span>
+            </div>
+            <div class="letters-feed" id="lettersFeed" aria-live="polite">
+                <div class="letters-feed-state">
+                    <span class="letters-state-icon"><i class="bx bx-mail-send"></i></span>
+                    <strong>Opening the mailbox...</strong>
+                    <p>Gathering the words shared by our stars.</p>
+                </div>
+            </div>
+        </section>
+
+        <aside class="letters-guidelines">
+            <i class="bx bx-heart"></i>
+            <p><strong>A gentle reminder.</strong> Letters are visible to active STELLARS members. Please be kind, respect other people's privacy, and avoid sharing passwords, phone numbers, addresses, or someone else's personal information. Anonymous letters hide the name shown on the wall, but are still connected to an account for community safety.</p>
+        </aside>
+    </main>
+
+    <dialog class="letters-dialog" id="lettersDialog" aria-labelledby="lettersDialogTitle">
+        <form class="letters-form" id="lettersForm">
+            <div class="letters-dialog-top">
+                <div>
+                    <span class="letters-section-kicker">A NOTE FROM YOUR CORNER OF THE UNIVERSE</span>
+                    <h2 id="lettersDialogTitle">Write your letter.</h2>
+                </div>
+                <button class="letters-dialog-close" id="lettersCloseDialog" type="button" aria-label="Close letter editor"><i class="bx bx-x"></i></button>
+            </div>
+
+            <label for="lettersTitleInput">A title for your letter <span>OPTIONAL</span></label>
+            <input id="lettersTitleInput" name="title" type="text" maxlength="90" placeholder="A little something on my mind...">
+
+            <label for="lettersMessageInput">Your letter</label>
+            <textarea id="lettersMessageInput" name="message" rows="9" maxlength="2200" required placeholder="Dear stars, ..."></textarea>
+            <div class="letters-form-bottomline">
+                <small id="lettersCharacterCount">0 / 2200</small>
+                <label class="letters-anonymous-option" for="lettersAnonymousInput">
+                    <input id="lettersAnonymousInput" name="anonymous" type="checkbox">
+                    <span>Publish as Anonymous Star</span>
+                </label>
+            </div>
+
+            <p class="letters-anonymous-note">You can edit this same letter later. Each account can keep only one letter on the wall.</p>
+            <p class="letters-form-message" id="lettersFormMessage" role="status" aria-live="polite"></p>
+            <div class="letters-form-actions">
+                <button class="letters-cancel-button" id="lettersCancelButton" type="button">Cancel</button>
+                <button class="letters-primary-button" id="lettersSubmitButton" type="submit"><i class="bx bx-send"></i><span>Publish letter</span></button>
+            </div>
+        </form>
+    </dialog>
+
+    <div class="letters-toast" id="lettersToast" role="status" aria-live="polite"></div>
+
+    <script type="module" src="letters.js?v=open-letters-v1-20261126"></script>
+    <script type="module" src="account.js?v=account-security-v7-20261125"></script>
+</body>
+</html>
