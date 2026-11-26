@@ -1,186 +1,21 @@
+import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyD3ptwKTkLqFCmvrTVJFooFiVLE63mh83c",
+    authDomain: "class-web-7241e.firebaseapp.com",
+    projectId: "class-web-7241e",
+    storageBucket: "class-web-7241e.firebasestorage.app",
+    messagingSenderId: "167560389153",
+    appId: "1:167560389153:web:f61f4f821275c48373f960",
+    measurementId: "G-DTHTZNT135"
+};
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
 (function () {
-    const ROSTER = [
-    {
-        "name": "Adeline Nadia Nicola",
-        "birthDate": "2000-02-29"
-    },
-    {
-        "name": "Andre Praditya Pratama",
-        "birthDate": "2000-04-15"
-    },
-    {
-        "name": "Anita Lestari Elisabet Siregar",
-        "birthDate": "2000-08-21"
-    },
-    {
-        "name": "Anjelie",
-        "birthDate": "2000-09-12"
-    },
-    {
-        "name": "Carmella Wibowo Widhianto",
-        "birthDate": "2000-06-07"
-    },
-    {
-        "name": "Chairine Aretha Nathania Chung",
-        "birthDate": "2000-12-25"
-    },
-    {
-        "name": "Chantika Anastasia",
-        "birthDate": "2000-09-21"
-    },
-    {
-        "name": "Danniel",
-        "birthDate": "2000-12-19"
-    },
-    {
-        "name": "Darren Leinad Cahaya",
-        "birthDate": "2000-05-18"
-    },
-    {
-        "name": "Delfina Calista Ciu Putri",
-        "birthDate": "2000-12-10"
-    },
-    {
-        "name": "Eilien Ardelia",
-        "birthDate": "2000-12-13"
-    },
-    {
-        "name": "Ellie Margaretta",
-        "birthDate": "2000-01-17"
-    },
-    {
-        "name": "Elmarsha Hannabella",
-        "birthDate": "2000-07-22"
-    },
-    {
-        "name": "Ersya Fely",
-        "birthDate": "2000-07-14"
-    },
-    {
-        "name": "Felicia Zefanya",
-        "birthDate": "2000-05-13"
-    },
-    {
-        "name": "Grace Abigail Wijaya",
-        "birthDate": "2000-11-30"
-    },
-    {
-        "name": "Gracielle Fellisca Tjoa",
-        "birthDate": "2000-04-21"
-    },
-    {
-        "name": "Hosea Bowie Immanuel",
-        "birthDate": "2000-05-13"
-    },
-    {
-        "name": "Jasper Vladino Alvis",
-        "birthDate": "2000-05-07"
-    },
-    {
-        "name": "Jean Romeo Junior Sembiring",
-        "birthDate": "2000-04-03"
-    },
-    {
-        "name": "Johanna Avrilla Hapsari Putri",
-        "birthDate": "2000-04-17"
-    },
-    {
-        "name": "Keely Michiko Mulyanto",
-        "birthDate": "2000-05-06"
-    },
-    {
-        "name": "Kelly Patricia Ongkodjojo",
-        "birthDate": "2000-01-22"
-    },
-    {
-        "name": "Kevano Mareto",
-        "birthDate": "2000-03-28"
-    },
-    {
-        "name": "Kioko Rei",
-        "birthDate": "2000-05-10"
-    },
-    {
-        "name": "Levinne Emerson Mulia",
-        "birthDate": "2000-09-01"
-    },
-    {
-        "name": "Mareshah Majesty Wales",
-        "birthDate": "2000-03-19"
-    },
-    {
-        "name": "Marsha Setiawan",
-        "birthDate": "2000-03-24"
-    },
-    {
-        "name": "Maya Caroline",
-        "birthDate": "2000-10-04"
-    },
-    {
-        "name": "Nicke Mega Amelia Truono",
-        "birthDate": "2000-03-10"
-    },
-    {
-        "name": "Pande Kadek Redita Julia Dewi",
-        "birthDate": "2000-07-30"
-    },
-    {
-        "name": "Patricia Devina",
-        "birthDate": "2000-11-28"
-    },
-    {
-        "name": "Putu Adelia Nariswari",
-        "birthDate": "2000-09-22"
-    },
-    {
-        "name": "Quinetta Aulya Winata",
-        "birthDate": "2000-08-20"
-    },
-    {
-        "name": "Raisya Thalita Jasmine",
-        "birthDate": "2000-07-16"
-    },
-    {
-        "name": "Reynard Christian",
-        "birthDate": "2000-09-14"
-    },
-    {
-        "name": "Samantha Angel",
-        "birthDate": "2000-08-16"
-    },
-    {
-        "name": "Shareen Tesalonika Setiawan",
-        "birthDate": "2000-04-14"
-    },
-    {
-        "name": "Stephanie Felita Widodo",
-        "birthDate": "2000-04-28"
-    },
-    {
-        "name": "Stevander Rusli",
-        "birthDate": "2000-05-11"
-    },
-    {
-        "name": "Tesalonika Uli Putri Silalahi",
-        "birthDate": "2000-06-19"
-    },
-    {
-        "name": "Vianney Yovella Kristanto",
-        "birthDate": "2000-10-01"
-    },
-    {
-        "name": "Vincent Farrelius",
-        "birthDate": "2000-06-03"
-    },
-    {
-        "name": "Vivian Renata Chandra",
-        "birthDate": "2000-06-17"
-    },
-    {
-        "name": "Zalika Afarin Azura",
-        "birthDate": "2000-03-26"
-    }
-];
     const FALLBACK = "images/placeholder.jpg";
     const PHOTO_ALIASES = {
         "anita lestari elisabet siregar": "anita lestari elisabet",
@@ -190,33 +25,25 @@
     };
 
     function normalizeName(value) {
-        return String(value || "")
-            .toLocaleLowerCase("id-ID")
-            .replace(/[^a-z0-9]+/g, " ")
-            .trim();
+        return String(value || "").toLocaleLowerCase("id-ID").replace(/[^a-z0-9]+/g, " ").trim();
     }
 
-    function parseIsoBirthday(value) {
+    function parseMonthDay(value) {
         const parts = String(value || "").split("-");
-        if (parts.length !== 3 || parts[0].length !== 4 || parts[1].length !== 2 || parts[2].length !== 2) return null;
-        const year = Number(parts[0]);
-        const month = Number(parts[1]) - 1;
-        const day = Number(parts[2]);
-        if (![year, month, day].every(Number.isInteger)) return null;
-        const check = new Date(year, month, day);
-        if (check.getFullYear() !== year || check.getMonth() !== month || check.getDate() !== day) return null;
-        return { year, month, day };
+        if (parts.length !== 2 || parts.some(part => !/^\\d{2}$/.test(part))) return null;
+        const month = Number(parts[0]) - 1;
+        const day = Number(parts[1]);
+        const check = new Date(2000, month, day);
+        if (check.getMonth() !== month || check.getDate() !== day) return null;
+        return { month, day };
     }
 
     function isLeapYear(year) {
         return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
     }
 
-    // February 29 birthdays are observed on March 1 in non-leap years.
     function birthdayDateForYear(birthday, year) {
-        if (birthday.month === 1 && birthday.day === 29 && !isLeapYear(year)) {
-            return new Date(year, 2, 1);
-        }
+        if (birthday.month === 1 && birthday.day === 29 && !isLeapYear(year)) return new Date(year, 2, 1);
         return new Date(year, birthday.month, birthday.day);
     }
 
@@ -237,29 +64,58 @@
     }
 
     function resolveAssetPath(path, baseUrl) {
-        try {
-            return new URL(path || FALLBACK, baseUrl).href;
-        } catch (error) {
-            console.warn("STELLARS Birthday: Could not resolve image path:", path, error);
-            return FALLBACK;
-        }
+        try { return new URL(path || FALLBACK, baseUrl).href; }
+        catch (error) { console.warn("STELLARS Birthday: Could not resolve image path:", error); return FALLBACK; }
     }
 
-    function readCrewPhotos(documentText, baseUrl) {
-        const parsed = new DOMParser().parseFromString(documentText, "text/html");
+    async function loadCrewPhotos() {
+        let crewPageUrl = new URL("crewmates.html", document.baseURI).href;
         const photos = new Map();
-        parsed.querySelectorAll(".crew-card, .crewmate-card").forEach(card => {
-            const name = card.querySelector(".crew-info h3, .crewmate-info h3")?.textContent?.trim();
-            const image = card.querySelector(".crew-photo img, .crewmate-photo img")?.getAttribute("src");
-            if (name && image) photos.set(normalizeName(name), resolveAssetPath(image, baseUrl));
-        });
-        return photos;
+        try {
+            const response = await fetch(crewPageUrl, { cache: "force-cache" });
+            if (response.ok) {
+                crewPageUrl = response.url || crewPageUrl;
+                const parsed = new DOMParser().parseFromString(await response.text(), "text/html");
+                parsed.querySelectorAll(".crew-card, .crewmate-card").forEach(card => {
+                    const name = card.querySelector(".crew-info h3, .crewmate-info h3")?.textContent?.trim();
+                    const image = card.querySelector(".crew-photo img, .crewmate-photo img")?.getAttribute("src");
+                    if (name && image) photos.set(normalizeName(name), resolveAssetPath(image, crewPageUrl));
+                });
+            }
+        } catch (error) {
+            console.warn("STELLARS Birthday: Crew photos unavailable; using fallback portraits.", error);
+        }
+        return { photos, fallbackImage: resolveAssetPath(FALLBACK, crewPageUrl) };
     }
 
-    function matchPhoto(person, photos) {
-        const key = normalizeName(person.name);
-        const aliasedKey = PHOTO_ALIASES[key] || key;
-        return photos.get(key) || photos.get(aliasedKey) || "";
+    function makePerson(record, photos, fallbackImage) {
+        const name = String(record.fullName || "").trim();
+        const birthday = parseMonthDay(record.birthMonthDay);
+        if (!name || !birthday) return null;
+        const key = normalizeName(name);
+        return {
+            name,
+            birthday,
+            image: photos.get(key) || photos.get(PHOTO_ALIASES[key] || key) || fallbackImage,
+            fallbackImage
+        };
+    }
+
+    function makeUpcoming(records, photos, fallbackImage, now = new Date()) {
+        return records.map(record => {
+            const person = makePerson(record, photos, fallbackImage);
+            return person ? { person, next: nextBirthday(person.birthday, now) } : null;
+        }).filter(Boolean).sort((a, b) =>
+            a.next.date - b.next.date || a.person.name.localeCompare(b.person.name)
+        );
+    }
+
+    function showEmpty(container, message) {
+        if (!container) return;
+        const empty = document.createElement("div");
+        empty.className = "birthday-directory-state";
+        empty.textContent = message;
+        container.replaceChildren(empty);
     }
 
     function makeCountdownUnit(units, key, label) {
@@ -277,46 +133,33 @@
     function createPreviewCard(person, next, sameDayPeople) {
         const article = document.createElement("article");
         article.className = "birthday-preview-card";
-
         const photoGroup = document.createElement("div");
-        photoGroup.className = "birthday-preview-people " +
-            (sameDayPeople.length > 1 ? "is-shared" : "is-single");
+        photoGroup.className = "birthday-preview-people " + (sameDayPeople.length > 1 ? "is-shared" : "is-single");
 
         sameDayPeople.forEach(member => {
             const figure = document.createElement("figure");
             figure.className = "birthday-preview-person";
-
             const img = document.createElement("img");
             img.src = member.image;
             img.alt = member.name;
             img.loading = "lazy";
-            img.onerror = function () {
-                this.onerror = null;
-                this.src = member.fallbackImage || FALLBACK;
-            };
-
+            img.onerror = function () { this.onerror = null; this.src = member.fallbackImage || FALLBACK; };
             const caption = document.createElement("figcaption");
             caption.textContent = member.name;
-
             figure.append(img, caption);
             photoGroup.append(figure);
         });
 
         const copy = document.createElement("div");
         copy.className = "birthday-preview-copy";
-
         const kicker = document.createElement("span");
         kicker.className = "birthday-preview-kicker";
         kicker.textContent = sameDayPeople.length > 1
             ? "SHARED BIRTHDAY · " + sameDayPeople.length + " STARS"
             : "NEXT UP IN THE CONSTELLATION";
-
         const name = document.createElement("h3");
         name.className = "birthday-preview-name";
-        name.textContent = sameDayPeople.length > 1
-            ? "Two stars. One celebration."
-            : person.name;
-
+        name.textContent = sameDayPeople.length > 1 ? sameDayPeople.map(x => x.name).join(" & ") : person.name;
         const date = document.createElement("p");
         date.className = "birthday-preview-date";
         const cakeIcon = document.createElement("i");
@@ -329,7 +172,6 @@
         const countdownLabel = document.createElement("span");
         countdownLabel.className = "birthday-countdown-label";
         countdownLabel.textContent = "COUNTDOWN TO THE BIG DAY";
-
         const units = document.createElement("div");
         units.className = "birthday-countdown-units";
         makeCountdownUnit(units, "days", "DAYS");
@@ -346,7 +188,6 @@
                 article.classList.add("is-birthday-today");
                 return false;
             }
-
             const totalSeconds = Math.floor(difference / 1000);
             const values = {
                 days: Math.floor(totalSeconds / 86400),
@@ -360,10 +201,8 @@
             });
             return true;
         }
-
         copy.append(kicker, name, date, countdown);
         article.append(photoGroup, copy);
-
         if (updateCountdown()) {
             const intervalId = window.setInterval(() => {
                 if (!updateCountdown()) window.clearInterval(intervalId);
@@ -372,20 +211,18 @@
         return article;
     }
 
-        function personCard(person, next) {
+    function personCard(person, next) {
         const article = document.createElement("article");
         article.className = "birthday-person-card";
-
         const img = document.createElement("img");
         img.src = person.image;
         img.alt = person.name;
         img.loading = "lazy";
-        img.onerror = function () { this.onerror = null; this.src = FALLBACK; };
+        img.onerror = function () { this.onerror = null; this.src = person.fallbackImage || FALLBACK; };
         img.className = "birthday-person-photo";
 
         const copy = document.createElement("div");
         copy.className = "birthday-person-info";
-
         const date = document.createElement("span");
         date.className = "birthday-person-date";
         const cakeIcon = document.createElement("i");
@@ -395,85 +232,115 @@
 
         const name = document.createElement("h3");
         name.textContent = person.name;
-
         const countdown = document.createElement("p");
-        countdown.textContent = next.days === 0
-            ? "Today is their day!"
-            : next.days === 1
-                ? "Coming up tomorrow"
-                : "In " + next.days + " days";
-
+        countdown.textContent = next.days === 0 ? "Today is their day!"
+            : next.days === 1 ? "Coming up tomorrow" : "In " + next.days + " days";
         copy.append(date, name, countdown);
         article.append(img, copy);
         return article;
     }
 
-    async function init() {
-        const preview = document.getElementById("birthdayPreview");
-        const directory = document.getElementById("birthdayDirectory");
-        const count = document.getElementById("birthdayCount");
-        if (!preview && !directory) return;
+    function renderPreview(upcoming, container) {
+        if (!container) return;
+        if (!upcoming.length) return showEmpty(container, "Upcoming birthday details are being updated.");
+        const soonestDate = upcoming[0].next.date.getTime();
+        const sameDay = upcoming.filter(item => item.next.date.getTime() === soonestDate).map(item => item.person);
+        container.replaceChildren(createPreviewCard(upcoming[0].person, upcoming[0].next, sameDay));
+    }
 
-        let photos = new Map();
-        let crewPageUrl = new URL("crewmates.html", document.baseURI).href;
-        try {
-            const response = await fetch(crewPageUrl, { cache: "force-cache" });
-            if (response.ok) {
-                crewPageUrl = response.url || crewPageUrl;
-                photos = readCrewPhotos(await response.text(), crewPageUrl);
-            } else {
-                console.warn("STELLARS Birthday: Crewmates returned HTTP", response.status);
-            }
-        } catch (error) {
-            console.warn("STELLARS Birthday: Crew photos unavailable; using fallback portraits.", error);
-        }
-        const fallbackImage = resolveAssetPath(FALLBACK, crewPageUrl);
+    function renderDirectory(upcoming, directory, count) {
+        if (!directory) return;
+        if (count) count.textContent = upcoming.length + " crew birthdays";
+        if (!upcoming.length) return showEmpty(directory, "Birthday details are being prepared.");
+        directory.replaceChildren(...upcoming.map(item => personCard(item.person, item.next)));
+    }
 
-        const people = ROSTER.map(entry => {
-            const birthday = parseIsoBirthday(entry.birthDate);
-            if (!birthday) return null;
-            const person = { name: entry.name, birthday, image: "", fallbackImage };
-            person.image = matchPhoto(person, photos) || fallbackImage;
-            return person;
-        }).filter(Boolean);
+    async function readPublicPreview(photos, fallbackImage) {
+        const snapshot = await getDoc(doc(db, "birthdayPreview", "current"));
+        if (!snapshot.exists()) return [];
+        const data = snapshot.data() || {};
+        const nextDateParts = String(data.nextDate || "").split("-").map(Number);
+        const [year, month, day] = nextDateParts;
+        const publishedDate = nextDateParts.length === 3 ? new Date(year, month - 1, day) : null;
+        if (!publishedDate || publishedDate.getFullYear() !== year ||
+            publishedDate.getMonth() !== month - 1 || publishedDate.getDate() !== day) return [];
 
         const now = new Date();
-        const upcoming = people.map(person => ({
-            person,
-            next: nextBirthday(person.birthday, now)
-        })).sort((a, b) =>
-            a.next.date - b.next.date || a.person.name.localeCompare(b.person.name)
-        );
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const days = Math.round((publishedDate - today) / 86400000);
+        if (days < 0) return [];
 
-        if (preview) {
-            preview.replaceChildren();
-            if (!upcoming.length) {
-                const empty = document.createElement("div");
-                empty.className = "birthday-preview-empty";
-                empty.textContent = "Birthday details are being prepared.";
-                preview.append(empty);
-            } else {
-                const soonestDate = upcoming[0].next.date.getTime();
-                const sameDayPeople = upcoming
-                    .filter(item => item.next.date.getTime() === soonestDate)
-                    .map(item => item.person);
-                preview.append(createPreviewCard(upcoming[0].person, upcoming[0].next, sameDayPeople));
-            }
-        }
+        const records = Array.isArray(data.people) ? data.people : [];
+        return records.map(record => {
+            const person = makePerson(record, photos, fallbackImage);
+            if (!person) return null;
+            const observedLeapDay = person.birthday.month === 1 &&
+                person.birthday.day === 29 && !isLeapYear(year);
+            return {
+                person,
+                next: { date: publishedDate, days, observedLeapDay }
+            };
+        }).filter(Boolean);
+    }
 
-        if (directory) {
-            directory.replaceChildren();
-            if (count) count.textContent = people.length + " crew birthdays";
-            if (!upcoming.length) {
-                const empty = document.createElement("div");
-                empty.className = "birthday-directory-state";
-                empty.textContent = "Birthday details are being prepared.";
-                directory.append(empty);
-            } else {
-                upcoming.forEach(item => directory.append(personCard(item.person, item.next)));
-            }
+    async function readPrivateDirectory(photos, fallbackImage) {
+        const snapshot = await getDocs(collection(db, "birthdayDirectory"));
+        return makeUpcoming(snapshot.docs.map(item => item.data() || {}), photos, fallbackImage);
+    }
+
+    async function isActiveMember(user) {
+        if (!user) return false;
+        try {
+            const profile = await getDoc(doc(db, "users", user.uid));
+            return profile.exists() && profile.data()?.isActive === true;
+        } catch (error) {
+            console.warn("STELLARS Birthday: Could not verify member status.", error);
+            return false;
         }
     }
 
-    document.addEventListener("DOMContentLoaded", init);
+    async function init() {
+        const homePreview = document.getElementById("birthdayPreview");
+        const pagePreview = document.getElementById("birthdayPagePreview");
+        const publicSection = document.getElementById("birthdayPublicPreviewSection");
+        const directorySection = document.getElementById("birthdayDirectorySection");
+        const directory = document.getElementById("birthdayDirectory");
+        const count = document.getElementById("birthdayCount");
+        if (!homePreview && !pagePreview && !directory) return;
+
+        const { photos, fallbackImage } = await loadCrewPhotos();
+
+        onAuthStateChanged(auth, async user => {
+            const activeMember = await isActiveMember(user);
+            if (activeMember) {
+                if (publicSection) publicSection.hidden = true;
+                if (directorySection) directorySection.hidden = false;
+                try {
+                    const upcoming = await readPrivateDirectory(photos, fallbackImage);
+                    renderDirectory(upcoming, directory, count);
+                    renderPreview(upcoming, homePreview);
+                } catch (error) {
+                    console.error("STELLARS Birthday: Could not load the private directory.", error);
+                    showEmpty(directory, "The birthday directory could not be loaded. Please refresh the page.");
+                    renderPreview([], homePreview);
+                }
+                return;
+            }
+
+            if (publicSection) publicSection.hidden = false;
+            if (directorySection) directorySection.hidden = true;
+            try {
+                const preview = await readPublicPreview(photos, fallbackImage);
+                renderPreview(preview, homePreview);
+                renderPreview(preview, pagePreview);
+            } catch (error) {
+                console.error("STELLARS Birthday: Could not load the public birthday preview.", error);
+                showEmpty(homePreview, "Upcoming birthday details are being updated.");
+                showEmpty(pagePreview, "Upcoming birthday details are being updated.");
+            }
+        });
+    }
+
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init, { once: true });
+    else init();
 })();

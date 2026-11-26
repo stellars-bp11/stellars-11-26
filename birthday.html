@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="responsive.css">
     <link rel="stylesheet" href="radio.css?v=radio-navbar-layer-fix-20261125">
     <link rel="stylesheet" href="playful-theme.css?v=simple-motion-20261125">
-    <link rel="stylesheet" href="birthday.css?v=birthday-static-roster-v1-20261126">
+    <link rel="stylesheet" href="birthday.css?v=private-directory-preview-v1-20261126">
     <link rel="icon" type="image/svg+xml" href="favicon.svg?v=stellars-constellation-20261125">
     <meta name="theme-color" content="#17152D">
     <link rel="stylesheet" href="navbar-unification.css?v=full-width-v1-20261126">
@@ -70,19 +70,33 @@
             <span class="birthday-orbit orbit-one"></span><span class="birthday-orbit orbit-two"></span>
         </section>
 
+        <section class="birthday-directory-section" id="birthdayPublicPreviewSection">
+            <div class="birthday-directory-heading">
+                <div>
+                    <span class="birthday-section-kicker">THE NEXT CELEBRATION</span>
+                    <h2>Coming Up <em>Next</em></h2>
+                    <p>A little birthday moment from the STELLARS crew.</p>
+                </div>
+            </div>
+            <div class="birthday-preview-grid" id="birthdayPagePreview" aria-live="polite">
+                <div class="birthday-directory-state">Gathering the next celebration...</div>
+            </div>
+            <p class="birthday-source-note">Sign in with an active STELLARS account to see everyone's birthdays.</p>
+        </section>
+
         <section class="birthday-directory-section" id="birthdayDirectorySection" hidden>
             <div class="birthday-directory-heading">
                 <div>
                     <span class="birthday-section-kicker">THE NEXT CELEBRATIONS</span>
                     <h2>Birthday <em>Orbit</em></h2>
-                    <p>Sorted by the next birthday on the calendar.</p>
+                    <p>All STELLARS birthdays, sorted by the next celebration.</p>
                 </div>
                 <span class="birthday-count" id="birthdayCount">Loading crew...</span>
             </div>
             <div class="birthday-directory" id="birthdayDirectory" aria-live="polite">
                 <div class="birthday-directory-state">Collecting the crew's birthday stars...</div>
             </div>
-            <p class="birthday-source-note">Only members who opt in appear here. The directory stores month and day only; birth years are never shared.</p>
+            <p class="birthday-source-note">The full birthday calendar is visible to active STELLARS members only.</p>
         </section>
     </main>
 
@@ -102,7 +116,7 @@
             setTimeout(hideLoader, 5000);
         })();
     </script>
-    <script src="birthday.js?v=birthday-static-roster-v1-20261126" defer></script>
+    <script type="module" src="birthday.js?v=private-directory-preview-v1-20261126"></script>
     <script type="module" src="account.js?v=account-security-v7-20261125"></script>
     <script src="letters-launcher.js?v=private-mail-notifications-v6-20261126" defer></script>
 </body>

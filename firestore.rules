@@ -756,24 +756,34 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Birthday dates are shared only by explicit member opt-in.
-    // Store month/day only; never expose the birth year.
-    match /birthdayRoster/{memberId} {
+    // The complete birthday directory is private to active STELLARS members.
+    // Only Super Admins maintain it; no member opt-in or self-sharing is used.
+    match /birthdayDirectory/{memberId} {
       allow get, list: if activeMember();
-      allow create, update: if activeMember() &&
-        request.auth.uid == memberId &&
-        request.resource.data.keys().hasAll([
-          'uid', 'fullName', 'birthMonthDay', 'sharedAt'
-        ]) &&
-        request.resource.data.keys().hasOnly([
-          'uid', 'fullName', 'birthMonthDay', 'sharedAt'
-        ]) &&
-        request.resource.data.uid == memberId &&
-        request.resource.data.fullName == get(profilePath()).data.fullName &&
+      allow create, update: if isSuperAdmin() &&
+        request.resource.data.keys().hasAll(['fullName', 'birthMonthDay']) &&
+        request.resource.data.keys().hasOnly(['fullName', 'birthMonthDay']) &&
+        request.resource.data.fullName is string &&
+        request.resource.data.fullName.size() > 0 &&
+        request.resource.data.fullName.size() <= 100 &&
         request.resource.data.birthMonthDay is string &&
-        request.resource.data.birthMonthDay.matches('^(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$') &&
-        request.resource.data.sharedAt is timestamp;
-      allow delete: if activeMember() && request.auth.uid == memberId;
+        request.resource.data.birthMonthDay.matches('^(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$');
+      allow delete: if isSuperAdmin();
+    }
+
+    // Guests can fetch one upcoming celebration only, never list the private roster.
+    match /birthdayPreview/{previewId} {
+      allow get: if previewId == 'current';
+      allow list: if false;
+      allow create, update: if isSuperAdmin() &&
+        previewId == 'current' &&
+        request.resource.data.keys().hasAll(['people', 'nextDate', 'updatedAt']) &&
+        request.resource.data.keys().hasOnly(['people', 'nextDate', 'updatedAt']) &&
+        request.resource.data.people is list &&
+        request.resource.data.people.size() <= 45 &&
+        request.resource.data.nextDate is string &&
+        request.resource.data.updatedAt is timestamp;
+      allow delete: if false;
     }
 
     match /nimIndex/{nim} {
