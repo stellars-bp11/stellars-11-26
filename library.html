@@ -22,7 +22,7 @@
     >
 
     <!-- CSS -->
-    <link rel="stylesheet" href="library.css?v=library-class-only-v1-20261126">
+    <link rel="stylesheet" href="library.css?v=public-readonly-library-v2-20261126">
     <link rel="stylesheet" href="account.css?v=activation-v1-20261125">
     <link rel="stylesheet" href="responsive.css">
     <link rel="stylesheet" href="library-enhancements.css">
@@ -108,10 +108,24 @@
 
 
     <!-- =========================================
+         MEMBER-ONLY ACCESS GATE
+    ========================================== -->
+
+    <section class="library-access-gate" id="libraryAccessGate" aria-labelledby="library-access-title">
+        <div class="library-access-card">
+            <span class="library-access-icon"><i class="bx bx-lock-alt" aria-hidden="true"></i></span>
+            <p class="eyebrow">STELLARS MEMBER SPACE</p>
+            <h1 id="library-access-title">The Library is for our crew.</h1>
+            <p>Sign in with an active STELLARS account to revisit shared class memories.</p>
+            <a href="index.html?login=1">Sign in to STELLARS <i class="bx bx-right-arrow-alt" aria-hidden="true"></i></a>
+        </div>
+    </section>
+
+    <!-- =========================================
          MAIN
     ========================================== -->
 
-    <main>
+    <main id="libraryMemberContent" hidden>
 
         <!-- HERO -->
 
@@ -325,9 +339,9 @@
                     <span>Visibility</span>
                     <select id="memoryVisibility" required>
                         <option value="public" selected>Public — anyone can view</option>
-                        <option value="members">Class Only — active STELLARS members</option>
+                        <option value="members" disabled>Class Only — protected media is not configured yet</option>
                     </select>
-                    <small class="modal-hint">Class Only files are stored privately and can only be loaded by active STELLARS members.</small>
+                    <small class="modal-hint">Class Only will become available after private media delivery is configured. For now, uploaded media uses public Cloudinary URLs.</small>
                 </label>
 
                 <label class="memory-public-consent" for="memoryPublicConsent">
@@ -375,7 +389,7 @@
 
     <script
         type="module"
-        src="library.js?v=library-class-only-v1-20261126"
+        src="library.js?v=library-editor-v4-20261126"
     ></script>
 
     <script type="module" src="account.js?v=account-security-v7-20261125"></script>
