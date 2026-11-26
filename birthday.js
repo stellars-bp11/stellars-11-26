@@ -36,7 +36,7 @@ function showBirthdayGate(message) {
 }
 
 function formatBirthMonthDay(isoDate) {
-    const match = String(isoDate || "").match(/^\\d{4}-(\\d{2})-(\\d{2})$/);
+    const match = String(isoDate || "").match(/^\d{4}-(\d{2})-(\d{2})$/);
     if (!match) return null;
     const month = Number(match[1]);
     const day = Number(match[2]);
@@ -433,5 +433,5 @@ onAuthStateChanged(auth, async user => {
         }
     }
 
-    document.addEventListener("DOMContentLoaded", init);
+
 
