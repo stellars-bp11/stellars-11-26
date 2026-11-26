@@ -315,15 +315,17 @@ service cloud.firestore {
       data.imageUrl is string &&
       data.imageUrl.matches('^https://.*') &&
       data.imageUrl.size() <= 2048 &&
-      data.mediaType in ['image', 'video'] &&
-      (data.cloudinaryPublicId == null ||
+      (!data.keys().hasAny(['mediaType']) || data.mediaType in ['image', 'video']) &&
+      (!data.keys().hasAny(['cloudinaryPublicId']) ||
+       data.cloudinaryPublicId == null ||
        (data.cloudinaryPublicId is string && data.cloudinaryPublicId.size() <= 255)) &&
       data.category is string && data.category.size() > 0 && data.category.size() <= 40 &&
       data.title is string && data.title.size() > 0 && data.title.size() <= 80 &&
       data.description is string && data.description.size() <= 300 &&
       data.visibility == 'public' &&
       data.publicConsent == true &&
-      data.uploadedBy == resource.data.uploadedBy &&
+      (!resource.data.keys().hasAny(['uploadedBy']) ||
+       data.uploadedBy == resource.data.uploadedBy) &&
       data.createdAt == resource.data.createdAt &&
       data.updatedAt is timestamp &&
       data.updatedBy == request.auth.uid;
