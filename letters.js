@@ -95,7 +95,7 @@ function showFeedState(title, description, icon = "bx-mail-send") {
 function updateComposerState() {
     const activeMember = Boolean(currentUser && currentProfile?.isActive === true);
 
-    elements.signInButton.hidden = activeMember;
+    elements.signInButton.hidden = Boolean(currentUser);
     elements.openButton.disabled = !activeMember || !feedLoaded;
 
     if (!currentUser) {
@@ -355,7 +355,6 @@ elements.signInButton.addEventListener("click", () => {
     window.location.assign("letters.html?login=1");
 });
 elements.form.addEventListener("submit", submitLetter);
-elements.title.addEventListener("input", () => {});
 elements.message.addEventListener("input", () => {
     elements.characterCount.textContent = elements.message.value.length + " / 2200";
 });
