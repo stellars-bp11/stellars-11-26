@@ -13,7 +13,7 @@
 
     const stylesheet = document.createElement("link");
     stylesheet.rel = "stylesheet";
-    stylesheet.href = "letters-launcher.css?v=open-letters-drawer-v2-20261126";
+    stylesheet.href = "letters-launcher.css?v=open-letters-drawer-v3-20261126";
     document.head.append(stylesheet);
 
     const scrim = document.createElement("button");
