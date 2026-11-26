@@ -256,13 +256,30 @@
     text-decoration: none;
     cursor: pointer;
 }
-.birthday-share-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.birthday-share-actions button:disabled { opacity: .45; cursor: not-allowed; }
-.birthday-share-actions #birthdayStopShareButton { background: rgba(147,67,83,.22); }
+.birthday-share-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 11px;
+    min-height: 42px;
+    padding: 0 14px;
+    color: #fff;
+    background: rgba(121,99,198,.28);
+    border: 1px solid rgba(205,194,255,.25);
+    border-radius: 10px;
+    font: 700 11px Ubuntu, sans-serif;
+    cursor: pointer;
+}
+.birthday-share-toggle input {
+    width: 17px;
+    height: 17px;
+    accent-color: #9f8bea;
+    cursor: pointer;
+}
+.birthday-share-toggle input:disabled { opacity: .45; cursor: not-allowed; }
 @media (max-width: 650px) {
     .birthday-access-gate,
     .birthday-member-tools { align-items: flex-start; flex-wrap: wrap; }
     .birthday-access-gate a,
-    .birthday-share-actions { width: 100%; }
-    .birthday-share-actions button { flex: 1; }
+    .birthday-share-toggle { width: 100%; }
+    .birthday-share-toggle { justify-content: flex-start; }
 }
