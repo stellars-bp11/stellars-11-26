@@ -104,6 +104,10 @@
                     <p>Every letter is a small reminder that everyone carries a story.</p>
                 </div>
                 <span class="letters-wall-count" id="lettersCount">MEMBERS ONLY</span>
+                <button class="letters-safety-button" id="lettersSafetyReviewButton" type="button" hidden>
+                    <i class="bx bx-shield-quarter" aria-hidden="true"></i>
+                    <span>Safety review</span>
+                </button>
             </div>
             <div class="letters-feed" id="lettersFeed" aria-live="polite">
                 <div class="letters-feed-state">
@@ -114,9 +118,24 @@
             </div>
         </section>
 
+        <section class="letters-safety-panel" id="lettersSafetyPanel" hidden aria-labelledby="lettersSafetyTitle">
+            <div class="letters-safety-heading">
+                <div>
+                    <span class="letters-section-kicker">PRIVATE MODERATION SPACE</span>
+                    <h2 id="lettersSafetyTitle">Safety <em>review.</em></h2>
+                    <p>Author identities are shown only to the designated STELLARS SuperAdmin moderator.</p>
+                </div>
+                <button class="letters-safety-close" id="lettersSafetyCloseButton" type="button" aria-label="Close safety review">
+                    <i class="bx bx-x" aria-hidden="true"></i>
+                </button>
+            </div>
+            <p class="letters-safety-status" id="lettersSafetyStatus" role="status" aria-live="polite">Open the review panel to load authorship records.</p>
+            <div class="letters-safety-feed" id="lettersSafetyFeed"></div>
+        </section>
+
         <aside class="letters-guidelines">
             <i class="bx bx-heart"></i>
-            <p><strong>A gentle reminder.</strong> Letters are visible to active STELLARS members. Please be kind, respect other people's privacy, and avoid sharing passwords, phone numbers, addresses, or someone else's personal information. Anonymous letters hide the name shown on the wall, but are still connected to an account for community safety.</p>
+            <p><strong>A gentle reminder.</strong> Letters are visible to active STELLARS members. Please be kind, respect other people's privacy, and avoid sharing passwords, phone numbers, addresses, or someone else's personal information. Anonymous letters hide the name shown on the wall. When a safety concern arises, the designated STELLARS SuperAdmin moderator can review the account connected to a letter.</p>
         </aside>
     </main>
 
@@ -154,7 +173,7 @@
 
     <div class="letters-toast" id="lettersToast" role="status" aria-live="polite"></div>
 
-    <script type="module" src="letters.js?v=open-letters-v1-20261126"></script>
+    <script type="module" src="letters.js?v=open-letters-safety-v2-20261126"></script>
     <script type="module" src="account.js?v=account-security-v7-20261125"></script>
     <script src="letters-launcher.js?v=open-letters-drawer-v3-20261126" defer></script>
 </body>
