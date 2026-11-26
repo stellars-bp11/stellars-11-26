@@ -276,11 +276,65 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // Existing STELLARS Library access is retained.
+    // Library media metadata. Legacy entries without visibility remain member-only.
+    function validMemoryCreate() {
+      let data = request.resource.data;
+      return data.keys().hasAll([
+        'imageUrl', 'mediaType', 'cloudinaryPublicId', 'category',
+        'title', 'description', 'createdAt', 'uploadedBy',
+        'visibility', 'publicConsent'
+      ]) &&
+      data.keys().hasOnly([
+        'imageUrl', 'mediaType', 'cloudinaryPublicId', 'category',
+        'title', 'description', 'createdAt', 'uploadedBy',
+        'visibility', 'publicConsent'
+      ]) &&
+      data.imageUrl is string &&
+      data.imageUrl.matches('^https://.*') &&
+      data.imageUrl.size() <= 2048 &&
+      data.mediaType in ['image', 'video'] &&
+      (data.cloudinaryPublicId == null ||
+       (data.cloudinaryPublicId is string && data.cloudinaryPublicId.size() <= 255)) &&
+      data.category is string && data.category.size() > 0 && data.category.size() <= 40 &&
+      data.title is string && data.title.size() > 0 && data.title.size() <= 80 &&
+      data.description is string && data.description.size() <= 300 &&
+      data.createdAt is timestamp &&
+      data.uploadedBy == request.auth.uid &&
+      data.visibility == 'public' &&
+      data.publicConsent == true;
+    }
+
+    function validMemoryAdminUpdate() {
+      let data = request.resource.data;
+      let changed = data.diff(resource.data).affectedKeys();
+      return changed.hasOnly([
+        'imageUrl', 'mediaType', 'cloudinaryPublicId',
+        'category', 'title', 'description', 'visibility',
+        'publicConsent', 'updatedAt', 'updatedBy'
+      ]) &&
+      data.imageUrl is string &&
+      data.imageUrl.matches('^https://.*') &&
+      data.imageUrl.size() <= 2048 &&
+      data.mediaType in ['image', 'video'] &&
+      (data.cloudinaryPublicId == null ||
+       (data.cloudinaryPublicId is string && data.cloudinaryPublicId.size() <= 255)) &&
+      data.category is string && data.category.size() > 0 && data.category.size() <= 40 &&
+      data.title is string && data.title.size() > 0 && data.title.size() <= 80 &&
+      data.description is string && data.description.size() <= 300 &&
+      data.visibility == 'public' &&
+      data.publicConsent == true &&
+      data.uploadedBy == resource.data.uploadedBy &&
+      data.createdAt == resource.data.createdAt &&
+      data.updatedAt is timestamp &&
+      data.updatedBy == request.auth.uid;
+    }
+
     match /memories/{memoryId} {
-      allow read: if true;
-      allow create: if true;
-      allow update: if false;
+      // Guests can query only documents explicitly marked public.
+      // Active members can also read older records without a visibility field.
+      allow get, list: if activeMember() || resource.data.visibility == 'public';
+      allow create: if activeMember() && validMemoryCreate();
+      allow update: if isSuperAdmin() && validMemoryAdminUpdate();
       allow delete: if isSuperAdmin();
     }
 
