@@ -1,0 +1,52 @@
+/* STELLARS BIRTHDAY */
+.birthday-page { min-height: 100vh; background: #f7f5fc; }
+.birthday-backdrop {
+    position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(circle at 12% 18%, rgba(161,139,229,.16), transparent 28%),
+      radial-gradient(circle at 88% 34%, rgba(226,177,215,.15), transparent 25%),
+      linear-gradient(180deg,#f8f7fc,#f2eff9);
+}
+.birthday-main { padding-bottom: 90px; }
+.birthday-hero {
+    position: relative; isolation: isolate; overflow: hidden;
+    width: min(1240px,calc(100% - 112px)); min-height: 390px;
+    display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
+    margin: 38px auto 68px; padding: 66px 72px;
+    border-radius: 30px; color: #fff;
+    background: radial-gradient(ellipse at 78% 25%,rgba(190,159,255,.42),transparent 35%),linear-gradient(115deg,#17152f,#3b2b67 58%,#71558e);
+    box-shadow: 0 24px 60px rgba(42,31,83,.18);
+}
+.birthday-hero::before,.birthday-hero::after { content:"";position:absolute;z-index:-1;border:1px solid rgba(255,255,255,.15);border-radius:50%;pointer-events:none; }
+.birthday-hero::before { width:390px;height:390px;right:7%;top:-120px; }
+.birthday-hero::after { width:520px;height:520px;right:-3%;top:-185px; }
+.birthday-eyebrow,.birthday-section-kicker { font-size:10px;font-weight:700;letter-spacing:2.4px; }
+.birthday-eyebrow { color:#d8cef8; }
+.birthday-hero h1 { margin:20px 0 12px;font-size:clamp(48px,7vw,82px);line-height:.98;letter-spacing:-3px; }
+.birthday-hero h1 em { color:#d8c7ff;font-style:normal; }
+.birthday-hero > p { max-width:490px;color:rgba(246,242,255,.72);font-size:14px;line-height:1.8; }
+.birthday-crew-link { display:inline-flex;align-items:center;gap:7px;margin-top:25px;padding:12px 17px;border:1px solid rgba(255,255,255,.2);border-radius:30px;color:#fff;text-decoration:none;font-size:12px;font-weight:700;background:rgba(255,255,255,.08); }
+.birthday-crew-link i { font-size:18px; }
+.birthday-orbit { position:absolute;right:18%;border:1px solid rgba(255,255,255,.17);border-radius:50%;transform:rotate(-28deg) scaleY(.38); }
+.orbit-one { width:270px;height:270px;top:62px; }
+.orbit-two { width:350px;height:350px;top:22px;right:13%; }
+.birthday-directory-section { width:min(1160px,calc(100% - 112px));margin:0 auto; }
+.birthday-directory-heading { display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:25px; }
+.birthday-section-kicker { color:#8875c3; }
+.birthday-directory-heading h2 { margin-top:8px;color:#30236d;font-size:clamp(28px,4vw,40px);letter-spacing:-1px; }
+.birthday-directory-heading h2 em { color:#927ed0;font-style:normal; }
+.birthday-directory-heading p { margin-top:8px;color:#777187;font-size:13px; }
+.birthday-count { padding:9px 13px;border:1px solid rgba(130,113,190,.16);border-radius:30px;color:#75669f;background:#fff;font-size:11px;font-weight:700;white-space:nowrap; }
+.birthday-directory { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px; }
+.birthday-person-card { display:grid;grid-template-columns:92px minmax(0,1fr);align-items:center;gap:16px;min-width:0;padding:15px;border:1px solid rgba(130,113,190,.13);border-radius:20px;background:rgba(255,255,255,.9);box-shadow:0 10px 28px rgba(45,35,94,.045); }
+.birthday-person-photo { width:92px;height:108px;object-fit:cover;border-radius:14px;background:#eeeaf8; }
+.birthday-person-info { min-width:0; }
+.birthday-person-date { display:inline-flex;align-items:center;gap:5px;color:#8a76c3;font-size:10px;font-weight:700;letter-spacing:.7px;text-transform:uppercase; }
+.birthday-person-info h3 { margin-top:8px;color:#33276b;font-size:14px;line-height:1.45;overflow-wrap:anywhere; }
+.birthday-person-info p { margin-top:6px;color:#9189a3;font-size:10px; }
+.birthday-directory-state { grid-column:1/-1;padding:30px;border:1px dashed rgba(130,113,190,.25);border-radius:18px;color:#817895;text-align:center;font-size:13px; }
+.birthday-source-note { margin-top:22px;color:#9992a8;font-size:10px;text-align:center; }
+@media(max-width:900px){.birthday-hero{width:calc(100% - 64px);padding:55px 48px}.birthday-directory-section{width:calc(100% - 64px)}.birthday-directory{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.birthday-hero{width:calc(100% - 36px);min-height:340px;margin:22px auto 48px;padding:45px 27px}.birthday-hero h1{letter-spacing:-2px}.birthday-orbit{right:-5%}.birthday-directory-section{width:calc(100% - 36px)}.birthday-directory-heading{align-items:flex-start;flex-direction:column;gap:12px}.birthday-directory{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:420px){.birthday-hero,.birthday-directory-section{width:calc(100% - 28px)}.birthday-hero{padding:38px 22px}.birthday-person-card{grid-template-columns:78px minmax(0,1fr);gap:13px;padding:12px}.birthday-person-photo{width:78px;height:92px}}
+@media(prefers-reduced-motion:reduce){.birthday-crew-link{transition:none}}
