@@ -70,7 +70,27 @@
             <span class="birthday-orbit orbit-one"></span><span class="birthday-orbit orbit-two"></span>
         </section>
 
-        <section class="birthday-directory-section">
+        <section class="birthday-access-gate" id="birthdayAccessGate">
+            <span class="birthday-access-icon"><i class="bx bx-lock-alt"></i></span>
+            <div>
+                <strong>Members-only birthday orbit</strong>
+                <p>Sign in with an active STELLARS account to view birthdays shared by classmates.</p>
+            </div>
+            <a href="index.html?login=1">Sign in to STELLARS <i class="bx bx-right-arrow-alt"></i></a>
+        </section>
+
+        <section class="birthday-member-tools" id="birthdayMemberTools" hidden>
+            <div>
+                <strong>Your birthday privacy</strong>
+                <p id="birthdayShareStatus">Checking your sharing settings…</p>
+            </div>
+            <div class="birthday-share-actions">
+                <button type="button" id="birthdayShareButton">Share my birthday</button>
+                <button type="button" id="birthdayStopShareButton" hidden>Stop sharing</button>
+            </div>
+        </section>
+
+        <section class="birthday-directory-section" id="birthdayDirectorySection" hidden>
             <div class="birthday-directory-heading">
                 <div>
                     <span class="birthday-section-kicker">THE NEXT CELEBRATIONS</span>
@@ -82,7 +102,7 @@
             <div class="birthday-directory" id="birthdayDirectory" aria-live="polite">
                 <div class="birthday-directory-state">Collecting the crew's birthday stars...</div>
             </div>
-            <p class="birthday-source-note">Birthday dates and photos are synced from the Crewmates page.</p>
+            <p class="birthday-source-note">Only members who opt in appear here. The directory stores month and day only; birth years are never shared.</p>
         </section>
     </main>
 
@@ -102,7 +122,7 @@
             setTimeout(hideLoader, 5000);
         })();
     </script>
-    <script src="birthday.js?v=shared-birthday-v8-20261126" defer></script>
+    <script type="module" src="birthday.js?v=private-opt-in-birthday-v1-20261126"></script>
     <script type="module" src="account.js?v=account-security-v7-20261125"></script>
     <script src="letters-launcher.js?v=open-letters-drawer-v3-20261126" defer></script>
 </body>
