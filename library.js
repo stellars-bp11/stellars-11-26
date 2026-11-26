@@ -679,7 +679,7 @@ function buildMemoryCard(memory) {
     editButton.dataset.action = "edit";
     editButton.title = "Edit memory";
     editButton.setAttribute("aria-label", "Edit memory");
-    editButton.style.display = isSuperAdmin ? "flex" : "none";
+    editButton.style.display = isLibraryEditor ? "flex" : "none";
     editButton.innerHTML = '<i class="bx bx-edit-alt"></i>';
     imageWrapper.appendChild(editButton);
 
