@@ -31,6 +31,12 @@ service cloud.firestore {
       return activeMember() && currentRole() in ['superAdmin', 'super_admin'];
     }
 
+    // A trusted profile flag grants Library editing only, without admin privileges elsewhere.
+    function canManageLibrary() {
+      return isSuperAdmin() ||
+        (activeMember() && get(profilePath()).data.canManageLibrary == true);
+    }
+
     function isStudent() {
       return activeMember() && currentRole() == 'student';
     }
@@ -336,7 +342,8 @@ service cloud.firestore {
       // Active members can also read older records without a visibility field.
       allow get, list: if activeMember() || resource.data.visibility == 'public';
       allow create: if activeMember() && validMemoryCreate();
-      allow update: if isSuperAdmin() && validMemoryAdminUpdate();
+      allow update: if canManageLibrary() && validMemoryAdminUpdate();
+      // Deletion remains reserved for SuperAdmin, never Library Editors.
       allow delete: if isSuperAdmin();
     }
 
