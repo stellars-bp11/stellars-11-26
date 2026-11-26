@@ -611,3 +611,188 @@
     .letters-safety-button { align-self: flex-start; }
     .letters-safety-card-top { align-items: flex-start; flex-direction: column; }
 }
+
+
+/* Letters mailbox tabs and private one-to-one mail */
+.letters-view-tabs {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 30px 0 24px;
+    padding: 7px;
+    border: 1px solid rgba(130,117,220,.13);
+    border-radius: 16px;
+    background: rgba(250,248,255,.76);
+}
+.letters-view-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 9px 13px;
+    border: 1px solid transparent;
+    border-radius: 11px;
+    color: #777087;
+    background: transparent;
+    font: 600 11px 'Ubuntu', sans-serif;
+    cursor: pointer;
+    transition: background .18s ease, color .18s ease, border-color .18s ease;
+}
+.letters-view-tab:hover { color: #53447f; background: rgba(130,117,220,.08); }
+.letters-view-tab.is-active {
+    color: #44376e;
+    border-color: rgba(130,117,220,.2);
+    background: #fff;
+    box-shadow: 0 3px 12px rgba(42,33,82,.06);
+}
+.letters-view-tab > i { font-size: 16px; }
+.letters-tab-count {
+    display: inline-grid;
+    min-width: 19px;
+    height: 19px;
+    place-items: center;
+    padding: 0 5px;
+    border-radius: 999px;
+    color: #fff;
+    background: #7966c7;
+    font-size: 9px;
+    font-weight: 700;
+}
+.letters-tab-count[hidden] { display: none; }
+.letters-private-view[hidden],
+#lettersComposeSection[hidden],
+#lettersWallSection[hidden],
+#lettersSafetyPanel[hidden] { display: none !important; }
+.letters-private-view {
+    margin: 0 0 48px;
+    padding: clamp(21px, 4vw, 34px);
+    border: 1px solid rgba(130,117,220,.16);
+    border-radius: 22px;
+    background: linear-gradient(145deg, rgba(250,248,255,.96), rgba(246,244,253,.88));
+}
+.letters-private-heading { margin-bottom: 24px; }
+.letters-private-heading h2 {
+    margin: 8px 0;
+    color: #302650;
+    font: 700 clamp(25px, 4vw, 34px)/1.2 'Ubuntu', sans-serif;
+    letter-spacing: -.04em;
+}
+.letters-private-heading h2 em { color: #7663ca; font-style: normal; }
+.letters-private-heading p,
+.private-letter-helper,
+.letters-private-status {
+    color: #827b91;
+    font-size: 12px;
+    line-height: 1.65;
+}
+.private-letter-form { display: grid; gap: 10px; max-width: 760px; }
+.private-letter-form > label {
+    margin-top: 8px;
+    color: #51486a;
+    font-size: 11px;
+    font-weight: 700;
+}
+.private-letter-form > label span { margin-left: 5px; color: #a09aaf; font-size: 9px; }
+.private-letter-form input[type="search"],
+.private-letter-form input[type="text"],
+.private-letter-form textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 13px 14px;
+    border: 1px solid rgba(130,117,220,.2);
+    border-radius: 12px;
+    outline: none;
+    color: #3c3554;
+    background: #fff;
+    font: 400 12px/1.6 'Ubuntu', sans-serif;
+}
+.private-letter-form textarea { min-height: 155px; resize: vertical; }
+.private-letter-form input:focus,
+.private-letter-form textarea:focus { border-color: #8275dc; box-shadow: 0 0 0 3px rgba(130,117,220,.1); }
+.private-recipient-results {
+    display: grid;
+    gap: 6px;
+    max-height: 240px;
+    overflow: auto;
+    padding: 7px;
+    border: 1px solid rgba(130,117,220,.15);
+    border-radius: 12px;
+    background: #fff;
+}
+.private-recipient-results[hidden] { display: none; }
+.private-recipient-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 11px;
+    border: 0;
+    border-radius: 9px;
+    text-align: left;
+    color: #4c426b;
+    background: transparent;
+    cursor: pointer;
+}
+.private-recipient-option:hover { background: rgba(130,117,220,.09); }
+.private-recipient-option strong { display: block; font-size: 11px; }
+.private-recipient-option small { color: #948da4; font-size: 10px; }
+.private-recipient-selected {
+    padding: 11px 13px;
+    border: 1px solid rgba(108,153,132,.24);
+    border-radius: 11px;
+    color: #466d59;
+    background: rgba(108,153,132,.08);
+    font-size: 11px;
+}
+.private-letter-helper { margin: 0; }
+.private-letter-form .letters-form-message { min-height: 17px; }
+.letters-private-list { display: grid; gap: 13px; }
+.private-mail-card {
+    padding: 18px 19px;
+    border: 1px solid rgba(130,117,220,.13);
+    border-radius: 15px;
+    background: #fff;
+}
+.private-mail-card.is-unread {
+    border-color: rgba(118,99,202,.35);
+    box-shadow: inset 3px 0 #8a78d1;
+}
+.private-mail-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+}
+.private-mail-card-top strong { color: #453a69; font-size: 12px; }
+.private-mail-card-top small { color: #9891a8; font-size: 10px; }
+.private-mail-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #8a78c2;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .06em;
+}
+.private-mail-card h3 { margin: 13px 0 7px; color: #3b315c; font-size: 15px; }
+.private-mail-card p { margin: 0; color: #675f77; font-size: 12px; line-height: 1.75; white-space: pre-wrap; overflow-wrap: anywhere; }
+.private-mail-card-actions { display: flex; justify-content: flex-end; margin-top: 13px; }
+.private-mail-card-actions button {
+    padding: 8px 11px;
+    border: 1px solid rgba(130,117,220,.2);
+    border-radius: 9px;
+    color: #6757a8;
+    background: rgba(130,117,220,.06);
+    font: 600 10px 'Ubuntu', sans-serif;
+    cursor: pointer;
+}
+@media (max-width: 620px) {
+    .letters-view-tabs { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .letters-view-tab { justify-content: flex-start; }
+    .letters-private-view { padding: 19px; border-radius: 17px; }
+    .private-mail-card { padding: 15px; }
+}
