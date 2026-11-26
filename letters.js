@@ -488,10 +488,35 @@ async function loadPrivateSent() {
             limit(100)
         );
         const mappingSnapshot = await getDocs(sentQuery);
-        const sent = mappingSnapshot.docs.map(item => ({
-            id: item.id,
-            ...item.data()
-        })).sort((a, b) =>
+        const sent = await Promise.all(mappingSnapshot.docs.map(async item => {
+            const savedCopy = item.data();
+            if (typeof savedCopy.message === "string") {
+                return { id: item.id, ...savedCopy };
+            }
+
+            // Backward compatibility for test letters saved before the sender
+            // archive began storing a self-contained private copy.
+            try {
+                const legacySnapshot = await getDoc(doc(db, "privateLetters", item.id));
+                if (legacySnapshot.exists()) {
+                    return {
+                        id: item.id,
+                        ...legacySnapshot.data(),
+                        recipientName: savedCopy.recipientName || "STELLARS member"
+                    };
+                }
+            } catch (legacyError) {
+                console.warn("Could not load an older Sent letter copy:", legacyError);
+            }
+
+            return {
+                id: item.id,
+                ...savedCopy,
+                recipientName: savedCopy.recipientName || "STELLARS member",
+                message: savedCopy.message || "This older sent-letter copy is not available yet."
+            };
+        }));
+        sent.sort((a, b) =>
             (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0)
         );
 
