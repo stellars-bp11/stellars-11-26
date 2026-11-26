@@ -241,7 +241,7 @@
         const photos = new Map();
         parsed.querySelectorAll(".crew-card, .crewmate-card").forEach(card => {
             const name = card.querySelector(".crew-info h3")?.textContent?.trim();
-            const image = card.querySelector(".crew-photo img")?.getAttribute("src");
+            const image = card.querySelector(".crew-photo img, .crewmate-photo img")?.getAttribute("src");
             if (name && image) photos.set(normalizeName(name), image);
         });
         return photos;
