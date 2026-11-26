@@ -405,18 +405,46 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Sender-only index for the Sent view. The recipient cannot query this path.
+    // Sender-only archive. A self-contained copy means the sender need not
+    // query the recipient's inbox or member directory to view their Sent folder.
     match /privateLetterSenders/{senderUid}/letters/{letterId} {
       allow get, list: if activeMember() && request.auth.uid == senderUid;
       allow create: if activeMember() &&
         request.auth.uid == senderUid &&
         !exists(privateLetterPath(letterId)) &&
         existsAfter(privateLetterPath(letterId)) &&
-        request.resource.data.keys().hasAll(['letterId', 'createdAt']) &&
-        request.resource.data.keys().hasOnly(['letterId', 'createdAt']) &&
+        request.resource.data.keys().hasAll([
+          'letterId', 'recipientUid', 'recipientName', 'senderName',
+          'isAnonymous', 'title', 'message', 'createdAt'
+        ]) &&
+        request.resource.data.keys().hasOnly([
+          'letterId', 'recipientUid', 'recipientName', 'senderName',
+          'isAnonymous', 'title', 'message', 'createdAt'
+        ]) &&
         request.resource.data.letterId == letterId &&
+        request.resource.data.recipientUid is string &&
+        request.resource.data.recipientUid != senderUid &&
+        request.resource.data.recipientName is string &&
+        request.resource.data.recipientName.size() > 0 &&
+        request.resource.data.recipientName.size() <= 100 &&
+        request.resource.data.senderName is string &&
+        request.resource.data.senderName.size() > 0 &&
+        request.resource.data.senderName.size() <= 100 &&
+        request.resource.data.isAnonymous is bool &&
+        (request.resource.data.isAnonymous
+          ? request.resource.data.senderName == 'Anonymous Star'
+          : request.resource.data.senderName == get(profilePath()).data.fullName) &&
+        request.resource.data.title is string &&
+        request.resource.data.title.size() <= 90 &&
+        request.resource.data.message is string &&
+        request.resource.data.message.size() > 0 &&
+        request.resource.data.message.size() <= 2200 &&
         request.resource.data.createdAt is timestamp &&
-        getAfter(privateLetterPath(letterId)).data.recipientUid != senderUid &&
+        getAfter(privateLetterPath(letterId)).data.recipientUid == request.resource.data.recipientUid &&
+        getAfter(privateLetterPath(letterId)).data.senderName == request.resource.data.senderName &&
+        getAfter(privateLetterPath(letterId)).data.isAnonymous == request.resource.data.isAnonymous &&
+        getAfter(privateLetterPath(letterId)).data.title == request.resource.data.title &&
+        getAfter(privateLetterPath(letterId)).data.message == request.resource.data.message &&
         getAfter(privateLetterPath(letterId)).data.createdAt == request.resource.data.createdAt;
       allow update, delete: if false;
     }
