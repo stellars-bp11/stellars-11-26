@@ -40,8 +40,9 @@
                 <span class="stellars-drawer-item-icon"><i class="bx bx-envelope" aria-hidden="true"></i></span>
                 <span class="stellars-drawer-item-copy">
                     <strong>Letters from the Stars</strong>
-                    <small>Leave a thought for the crew</small>
+                    <small>Open the mailbox · private notes</small>
                 </span>
+                <span class="stellars-drawer-unread-badge" hidden aria-label="Unread private letters"></span>
                 <i class="bx bx-chevron-right stellars-drawer-item-arrow" aria-hidden="true"></i>
             </a>
         </div>
@@ -52,6 +53,94 @@
 
     const closeButton = drawer.querySelector(".stellars-drawer-close");
     const featureLink = drawer.querySelector(".stellars-drawer-item");
+    const unreadLogoBadge = document.createElement("span");
+    unreadLogoBadge.className = "stellars-mail-badge";
+    unreadLogoBadge.hidden = true;
+    unreadLogoBadge.setAttribute("aria-hidden", "true");
+    trigger.append(unreadLogoBadge);
+    const unreadDrawerBadge = drawer.querySelector(".stellars-drawer-unread-badge");
+
+    const setUnreadMailCount = count => {
+        const unread = Math.max(0, Number(count) || 0);
+        const label = unread > 99 ? "99+" : String(unread);
+        unreadLogoBadge.textContent = label;
+        unreadLogoBadge.hidden = unread === 0;
+        unreadDrawerBadge.textContent = unread ? `${label} new` : "";
+        unreadDrawerBadge.hidden = unread === 0;
+        trigger.setAttribute(
+            "aria-label",
+            unread
+                ? `Open STELLARS quick access. ${unread} unread private letter(s).`
+                : "Open STELLARS quick access"
+        );
+        trigger.title = unread ? `${unread} unread private letter(s)` : "STELLARS quick access";
+    };
+
+    // Only the signed-in recipient's own inbox is queried for the cross-page badge.
+    (async () => {
+        try {
+            const [appModule, authModule, firestoreModule] = await Promise.all([
+                import("https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js"),
+                import("https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js"),
+                import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js")
+            ]);
+
+            const firebaseConfig = {
+                apiKey: "AIzaSyD3ptwKTkLqFCmvrTVJFooFiVLE63mh83c",
+                authDomain: "class-web-7241e.firebaseapp.com",
+                projectId: "class-web-7241e",
+                storageBucket: "class-web-7241e.firebasestorage.app",
+                messagingSenderId: "167560389153",
+                appId: "1:167560389153:web:f61f4f821275c48373f960",
+                measurementId: "G-DTHTZNT135"
+            };
+            const app = appModule.getApps().length
+                ? appModule.getApp()
+                : appModule.initializeApp(firebaseConfig);
+            const auth = authModule.getAuth(app);
+            const db = firestoreModule.getFirestore(app);
+            let stopInbox = null;
+            let authGeneration = 0;
+
+            authModule.onAuthStateChanged(auth, async user => {
+                const generation = ++authGeneration;
+                if (stopInbox) {
+                    stopInbox();
+                    stopInbox = null;
+                }
+                setUnreadMailCount(0);
+                if (!user) return;
+
+                try {
+                    const profileSnapshot = await firestoreModule.getDoc(
+                        firestoreModule.doc(db, "users", user.uid)
+                    );
+                    if (generation !== authGeneration) return;
+                    if (!profileSnapshot.exists() || profileSnapshot.data().isActive !== true) return;
+
+                    const inboxQuery = firestoreModule.query(
+                        firestoreModule.collection(db, "privateLetters"),
+                        firestoreModule.where("recipientUid", "==", user.uid),
+                        firestoreModule.limit(100)
+                    );
+                    stopInbox = firestoreModule.onSnapshot(inboxQuery, snapshot => {
+                        if (generation !== authGeneration) return;
+                        const unread = snapshot.docs.filter(item => !item.data().readAt).length;
+                        setUnreadMailCount(unread);
+                    }, error => {
+                        console.warn("STELLARS unread private-letter counter unavailable:", error);
+                        setUnreadMailCount(0);
+                    });
+                } catch (error) {
+                    console.warn("STELLARS mail notification could not initialize:", error);
+                    setUnreadMailCount(0);
+                }
+            });
+        } catch (error) {
+            console.warn("STELLARS mail notification could not load Firebase:", error);
+            setUnreadMailCount(0);
+        }
+    })();
 
     if (window.location.pathname.toLowerCase().endsWith("/letters.html")) {
         featureLink.setAttribute("aria-current", "page");
