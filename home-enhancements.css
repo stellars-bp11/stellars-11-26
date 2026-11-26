@@ -1791,3 +1791,50 @@
     .birthday-countdown-unit strong { font-size: 19px; }
     .birthday-countdown-unit small { font-size: 6px; letter-spacing: .6px; }
 }
+
+
+/* The shared navbar must not inherit the legacy full-screen hero header rules. */
+body > header.site-header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    display: block;
+    width: 100%;
+    height: 80px;
+    min-height: 80px;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+}
+body > header.site-header::before,
+body > header.site-header::after {
+    display: none !important;
+    content: none !important;
+}
+body > header.site-header > .site-nav {
+    position: relative;
+    top: auto;
+    z-index: auto;
+    width: min(calc(100% - 64px), 1440px);
+    height: 80px;
+    min-height: 80px;
+    margin: 0 auto;
+    padding: 0;
+    overflow: visible;
+    background: transparent;
+}
+@media (max-width: 760px) {
+    body > header.site-header {
+        height: auto;
+        min-height: 0;
+    }
+    body > header.site-header > .site-nav {
+        width: calc(100% - 32px);
+        height: auto;
+        min-height: 0;
+        padding: 12px 0;
+    }
+}
+@media (max-width: 380px) {
+    body > header.site-header > .site-nav { width: calc(100% - 20px); }
+}
