@@ -497,3 +497,27 @@
     .letters-form-actions button { width: 100%; }
     .letters-toast { right: 12px; bottom: 12px; }
 }
+
+
+/* Friendlier STELLARS typography — keep the page expressive, not formal. */
+.letters-page .letters-hero h1,
+.letters-page .letters-compose-copy h2,
+.letters-page .letters-wall-heading h2,
+.letters-page .letters-card-title,
+.letters-page .letters-dialog h2 {
+    font-family: 'Ubuntu', sans-serif !important;
+    font-weight: 700;
+    letter-spacing: -.045em;
+}
+.letters-page .letters-hero h1 em,
+.letters-page .letters-compose-copy h2 em,
+.letters-page .letters-wall-heading h2 em {
+    font-family: inherit !important;
+    font-style: normal;
+    font-weight: 700;
+}
+.letters-page .letters-card-title {
+    font-size: 21px;
+    line-height: 1.35;
+    letter-spacing: -.025em;
+}
