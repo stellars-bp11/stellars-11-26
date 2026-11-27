@@ -2,7 +2,8 @@ import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebase
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 import {
-  getDatabase, ref as databaseRef, get as databaseGet, onValue,
+  getDatabase, ref as databaseRef, get as databaseGet,
+  onChildAdded, onChildChanged, onChildRemoved,
   set as databaseSet, onDisconnect, remove as databaseRemove, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
 
@@ -1843,9 +1844,9 @@ enterTownBuilding = function enterTownBuildingWithQuests(building) {
 // ── LIVE MULTIPLAYER PRESENCE (Firebase Realtime Database) ──────────────────
 const WORLD_MEMBER_ALLOWLIST = "worldMembers";
 const WORLD_PLAYER_PATH = "worldPlayers";
-const PRESENCE_SEND_INTERVAL = 500;
-const PRESENCE_HEARTBEAT_INTERVAL = 8000;
-const PRESENCE_STALE_AFTER = 25000;
+const PRESENCE_SEND_INTERVAL = 850;
+const PRESENCE_HEARTBEAT_INTERVAL = 12000;
+const PRESENCE_STALE_AFTER = 30000;
 let worldPresenceRef = null;
 let worldPresenceUnsubscribe = null;
 let worldPresenceReady = false;
@@ -1875,7 +1876,7 @@ function presenceHasChanged(next) {
   return next.area !== lastPresenceState.area || next.direction !== lastPresenceState.direction ||
     next.moving !== lastPresenceState.moving || next.job !== lastPresenceState.job ||
     next.gender !== lastPresenceState.gender ||
-    Math.hypot(next.x - lastPresenceState.x, next.y - lastPresenceState.y) >= 22;
+    Math.hypot(next.x - lastPresenceState.x, next.y - lastPresenceState.y) >= 32;
 }
 async function startMultiplayer() {
   stopMultiplayer();
@@ -1895,19 +1896,45 @@ async function startMultiplayer() {
     worldPresenceRef = myRef;
     await onDisconnect(myRef).remove();
     if (sequence !== multiplayerSequence) return;
-    worldPresenceUnsubscribe = onValue(databaseRef(realtimeDb, WORLD_PLAYER_PATH), snapshot => {
-      const now = Date.now(), data = snapshot.val() || {};
-      const players = Object.values(data).filter(person =>
-        person && typeof person.uid === "string" && typeof person.name === "string" &&
-        Number.isFinite(Number(person.x)) && Number.isFinite(Number(person.y)) &&
-        Number.isFinite(Number(person.updatedAt)) && now - Number(person.updatedAt) <= PRESENCE_STALE_AFTER
-      );
+    const remotePresenceRecords = new Map();
+    const playersRootRef = databaseRef(realtimeDb, WORLD_PLAYER_PATH);
+    const publishRemotePresence = () => {
+      const now = Date.now();
+      const players = [];
+      remotePresenceRecords.forEach((person, uid) => {
+        if (!person || !Number.isFinite(Number(person.updatedAt)) ||
+            now - Number(person.updatedAt) > PRESENCE_STALE_AFTER) {
+          remotePresenceRecords.delete(uid);
+          return;
+        }
+        players.push(person);
+      });
       window.STELLARSWorld.setRemotePlayers(players);
       setWorldNetworkStatus("WORLD LIVE", Math.max(1, players.length));
-    }, error => {
+    };
+    const acceptRemotePresence = snapshot => {
+      const person = snapshot.val();
+      if (!person || typeof person.uid !== "string" || person.uid !== snapshot.key) return;
+      remotePresenceRecords.set(snapshot.key, person);
+      publishRemotePresence();
+    };
+    const handlePresenceError = error => {
       console.warn("STELLARS World presence listener failed:", error);
-      worldPresenceReady = false; setWorldNetworkStatus("CONNECTION ERROR", 1);
-    });
+      worldPresenceReady = false;
+      setWorldNetworkStatus("CONNECTION ERROR", 1);
+    };
+    const stopChildListeners = [
+      onChildAdded(playersRootRef, acceptRemotePresence, handlePresenceError),
+      onChildChanged(playersRootRef, acceptRemotePresence, handlePresenceError),
+      onChildRemoved(playersRootRef, snapshot => {
+        remotePresenceRecords.delete(snapshot.key);
+        publishRemotePresence();
+      }, handlePresenceError)
+    ];
+    worldPresenceUnsubscribe = () => {
+      stopChildListeners.forEach(unsubscribe => unsubscribe());
+      remotePresenceRecords.clear();
+    };
     await databaseSet(myRef, { ...currentWorldPresence(), updatedAt: serverTimestamp() });
     if (sequence !== multiplayerSequence) { await databaseRemove(myRef).catch(() => {}); return; }
     worldPresenceReady = true;
