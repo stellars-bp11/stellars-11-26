@@ -767,6 +767,67 @@ service cloud.firestore {
         getAfter(commentPath).data.text == data.commentText;
     }
 
+    function validRadioReply(dayId, memberId, commentId) {
+      let data = request.resource.data;
+      let songPath = /databases/$(database)/documents/radioDays/$(dayId)/songs/$(memberId);
+      let commentPath = /databases/$(database)/documents/radioDays/$(dayId)/songs/$(memberId)/comments/$(commentId);
+      return data.keys().hasAll(['uid', 'displayName', 'text', 'createdAt']) &&
+        data.keys().hasOnly(['uid', 'displayName', 'text', 'createdAt']) &&
+        data.uid == request.auth.uid &&
+        data.displayName == get(profilePath()).data.fullName &&
+        data.text is string &&
+        data.text.size() > 0 &&
+        data.text.size() <= 280 &&
+        data.createdAt is timestamp &&
+        exists(songPath) &&
+        get(songPath).data.uid == memberId &&
+        exists(commentPath);
+    }
+
+    function validRadioReplyNotification(recipientUid, notificationId) {
+      let data = request.resource.data;
+      let songPath = /databases/$(database)/documents/radioDays/$(data.dayKey)/songs/$(data.songOwnerUid);
+      let commentPath = /databases/$(database)/documents/radioDays/$(data.dayKey)/songs/$(data.songOwnerUid)/comments/$(data.commentId);
+      let replyPath = /databases/$(database)/documents/radioDays/$(data.dayKey)/songs/$(data.songOwnerUid)/comments/$(data.commentId)/replies/$(notificationId);
+      return data.keys().hasAll([
+          'type', 'dayKey', 'songOwnerUid', 'songTitle', 'commentId', 'replyId',
+          'commenterUid', 'commenterName', 'commentText', 'createdAt', 'readAt'
+        ]) &&
+        data.keys().hasOnly([
+          'type', 'dayKey', 'songOwnerUid', 'songTitle', 'commentId', 'replyId',
+          'commenterUid', 'commenterName', 'commentText', 'createdAt', 'readAt'
+        ]) &&
+        data.type == 'radio_reply' &&
+        data.dayKey is string &&
+        data.dayKey.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$') &&
+        isCurrentJakartaRadioDay(data.dayKey) &&
+        data.songOwnerUid is string &&
+        data.songTitle is string &&
+        data.songTitle.size() > 0 &&
+        data.songTitle.size() <= 120 &&
+        data.commentId is string &&
+        data.commentId.size() > 0 &&
+        data.commentId.size() <= 150 &&
+        data.replyId == notificationId &&
+        data.commenterUid == request.auth.uid &&
+        data.commenterUid != recipientUid &&
+        data.commenterName == get(profilePath()).data.fullName &&
+        data.commentText is string &&
+        data.commentText.size() > 0 &&
+        data.commentText.size() <= 280 &&
+        data.createdAt is timestamp &&
+        data.readAt == null &&
+        exists(songPath) &&
+        get(songPath).data.uid == data.songOwnerUid &&
+        get(songPath).data.songTitle == data.songTitle &&
+        exists(commentPath) &&
+        get(commentPath).data.uid == recipientUid &&
+        existsAfter(replyPath) &&
+        getAfter(replyPath).data.uid == data.commenterUid &&
+        getAfter(replyPath).data.displayName == data.commenterName &&
+        getAfter(replyPath).data.text == data.commentText;
+    }
+
     match /radioDays/{dayId}/songs/{memberId} {
       // Song Wall entries are public to read; posting and editing remain member-only.
       allow read: if true;
@@ -795,6 +856,22 @@ service cloud.firestore {
         allow delete: if activeMember() &&
           isCurrentJakartaRadioDay(dayId) &&
           (resource.data.uid == request.auth.uid || request.auth.uid == memberId);
+
+        match /replies/{replyId} {
+          // Reply threads are readable with the public song wall.
+          allow get: if true;
+          allow list: if request.query.limit <= 100;
+          allow create: if activeMember() &&
+            isCurrentJakartaRadioDay(dayId) &&
+            validRadioReply(dayId, memberId, commentId);
+          allow update: if false;
+          // The reply author, original commenter, or song owner can moderate a reply.
+          allow delete: if activeMember() &&
+            isCurrentJakartaRadioDay(dayId) &&
+            (resource.data.uid == request.auth.uid ||
+             request.auth.uid == memberId ||
+             get(/databases/$(database)/documents/radioDays/$(dayId)/songs/$(memberId)/comments/$(commentId)).data.uid == request.auth.uid);
+        }
       }
     }
 
@@ -803,7 +880,8 @@ service cloud.firestore {
       allow get, list: if activeMember() && request.auth.uid == recipientUid;
       allow create: if activeMember() &&
         request.auth.uid != recipientUid &&
-        validRadioCommentNotification(recipientUid, notificationId);
+        (validRadioCommentNotification(recipientUid, notificationId) ||
+         validRadioReplyNotification(recipientUid, notificationId));
       // Recipients can mark an unread notification as read, but cannot rewrite it.
       allow update: if activeMember() &&
         request.auth.uid == recipientUid &&
