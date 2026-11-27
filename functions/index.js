@@ -58,8 +58,8 @@ exports.clearExpiredRadioSongs = onSchedule(
 );
 
 /**
- * STELLARS Birthday data is stored privately in Firestore.
- * Only the next celebration is copied into the public preview document.
+ * Validate month/day values for the private STELLARS Birthday directory.
+ * Birth years are intentionally not stored.
  */
 function isValidBirthdayMonthDay(value) {
     const match = /^(0[1-9]|1[0-2])-([0-9]{2})$/.exec(String(value || ""));
