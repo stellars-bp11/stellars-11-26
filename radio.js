@@ -1027,6 +1027,55 @@ function startDailyFeed() {
     });
 }
 
+let itunesJsonpSequence = 0;
+
+function searchItunesArtworkJsonp(searchUrl, timeoutMs = 15000) {
+    return new Promise((resolve, reject) => {
+        const callbackName = "__stellarsItunesSearch_" + (++itunesJsonpSequence) + "_" + Date.now();
+        const script = document.createElement("script");
+        let timeoutId = null;
+        let settled = false;
+
+        const cleanup = () => {
+            if (timeoutId !== null) clearTimeout(timeoutId);
+            script.remove();
+            try {
+                delete window[callbackName];
+            } catch {
+                window[callbackName] = undefined;
+            }
+        };
+
+        const finish = (error, payload) => {
+            if (settled) return;
+            settled = true;
+            cleanup();
+            if (error) reject(error);
+            else resolve(payload);
+        };
+
+        window[callbackName] = payload => finish(null, payload);
+        script.async = true;
+        script.onerror = () => {
+            const error = new Error("Apple's artwork search script could not be loaded.");
+            error.code = "itunes/jsonp-load-failed";
+            finish(error);
+        };
+
+        const url = new URL(searchUrl.toString());
+        url.searchParams.set("callback", callbackName);
+        script.src = url.toString();
+
+        timeoutId = setTimeout(() => {
+            const error = new Error("Apple's artwork search did not respond in time.");
+            error.code = "itunes/jsonp-timeout";
+            finish(error);
+        }, timeoutMs);
+
+        document.head.append(script);
+    });
+}
+
 async function searchArtwork() {
     const songTitle = elements.title.value.trim();
     const artistName = elements.artist.value.trim();
@@ -1051,14 +1100,13 @@ async function searchArtwork() {
             country: "id"
         }).toString();
 
-        let response = await fetch(url.toString());
-        if (!response.ok) throw new Error("Artwork search is unavailable right now.");
-        let payload = await response.json();
+        // Apple documents callback-based JSONP for cross-site Search API requests.
+        // This avoids depending on browser CORS access to the iTunes JSON response.
+        let payload = await searchItunesArtworkJsonp(url);
 
         if (!Array.isArray(payload.results) || payload.results.length === 0) {
             url.searchParams.set("country", "us");
-            response = await fetch(url.toString());
-            if (response.ok) payload = await response.json();
+            payload = await searchItunesArtworkJsonp(url);
         }
 
         const results = Array.isArray(payload.results) ? payload.results : [];
@@ -1119,8 +1167,13 @@ async function searchArtwork() {
             setComposerMessage("Choose the correct artwork below.", "success");
         }
     } catch (error) {
-        console.error("Artwork search failed:", error);
-        setComposerMessage("Artwork search couldn't connect. Check your connection or upload the cover manually.", "error");
+        console.error("Apple artwork search failed:", error);
+        const message = error.code === "itunes/jsonp-timeout"
+            ? "Apple's artwork catalog is taking too long to respond. Try again, or upload the cover manually."
+            : error.code === "itunes/jsonp-load-failed"
+                ? "Apple's artwork catalog could not be reached from this browser right now. Try again later, or upload the cover manually."
+                : "Apple's artwork search could not be completed. Try again, or upload the cover manually.";
+        setComposerMessage(message, "error");
         elements.results.hidden = true;
     } finally {
         elements.searchButton.disabled = false;
