@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="world.css?v=guest-preview-world-v2-20261126">
+  <link rel="stylesheet" href="world.css?v=class-only-world-lock-v1-20261127">
     <link rel="stylesheet" href="playful-theme.css?v=simple-motion-20261125">
     <link rel="icon" type="image/svg+xml" href="favicon.svg?v=stellars-constellation-20261125">
     <meta name="theme-color" content="#17152D">
@@ -26,13 +26,13 @@
         <span>ONE TOWN · MANY STORIES</span>
       </div>
       <div class="world-header-actions">
-        <span class="preview-pill">LOCAL PREVIEW</span>
+        <span class="preview-pill">CLASS MEMBERS ONLY</span>
         <a class="back-link" href="index.html">← Home</a>
       </div>
     </header>
 
     <main class="world-main">
-      <section class="world-intro">
+      <section class="world-intro" id="worldMemberIntro" hidden>
         <div>
           <p class="pixel-kicker">A LITTLE UNIVERSE TO LIVE IN</p>
           <h1>Welcome to <span>Stellars Town</span></h1>
@@ -44,11 +44,26 @@
         </div>
       </section>
 
-      <div class="world-preview-banner" id="worldPreviewBanner">
-        <span><i class="bx bx-lock-alt" aria-hidden="true"></i> PREVIEW MODE — explore the world visually</span>
-        <a href="index.html?login=1">Sign in to play <i class="bx bx-right-arrow-alt" aria-hidden="true"></i></a>
-      </div>
-      <section class="game-layout" aria-label="Stellars Town game">
+      <section class="world-access-gate" id="worldAccessGate" aria-labelledby="worldAccessTitle">
+        <span class="world-access-icon" aria-hidden="true"><i class="bx bx-lock-alt"></i></span>
+        <p class="pixel-kicker">STELLARS / MEMBERS SPACE</p>
+        <h1 id="worldAccessTitle">This world is <span>locked.</span></h1>
+        <p id="worldAccessMessage">Checking your STELLARS account…</p>
+        <a class="world-access-signin" id="worldSignInLink" href="index.html?login=1">Sign in with a class account <i class="bx bx-right-arrow-alt" aria-hidden="true"></i></a>
+        <a class="world-access-home" href="index.html">← Back to STELLARS Home</a>
+      </section>
+      <section class="world-intro" id="worldMemberIntro" hidden>
+        <div>
+          <p class="pixel-kicker">A LITTLE UNIVERSE TO LIVE IN</p>
+          <h1>Welcome to <span>Stellars Town</span></h1>
+          <p class="intro-copy">Build a life, find your people, and make this town yours.</p>
+        </div>
+        <div class="intro-stats">
+          <div><span class="stat-icon">⌂</span><strong>45</strong><small>STAR HOMES PLANNED</small></div>
+          <div><span class="stat-icon">✦</span><strong id="townLevel">01</strong><small>TOWN LEVEL</small></div>
+        </div>
+      </section>
+      <section class="game-layout" id="worldGameLayout" aria-label="Stellars Town game" hidden>
         <aside class="game-sidebar left-sidebar">
           <section class="panel player-panel">
             <div class="panel-heading"><span>YOUR CHARACTER</span><span class="panel-spark">✦</span></div>
@@ -145,7 +160,7 @@
           </section>
         </aside>
       </section>
-      <p class="prototype-note"><strong>Prototype notice:</strong> this preview saves progress on this browser only. Shared 45-player movement, homes, and town-building will be connected in the multiplayer phase.</p>
+      <p class="prototype-note" id="worldPrototypeNote" hidden><strong>Prototype notice:</strong> this preview saves progress on this browser only. Shared 45-player movement, homes, and town-building will be connected in the multiplayer phase.</p>
     </main>
   </div>
 
@@ -157,7 +172,7 @@
     <div class="job-grid" id="jobGrid"></div>
   </dialog>
 
-  <script type="module" src="world.js?v=guest-preview-world-v2-20261126"></script>
+  <script type="module" src="world.js?v=class-only-world-lock-v1-20261127"></script>
     <script src="letters-launcher.js?v=private-mail-notifications-v6-20261126" defer></script>
 </body>
 </html>
