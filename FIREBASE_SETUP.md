@@ -224,3 +224,51 @@ revoke/delete the temporary key after the repair.
 If a profile, alias, index, or activation-code conflict is reported, stop.
 Do not delete or recreate the account, and do not manually alter additional
 records until the conflict has been reviewed.
+
+
+## STELLARS World — Realtime multiplayer setup
+
+STELLARS World uses Firebase Realtime Database for live player presence, not
+Firestore movement writes. The page checks the signed-in Firebase profile,
+while Realtime Database Rules also require each UID to exist in the
+read-only `worldMembers` allowlist. Visitors cannot add their own UID.
+
+### One-time database setup
+
+1. In Firebase Console, open project `class-web-7241e` → **Realtime Database**
+   → **Create Database**. Create the default database in **Singapore
+   (asia-southeast1)** and choose locked/production rules, not test mode.
+2. The expected URL is
+   `https://class-web-7241e-default-rtdb.asia-southeast1.firebasedatabase.app`.
+   If the console shows a different URL, update `databaseURL` in `world.js`
+   to the exact URL shown.
+3. Sign in to STELLARS using the active Super Admin account and open
+   `world-members-export.html`. Click **Generate member list**, then download
+   `stellars-world-members.json`. The file contains only UIDs for active
+   class accounts, not names, NIMs, or email addresses.
+4. In Realtime Database → **Data**, create/select the top-level
+   `worldMembers` node and import the downloaded JSON into that node. Do not
+   import the JSON at the database root after World is in use.
+5. Pull the latest repository changes in the local clone, then publish the
+   Realtime Database Rules:
+
+   ```bash
+   firebase deploy --only database --project class-web-7241e
+   ```
+
+6. Open `world.html` using two active STELLARS class accounts in separate
+   browsers/devices. The header should show **WORLD LIVE** and online player
+   count. Walk around and enter the same building to confirm both characters
+   appear together.
+
+The rules keep `worldMembers` read-only to clients and let each allowlisted
+member write only their own live presence. Regenerate and re-import the
+allowlist when membership or activation status changes. A GitHub Pages
+publish does not create a Firebase database or publish its Rules. Multiplayer
+stays in setup mode until the database exists, the allowlist is imported, and
+the deploy command succeeds.
+
+For this first networking stage, live character positions, first names,
+profession labels, and building/area are shared. Inventory, crops, coins, and
+profession progress remain local to each browser and are not yet a shared
+economy.

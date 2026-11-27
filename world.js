@@ -1,6 +1,10 @@
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+import {
+  getDatabase, ref as databaseRef, get as databaseGet, onValue,
+  set as databaseSet, onDisconnect, remove as databaseRemove, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
 
 /*
  * STELLARS WORLD — Top-down single-player prototype.
@@ -17,12 +21,14 @@ const firebaseConfig = {
   storageBucket: "class-web-7241e.firebasestorage.app",
   messagingSenderId: "167560389153",
   appId: "1:167560389153:web:f61f4f821275c48373f960",
-  measurementId: "G-DTHTZNT135"
+  measurementId: "G-DTHTZNT135",
+  databaseURL: "https://class-web-7241e-default-rtdb.asia-southeast1.firebasedatabase.app"
 };
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const realtimeDb = getDatabase(app, firebaseConfig.databaseURL);
 
 const $ = id => document.getElementById(id);
 const canvas = $("worldCanvas");
@@ -507,9 +513,19 @@ function drawEntity(entity, time) {
   else drawCharacter(entity, entity.uid === player.uid, time);
 }
 function renderablePlayers() {
-  // In multiplayer, the remote-player adapter will populate remotePlayers;
-  // the same rendering path will draw local and remote characters.
-  return [player, ...remotePlayers.values()];
+  const currentArea = insideBuilding || "outside";
+  const now = performance.now();
+  const visibleRemotePlayers = Array.from(remotePlayers.values())
+    .filter(person => person.area === currentArea)
+    .map(person => {
+      const progress = Math.max(0, Math.min(1, (now - person.receivedAt) / 450));
+      return {
+        ...person,
+        x: person.x + (person.targetX - person.x) * progress,
+        y: person.y + (person.targetY - person.y) * progress
+      };
+    });
+  return [player, ...visibleRemotePlayers];
 }
 function drawWorld(time) {
   if (!canPlayWorld) return;
@@ -613,6 +629,7 @@ function loop(time) {
   lastFrame = time;
   updatePlayer();
   drawWorld(time);
+  syncWorldPresence(time);
   requestAnimationFrame(loop);
 }
 function drawClock() {
@@ -737,6 +754,7 @@ function startAuth() {
     if (sequence !== authSequence || (auth.currentUser?.uid || null) !== (user?.uid || null)) return;
     canPlayWorld = profile.active;
     if (!canPlayWorld) {
+      stopMultiplayer();
       remotePlayers.clear();
       player.uid = user?.uid || "local-preview";
       player.name = "Star";
@@ -753,6 +771,7 @@ function startAuth() {
     drawClock();
     updateCamera();
     drawWorld(performance.now());
+    void startMultiplayer();
   });
 }
 
@@ -761,25 +780,39 @@ function startAuth() {
 window.STELLARSWorld = Object.freeze({
   getLocalPlayer: () => ({
     uid: player.uid, name: player.name, x: player.x, y: player.y,
-    direction: player.direction, moving: player.moving
+    direction: player.direction, moving: player.moving,
+    area: insideBuilding || "outside", job: save.job || ""
   }),
   setRemotePlayers: (players) => {
     if (!Array.isArray(players)) return;
-    remotePlayers.clear();
+    const now = performance.now();
+    const allowedAreas = ["outside", "library", "townhall", "cafe", "home", "market", "workshop", "observatory", "bakery"];
+    const keep = new Set();
     players.forEach(person => {
       if (!person || typeof person.uid !== "string" || person.uid === player.uid ||
           typeof person.name !== "string" || !Number.isFinite(person.x) ||
           !Number.isFinite(person.y)) return;
+      const area = allowedAreas.includes(person.area) ? person.area : "outside";
+      const targetX = Math.max(TILE, Math.min(MAP_PIXEL_W - TILE, person.x));
+      const targetY = Math.max(TILE, Math.min(MAP_PIXEL_H - TILE, person.y));
+      const previous = remotePlayers.get(person.uid);
+      let startX = targetX, startY = targetY;
+      if (previous && previous.area === area) {
+        const progress = Math.max(0, Math.min(1, (now - previous.receivedAt) / 450));
+        startX = previous.x + (previous.targetX - previous.x) * progress;
+        startY = previous.y + (previous.targetY - previous.y) * progress;
+      }
       remotePlayers.set(person.uid, {
-        uid: person.uid,
-        name: firstName(person.name),
-        x: Math.max(TILE, Math.min(MAP_PIXEL_W - TILE, person.x)),
-        y: Math.max(TILE, Math.min(MAP_PIXEL_H - TILE, person.y)),
+        uid: person.uid, name: firstName(person.name),
+        x: startX, y: startY, targetX, targetY, area,
         direction: ["up", "down", "left", "right"].includes(person.direction) ? person.direction : "down",
         moving: person.moving === true,
-        palette: paletteFor(person.uid)
+        job: typeof person.job === "string" ? person.job : "",
+        receivedAt: now, palette: paletteFor(person.uid)
       });
+      keep.add(person.uid);
     });
+    for (const uid of remotePlayers.keys()) if (!keep.has(uid)) remotePlayers.delete(uid);
   }
 });
 
@@ -1135,7 +1168,8 @@ drawWorld = function drawTownWorld(time) {
   if (!canPlayWorld) return;
   ctx.clearRect(0, 0, VIEW_W, VIEW_H);
   if (insideBuilding) {
-    drawTownInterior(time); drawCharacter(player, true, time);
+    drawTownInterior(time);
+    renderablePlayers().forEach(person => drawCharacter(person, person.uid === player.uid, time));
     const staff = indoorStaff[insideBuilding];
     if (staff) drawCharacter({ ...staff, uid: "staff-" + insideBuilding, direction: "down", moving: false }, false, time);
     updateWorldHud(); return;
@@ -1274,6 +1308,119 @@ interact = function interactWithTown() {
   if (building) { enterTownBuilding(building); return; }
   showToast("Find a person, glowing item, farm plot, or building door to interact with.");
 };
+
+
+// ── LIVE MULTIPLAYER PRESENCE (Firebase Realtime Database) ──────────────────
+const WORLD_MEMBER_ALLOWLIST = "worldMembers";
+const WORLD_PLAYER_PATH = "worldPlayers";
+const PRESENCE_SEND_INTERVAL = 500;
+const PRESENCE_HEARTBEAT_INTERVAL = 8000;
+const PRESENCE_STALE_AFTER = 25000;
+let worldPresenceRef = null;
+let worldPresenceUnsubscribe = null;
+let worldPresenceReady = false;
+let worldPresencePending = false;
+let lastPresenceWriteAt = 0;
+let lastPresenceState = null;
+let multiplayerSequence = 0;
+
+function setWorldNetworkStatus(label, onlineCount) {
+  const status = $("worldNetworkStatus"), count = $("worldOnlineCount");
+  if (status) status.textContent = label;
+  if (count && Number.isFinite(onlineCount)) count.textContent = onlineCount + (onlineCount === 1 ? " STAR ONLINE" : " STARS ONLINE");
+}
+function currentWorldPresence() {
+  return {
+    uid: player.uid, name: firstName(player.name),
+    x: Math.round(player.x * 10) / 10, y: Math.round(player.y * 10) / 10,
+    direction: ["up", "down", "left", "right"].includes(player.direction) ? player.direction : "down",
+    moving: player.moving === true, job: typeof save.job === "string" ? save.job : "",
+    area: insideBuilding || "outside"
+  };
+}
+function presenceHasChanged(next) {
+  if (!lastPresenceState) return true;
+  return next.area !== lastPresenceState.area || next.direction !== lastPresenceState.direction ||
+    next.moving !== lastPresenceState.moving || next.job !== lastPresenceState.job ||
+    Math.hypot(next.x - lastPresenceState.x, next.y - lastPresenceState.y) >= 22;
+}
+async function startMultiplayer() {
+  stopMultiplayer();
+  const sequence = multiplayerSequence;
+  if (!canPlayWorld || !player.uid || player.uid === "local-preview") {
+    setWorldNetworkStatus("MEMBER ACCESS REQUIRED", 1); return;
+  }
+  setWorldNetworkStatus("CHECKING MEMBER ACCESS", 1);
+  try {
+    const membership = await databaseGet(databaseRef(realtimeDb, WORLD_MEMBER_ALLOWLIST + "/" + player.uid));
+    if (sequence !== multiplayerSequence) return;
+    if (membership.val() !== true) {
+      setWorldNetworkStatus("WAITING FOR MEMBER SETUP", 1);
+      showToast("Multiplayer needs the Super Admin member-list setup first."); return;
+    }
+    const myRef = databaseRef(realtimeDb, WORLD_PLAYER_PATH + "/" + player.uid);
+    worldPresenceRef = myRef;
+    await onDisconnect(myRef).remove();
+    if (sequence !== multiplayerSequence) return;
+    worldPresenceUnsubscribe = onValue(databaseRef(realtimeDb, WORLD_PLAYER_PATH), snapshot => {
+      const now = Date.now(), data = snapshot.val() || {};
+      const players = Object.values(data).filter(person =>
+        person && typeof person.uid === "string" && typeof person.name === "string" &&
+        Number.isFinite(Number(person.x)) && Number.isFinite(Number(person.y)) &&
+        Number.isFinite(Number(person.updatedAt)) && now - Number(person.updatedAt) <= PRESENCE_STALE_AFTER
+      );
+      window.STELLARSWorld.setRemotePlayers(players);
+      setWorldNetworkStatus("WORLD LIVE", Math.max(1, players.length));
+    }, error => {
+      console.warn("STELLARS World presence listener failed:", error);
+      worldPresenceReady = false; setWorldNetworkStatus("CONNECTION ERROR", 1);
+    });
+    await databaseSet(myRef, { ...currentWorldPresence(), updatedAt: serverTimestamp() });
+    if (sequence !== multiplayerSequence) { await databaseRemove(myRef).catch(() => {}); return; }
+    worldPresenceReady = true;
+    lastPresenceWriteAt = performance.now();
+    lastPresenceState = currentWorldPresence();
+    setWorldNetworkStatus("WORLD LIVE", 1);
+  } catch (error) {
+    console.warn("Could not connect STELLARS World multiplayer:", error);
+    if (sequence !== multiplayerSequence) return;
+    if (worldPresenceUnsubscribe) { worldPresenceUnsubscribe(); worldPresenceUnsubscribe = null; }
+    worldPresenceRef = null; worldPresenceReady = false; remotePlayers.clear();
+    const message = String(error?.message || error);
+    if (/permission|denied/i.test(message)) {
+      setWorldNetworkStatus("MEMBER LIST SETUP NEEDED", 1);
+      showToast("Your account is not in the multiplayer member list yet.");
+    } else {
+      setWorldNetworkStatus("DATABASE SETUP NEEDED", 1);
+      showToast("Realtime Database still needs to be created and configured.");
+    }
+  }
+}
+function stopMultiplayer() {
+  multiplayerSequence++;
+  if (worldPresenceUnsubscribe) { worldPresenceUnsubscribe(); worldPresenceUnsubscribe = null; }
+  if (worldPresenceRef) {
+    const oldRef = worldPresenceRef; worldPresenceRef = null;
+    void databaseRemove(oldRef).catch(() => {});
+  }
+  worldPresenceReady = false; worldPresencePending = false;
+  lastPresenceState = null; lastPresenceWriteAt = 0; remotePlayers.clear();
+  setWorldNetworkStatus(canPlayWorld ? "RECONNECTING…" : "MEMBER ACCESS REQUIRED", 1);
+}
+function syncWorldPresence(frameTime) {
+  if (!worldPresenceReady || !worldPresenceRef || worldPresencePending || !canPlayWorld) return;
+  const next = currentWorldPresence(), changed = presenceHasChanged(next);
+  const heartbeatDue = frameTime - lastPresenceWriteAt >= PRESENCE_HEARTBEAT_INTERVAL;
+  if (!changed && !heartbeatDue) return;
+  if (frameTime - lastPresenceWriteAt < PRESENCE_SEND_INTERVAL) return;
+  worldPresencePending = true; lastPresenceWriteAt = frameTime; lastPresenceState = next;
+  databaseSet(worldPresenceRef, { ...next, updatedAt: serverTimestamp() })
+    .catch(error => {
+      console.warn("STELLARS World presence write failed:", error);
+      worldPresenceReady = false; setWorldNetworkStatus("CONNECTION ERROR", 1);
+    })
+    .finally(() => { worldPresencePending = false; });
+}
 
 bindControls();
 drawClock();

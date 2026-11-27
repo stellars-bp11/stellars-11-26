@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css">
-  <link rel="stylesheet" href="world.css?v=town-life-v2-20261127">
+  <link rel="stylesheet" href="world.css?v=multiplayer-v1-20261127">
   <link rel="stylesheet" href="playful-theme.css?v=simple-motion-20261125">
   <link rel="stylesheet" href="navbar-unification.css?v=full-width-v1-20261126">
   <link rel="icon" type="image/svg+xml" href="favicon.svg?v=stellars-constellation-20261125">
@@ -23,7 +23,7 @@
       </a>
       <div class="world-header-center"><span class="world-online-dot"></span><span>A LITTLE WORLD FOR OUR CREW</span></div>
       <div class="world-header-actions">
-        <span class="world-mode-pill">SINGLE-PLAYER TEST</span>
+        <span class="world-mode-pill" id="worldNetworkStatus" role="status">CONNECTING TO WORLD…</span>
         <a class="back-link" href="index.html">← Home</a>
       </div>
     </header>
@@ -50,7 +50,7 @@
         <a class="world-access-home" href="index.html">← Back to STELLARS Home</a>
       </section>
 
-      <section class="game-layout" id="worldGameLayout" aria-label="STELLARS World single-player prototype" hidden>
+      <section class="game-layout" id="worldGameLayout" aria-label="STELLARS World multiplayer game" hidden>
         <section class="world-stage-column">
           <div class="world-toolbar">
             <div class="world-location">
@@ -62,6 +62,7 @@
               <span id="weatherLabel">Sunny</span>
               <span class="toolbar-divider"></span>
               <span class="world-coords" id="worldCoords">38 : 44</span>
+              <span class="world-player-count" id="worldOnlineCount">1 STAR ONLINE</span>
             </div>
           </div>
 
@@ -142,7 +143,7 @@
       </section>
 
       <p class="prototype-note" id="worldPrototypeNote" hidden>
-        <strong>Single-player prototype.</strong> Buildings, NPCs, profession activities, farming, crafting, items, and progress are saved locally in this browser. Multiplayer sync is not connected yet.
+        <strong>Live multiplayer.</strong> Active members can see each other's characters in the same outdoor area or building. Profession and inventory progress is still saved locally on each device in this first networking stage.
       </p>
     </main>
   </div>
@@ -155,7 +156,7 @@
     <div class="job-grid" id="jobGrid"></div>
   </dialog>
 
-  <script type="module" src="world.js?v=town-life-v2b-20261127"></script>
+  <script type="module" src="world.js?v=multiplayer-v1-20261127"></script>
   <script src="letters-launcher.js?v=private-mail-notifications-v6-20261126" defer></script>
 </body>
 </html>

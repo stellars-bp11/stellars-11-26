@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#17251e"><title>STELLARS World — Member Setup</title>
+<link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#17251e;--line:rgba(229,242,210,.16);--cream:#fff7df;--muted:#b8c6ae}*{box-sizing:border-box}
+body{margin:0;min-height:100vh;padding:28px 16px;background:radial-gradient(circle at 15% 0,rgba(105,144,92,.18),transparent 34rem),var(--bg);color:var(--cream);font-family:Ubuntu,sans-serif}
+main{width:min(760px,100%);margin:5vh auto;padding:clamp(22px,5vw,42px);border:1px solid var(--line);border-radius:12px;background:linear-gradient(145deg,#304635,#223629);box-shadow:0 24px 70px rgba(0,0,0,.25)}
+.kicker{font:10px Silkscreen,sans-serif;letter-spacing:1px;color:#bad99e}h1{margin:12px 0;font-size:clamp(26px,5vw,38px)}p{color:var(--muted);line-height:1.65;font-size:14px}
+.status{margin:18px 0;padding:12px 14px;border:1px solid var(--line);border-radius:6px;background:rgba(10,20,12,.22);font-size:13px}
+button{border:0;border-radius:5px;padding:12px 16px;background:#d3e5b8;color:#243322;font-weight:700;cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}
+textarea{display:block;width:100%;min-height:220px;margin-top:16px;padding:12px;border:1px solid var(--line);border-radius:6px;background:#14221a;color:#eaf0df;font:12px/1.5 monospace;resize:vertical}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}.secondary{background:#657f55;color:white}.small{font-size:12px}a{color:#d5e8b9}
+</style></head><body><main>
+<span class="kicker">STELLARS WORLD / MULTIPLAYER SETUP</span><h1>Member allowlist exporter</h1>
+<p>This setup helper exports only Firebase UIDs for active STELLARS class accounts. It does not export names, NIMs, emails, or other profile details. Sign in with the project's active Super Admin account.</p>
+<div class="status" id="status" role="status">Checking your STELLARS account…</div>
+<div class="actions"><button id="generate" type="button" disabled>Generate member list</button><button id="download" type="button" class="secondary" disabled>Download JSON</button></div>
+<textarea id="output" spellcheck="false" placeholder="The allowlist JSON will appear here after Super Admin verification." readonly></textarea>
+<p class="small">In Firebase Console → Realtime Database → Data, create/select the <code>worldMembers</code> node and import this JSON at that node. Do not import at the database root after World is in use.</p><p class="small"><a href="world.html">← Return to STELLARS World</a></p>
+</main><script type="module">
+import{initializeApp,getApps,getApp}from"https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import{getAuth,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import{getFirestore,doc,getDoc,collection,getDocs}from"https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+const config={apiKey:"AIzaSyD3ptwKTkLqFCmvrTVJFooFiVLE63mhc",authDomain:"class-web-7241e.firebaseapp.com",projectId:"class-web-7241e",storageBucket:"class-web-7241e.firebasestorage.app",messagingSenderId:"167560389153",appId:"1:167560389153:web:f61f4f821275c48373f960",measurementId:"G-DTHTZNT135"};
+const app=getApps().length?getApp():initializeApp(config),auth=getAuth(app),db=getFirestore(app);
+const status=document.getElementById("status"),generate=document.getElementById("generate"),download=document.getElementById("download"),output=document.getElementById("output");
+let verified=false,generated=false;
+onAuthStateChanged(auth,async user=>{
+ verified=false;generate.disabled=true;download.disabled=true;generated=false;output.value="";
+ if(!user){status.textContent="Not signed in. Sign in to STELLARS first, then open this page again.";return;}
+ try{const snap=await getDoc(doc(db,"users",user.uid)),p=snap.exists()?snap.data():{};
+ verified=p.isActive===true&&["superAdmin","super_admin"].includes(p.role);
+ status.textContent=verified?"Verified: active Super Admin. You can generate the allowlist.":"Access denied. This tool is reserved for an active Super Admin.";
+ generate.disabled=!verified;
+ }catch(error){status.textContent="Could not verify the account. Check Firestore permissions and try again.";console.error(error);}
+});
+generate.addEventListener("click",async()=>{
+ if(!verified)return;generate.disabled=true;status.textContent="Reading active member profiles…";
+ try{const profiles=await getDocs(collection(db,"users")),members={};
+ profiles.forEach(d=>{const p=d.data()||{};if(p.isActive===true&&["student","admin","superAdmin","super_admin"].includes(p.role))members[d.id]=true;});
+ output.value=JSON.stringify(members,null,2);generated=true;download.disabled=false;
+ status.textContent=Object.keys(members).length+" active class accounts exported. Only UIDs are included.";
+ }catch(error){status.textContent="Export failed. Confirm this account can list user profiles.";console.error(error);}
+ finally{generate.disabled=!verified;}
+});
+download.addEventListener("click",()=>{if(!generated||!verified)return;const blob=new Blob([output.value],{type:"application/json"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download="stellars-world-members.json";link.click();URL.revokeObjectURL(url);});
+</script></body></html>

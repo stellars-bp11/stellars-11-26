@@ -1,0 +1,47 @@
+{
+  "rules": {
+    "worldMembers": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid && data.val() === true",
+        ".write": false
+      }
+    },
+    "worldPlayers": {
+      ".read": "auth != null && root.child('worldMembers').child(auth.uid).val() === true",
+      "$uid": {
+        ".write": "auth != null && root.child('worldMembers').child(auth.uid).val() === true && auth.uid === $uid",
+        ".validate": "newData.hasChildren(['uid', 'name', 'x', 'y', 'direction', 'moving', 'job', 'area', 'updatedAt'])",
+        "uid": {
+          ".validate": "newData.isString() && newData.val() === auth.uid"
+        },
+        "name": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 24"
+        },
+        "x": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 4480"
+        },
+        "y": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 3200"
+        },
+        "direction": {
+          ".validate": "newData.val() === 'up' || newData.val() === 'down' || newData.val() === 'left' || newData.val() === 'right'"
+        },
+        "moving": {
+          ".validate": "newData.isBoolean()"
+        },
+        "job": {
+          ".validate": "newData.isString() && newData.val().length <= 24"
+        },
+        "area": {
+          ".validate": "newData.val() === 'outside' || newData.val() === 'library' || newData.val() === 'townhall' || newData.val() === 'cafe' || newData.val() === 'home' || newData.val() === 'market' || newData.val() === 'workshop' || newData.val() === 'observatory' || newData.val() === 'bakery'"
+        },
+        "updatedAt": {
+          ".validate": "newData.isNumber()"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    }
+  }
+}
