@@ -3298,6 +3298,7 @@ useTownWorkstation = function useTownWorkstationWithSkillYield() {
 
 bindControls();
 bindHomeEditorPointer();
+$("worldAccountRetryButton").addEventListener("click", () => window.location.reload());
 $("openQuestBoardButton").addEventListener("click", openQuestBoard);
 $("openSkillTreeButton").addEventListener("click", openSkillTree);
 $("openMiniGameButton").addEventListener("click", openMiniGameHub);
