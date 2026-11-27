@@ -329,7 +329,8 @@ const db = getFirestore(app);
         const count = document.getElementById("birthdayCount");
         if (!homePreview && !pagePreview && !directory) return;
 
-        const { photos, fallbackImage } = await loadCrewPhotos();
+        let photos = new Map();
+        let fallbackImage = resolveAssetPath(FALLBACK, document.baseURI);
 
         function renderLocalPreview() {
             const preview = getFallbackPublicPreview(photos, fallbackImage);
@@ -337,9 +338,18 @@ const db = getFirestore(app);
             renderPreview(preview, pagePreview);
         }
 
-        // Render a usable upcoming card immediately, without waiting for
-        // Firestore/Auth. Remote preview data may replace it after loading.
+        // Render the upcoming card before any network request. Crew portraits
+        // are enhanced after their page is fetched; data visibility never
+        // depends on Firebase or the Crewmates page responding.
         renderLocalPreview();
+        try {
+            const crewAssets = await loadCrewPhotos();
+            photos = crewAssets.photos;
+            fallbackImage = crewAssets.fallbackImage;
+            renderLocalPreview();
+        } catch (error) {
+            console.warn("STELLARS Birthday: Could not load crew portraits; using fallback artwork.", error);
+        }
 
         async function renderPublicFallback() {
             if (publicSection) publicSection.hidden = false;
