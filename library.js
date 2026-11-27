@@ -609,12 +609,13 @@ onAuthStateChanged(auth, async (user) => {
             if (auth.currentUser?.uid !== user.uid) return;
 
             const profile = profileSnapshot.exists() ? profileSnapshot.data() : null;
-            const allowedRoles = ["student", "admin", "superAdmin", "super_admin"];
+            const normalizedRole = String(profile?.role || "").trim().toLowerCase();
+            const allowedRoles = ["student", "member", "admin", "superadmin", "super_admin"];
             isActiveMember = !!profile &&
                 profile.isActive === true &&
-                allowedRoles.includes(profile.role);
+                allowedRoles.includes(normalizedRole);
             isSuperAdmin = isActiveMember &&
-                ["superAdmin", "super_admin"].includes(profile.role);
+                ["superadmin", "super_admin"].includes(normalizedRole);
             isLibraryEditor = isActiveMember &&
                 (isSuperAdmin || profile.canManageLibrary === true);
         } catch (error) {
