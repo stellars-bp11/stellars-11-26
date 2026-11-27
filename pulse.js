@@ -70,7 +70,7 @@ const PULSE_ALLOWED_ROLES = ["student", "admin", "superAdmin", "super_admin"];
 function hasPulseAccess() {
     return Boolean(
         currentUser &&
-        hasPulseAccess() &&
+        currentProfile?.isActive === true &&
         PULSE_ALLOWED_ROLES.includes(currentProfile.role)
     );
 }
