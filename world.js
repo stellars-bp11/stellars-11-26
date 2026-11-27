@@ -750,7 +750,8 @@ function interact() {
 }
 function bindControls() {
   document.addEventListener("keydown", event => {
-    if ($("jobDialog").open || event.repeat && ["e", "E"].includes(event.key)) return;
+    if ($("jobDialog").open || $("furnitureDialog").open || $("fashionDialog").open ||
+        $("genderDialog").open || event.repeat && ["e", "E"].includes(event.key)) return;
     const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
     if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "w", "a", "s", "d"].includes(key)) {
       event.preventDefault();
@@ -780,6 +781,9 @@ function bindControls() {
   $("mobileInteract").addEventListener("click", interact);
   $("chooseJobButton").addEventListener("click", openJobs);
   $("closeJobDialog").addEventListener("click", () => $("jobDialog").close());
+  $("closeFurnitureDialog").addEventListener("click", () => $("furnitureDialog").close());
+  $("closeFashionDialog").addEventListener("click", () => $("fashionDialog").close());
+  $("buySupplyBundleButton").addEventListener("click", buyMarketSupplyBundle);
   bindGenderPicker();
   $("gameFrame").addEventListener("contextmenu", event => event.preventDefault());
 }
@@ -850,7 +854,7 @@ window.STELLARSWorld = Object.freeze({
   setRemotePlayers: (players) => {
     if (!Array.isArray(players)) return;
     const now = performance.now();
-    const allowedAreas = ["outside", "library", "townhall", "cafe", "home", "market", "workshop", "observatory", "bakery"];
+    const allowedAreas = ["outside", "library", "townhall", "cafe", "home", "market", "workshop", "observatory", "bakery", "fashion"];
     const keep = new Set();
     players.forEach(person => {
       if (!person || typeof person.uid !== "string" || person.uid === player.uid ||
@@ -1065,6 +1069,301 @@ readSave = function readSaveTown(key) {
     };
   } catch (error) { console.warn("Could not read STELLARS World save:", error); return defaults; }
 };
+
+function addStoreCard(grid, title, description, meta, buttonText, onClick, disabled = false, accent = "") {
+  const card = document.createElement("article");
+  card.className = "store-card" + (accent ? " " + accent : "");
+  const icon = document.createElement("span");
+  icon.className = "store-card-icon";
+  icon.textContent = meta.icon || "✦";
+  const heading = document.createElement("strong");
+  heading.className = "store-card-title";
+  heading.textContent = title;
+  const copy = document.createElement("p");
+  copy.className = "store-card-description";
+  copy.textContent = description;
+  const price = document.createElement("small");
+  price.className = "store-card-price";
+  price.textContent = meta.price || "";
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "pixel-button store-card-button";
+  button.textContent = buttonText;
+  button.disabled = disabled;
+  if (onClick) button.addEventListener("click", onClick);
+  card.append(icon, heading, copy, price, button);
+  grid.append(card);
+}
+
+let furnitureDialogMode = "shop";
+function openFurnitureShop(mode = "shop") {
+  if (!requireWorldMember()) return;
+  furnitureDialogMode = mode === "home" ? "home" : "shop";
+  const isHome = furnitureDialogMode === "home";
+  $("furnitureDialogTitle").textContent = isHome ? "Make this place yours." : "Furniture & Home Decor.";
+  $("furnitureDialogDescription").textContent = isHome
+    ? "Place or remove the furniture you own, and choose a room theme."
+    : "Pick up a new piece at Star Market, then bring it home to decorate.";
+  $("furnitureDialogKicker").textContent = isHome ? "HOME DESIGN STUDIO" : "STAR MARKET / HOME COLLECTION";
+  $("buySupplyBundleButton").hidden = isHome;
+  renderFurnitureShop();
+  $("furnitureDialog").showModal();
+}
+
+function renderFurnitureShop() {
+  const furnitureGrid = $("furnitureShopGrid");
+  const themeGrid = $("homeThemeGrid");
+  if (!furnitureGrid || !themeGrid) return;
+  const isHome = furnitureDialogMode === "home";
+  $("furnitureShopBalance").textContent = Math.floor(save.coins).toLocaleString("en-US") + " STAR COINS";
+  furnitureGrid.replaceChildren();
+  themeGrid.replaceChildren();
+
+  FURNITURE_CATALOG.forEach(item => {
+    const owned = save.ownedFurniture.includes(item.id);
+    const placed = save.placedFurniture.includes(item.id);
+    let label = "BUY · " + item.cost + " COINS";
+    let disabled = false;
+    let action = () => buyFurniture(item.id);
+    if (isHome) {
+      label = !owned ? "BUY AT STAR MARKET" : placed ? "REMOVE FROM HOME" : "PLACE IN HOME";
+      disabled = !owned;
+      action = owned ? () => toggleFurniturePlacement(item.id) : null;
+    } else if (owned) {
+      label = placed ? "OWNED · PLACED" : "OWNED";
+      disabled = true;
+      action = null;
+    } else {
+      disabled = save.coins < item.cost;
+    }
+    const icons = { sofa: "🛋️", rug: "🟪", lamp: "💡", bookcase: "📚", plant: "🪴", table: "🪑" };
+    addStoreCard(
+      furnitureGrid, item.name, item.description,
+      { icon: icons[item.kind] || "✦", price: item.cost === 0 ? "STARTER ITEM" : item.cost + " STAR COINS" },
+      label, action, disabled
+    );
+  });
+
+  HOME_THEMES.forEach(theme => {
+    const owned = save.ownedThemes.includes(theme.id);
+    const selected = save.homeTheme === theme.id;
+    let label = "BUY · " + theme.cost + " COINS";
+    let disabled = false;
+    let action = () => buyHomeTheme(theme.id);
+    if (isHome) {
+      label = !owned ? "BUY AT STAR MARKET" : selected ? "CURRENT THEME" : "APPLY THEME";
+      disabled = !owned || selected;
+      action = owned ? () => selectHomeTheme(theme.id) : null;
+    } else if (owned) {
+      label = selected ? "CURRENT THEME" : "OWNED";
+      disabled = true;
+      action = null;
+    } else {
+      disabled = save.coins < theme.cost;
+    }
+    addStoreCard(
+      themeGrid, theme.name, theme.description,
+      { icon: "🎨", price: theme.cost === 0 ? "STARTER THEME" : theme.cost + " STAR COINS" },
+      label, action, disabled, "theme-store-card"
+    );
+  });
+}
+
+function buyFurniture(id) {
+  const item = FURNITURE_CATALOG.find(entry => entry.id === id);
+  if (!item || save.ownedFurniture.includes(id)) return;
+  if (save.coins < item.cost) {
+    showToast("You need " + item.cost + " Star Coins for " + item.name + ".");
+    return;
+  }
+  save.coins -= item.cost;
+  save.ownedFurniture.push(id);
+  persist(true);
+  updateHud();
+  renderFurnitureShop();
+  showToast(item.name + " added to your furniture collection!");
+}
+
+function toggleFurniturePlacement(id) {
+  if (!save.ownedFurniture.includes(id)) return;
+  const index = save.placedFurniture.indexOf(id);
+  if (index >= 0) {
+    save.placedFurniture.splice(index, 1);
+    showToast("Furniture stored in your collection.");
+  } else {
+    if (save.placedFurniture.length >= 6) {
+      showToast("Your room is full. Remove a piece before placing another.");
+      return;
+    }
+    save.placedFurniture.push(id);
+    save.homeDecor = Math.max(save.homeDecor, save.placedFurniture.length);
+    showToast("A new piece has been placed in your home!");
+  }
+  persist(true);
+  renderFurnitureShop();
+}
+
+function buyHomeTheme(id) {
+  const theme = HOME_THEMES.find(entry => entry.id === id);
+  if (!theme || save.ownedThemes.includes(id)) return;
+  if (save.coins < theme.cost) {
+    showToast("You need " + theme.cost + " Star Coins for this room theme.");
+    return;
+  }
+  save.coins -= theme.cost;
+  save.ownedThemes.push(id);
+  save.homeTheme = id;
+  persist(true);
+  updateHud();
+  renderFurnitureShop();
+  showToast(theme.name + " unlocked for your home!");
+}
+
+function selectHomeTheme(id) {
+  if (!save.ownedThemes.includes(id) || !HOME_THEMES.some(theme => theme.id === id)) return;
+  save.homeTheme = id;
+  persist(true);
+  renderFurnitureShop();
+  showToast("Your home has a fresh new look!");
+}
+
+function buyMarketSupplyBundle() {
+  if (save.coins < 12) {
+    showToast("You need 12 Star Coins for a supply bundle.");
+    return;
+  }
+  save.coins -= 12;
+  addTownItem("riceSeed", 3);
+  addTownItem("coffeeBeans", 2);
+  addTownItem("dye", 1);
+  addTownItem("books", 1);
+  addTownItem("wood", 1);
+  addTownItem("stone", 1);
+  persist(true);
+  updateHud();
+  showToast("Supply bundle purchased! Seeds, beans, dye, books, wood and stone added.");
+}
+
+function applyFashionStyle(style) {
+  save.outfitId = style.id;
+  save.shirtColor = style.color;
+  player.shirtColor = style.color;
+  persist(true);
+  updateHud();
+  if (worldPresenceReady) syncWorldPresence(performance.now());
+}
+
+function renderFashionShop() {
+  const gender = save.gender === "female" ? "female" : "male";
+  $("fashionGenderLabel").textContent = gender === "female" ? "WOMEN'S COLLECTION" : "MEN'S COLLECTION";
+  $("fashionShopBalance").textContent = Math.floor(save.coins).toLocaleString("en-US") + " STAR COINS";
+  const styleGrid = $("fashionStyleGrid");
+  const colorGrid = $("fashionColorGrid");
+  styleGrid.replaceChildren();
+  colorGrid.replaceChildren();
+
+  FASHION_STYLES.filter(style => style.gender === gender).forEach(style => {
+    const owned = save.ownedFashion.includes(style.id);
+    const equipped = save.outfitId === style.id;
+    const label = equipped ? "CURRENT OUTFIT" : owned ? "WEAR THIS" : "BUY · " + style.cost + " COINS";
+    addStoreCard(
+      styleGrid, style.name, style.description,
+      { icon: "👕", price: style.cost === 0 ? "STARTER LOOK" : style.cost + " STAR COINS" },
+      label,
+      () => {
+        if (owned) {
+          applyFashionStyle(style);
+          renderFashionShop();
+          showToast(style.name + " equipped!");
+          return;
+        }
+        if (save.coins < style.cost) {
+          showToast("You need " + style.cost + " Star Coins for this outfit.");
+          return;
+        }
+        save.coins -= style.cost;
+        save.ownedFashion.push(style.id);
+        applyFashionStyle(style);
+        renderFashionShop();
+        showToast(style.name + " unlocked!");
+      },
+      equipped || (!owned && save.coins < style.cost),
+      "fashion-store-card"
+    );
+  });
+
+  FASHION_COLORS.forEach(color => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "fashion-color-swatch" + (save.shirtColor === color.value ? " selected" : "");
+    button.style.setProperty("--swatch-color", color.value);
+    button.setAttribute("aria-label", color.name + " shirt color");
+    button.title = color.name;
+    button.addEventListener("click", () => {
+      save.shirtColor = color.value;
+      player.shirtColor = color.value;
+      persist(true);
+      if (worldPresenceReady) syncWorldPresence(performance.now());
+      renderFashionShop();
+      showToast(color.name + " shirt color selected.");
+    });
+    colorGrid.append(button);
+  });
+}
+
+function openFashionShop() {
+  if (!requireWorldMember()) return;
+  if (!save.gender) {
+    $("genderDialog").showModal();
+    showToast("Choose your character first.");
+    return;
+  }
+  renderFashionShop();
+  $("fashionDialog").showModal();
+}
+
+function drawHomeFurniture() {
+  const placed = new Set(save.placedFurniture || []);
+  for (const item of FURNITURE_CATALOG) {
+    if (!placed.has(item.id)) continue;
+    if (item.kind === "sofa") {
+      ctx.fillStyle = "rgba(45,34,31,.22)"; ctx.fillRect(220, 490, 185, 20);
+      ctx.fillStyle = "#6e879c"; ctx.fillRect(225, 430, 178, 72);
+      ctx.fillStyle = "#a8bfd1"; ctx.fillRect(235, 438, 158, 48);
+      ctx.fillStyle = "#516c86"; ctx.fillRect(215, 453, 20, 47); ctx.fillRect(393, 453, 20, 47);
+      ctx.fillStyle = "#e7e6dc"; ctx.fillRect(248, 447, 44, 29); ctx.fillRect(300, 447, 44, 29);
+    } else if (item.kind === "rug") {
+      ctx.fillStyle = "#8b6c9b"; ctx.fillRect(490, 475, 275, 96);
+      ctx.fillStyle = "#d5b7d9"; ctx.fillRect(502, 487, 251, 72);
+      ctx.fillStyle = "#9c79aa"; ctx.fillRect(520, 505, 215, 36);
+    } else if (item.kind === "lamp") {
+      ctx.fillStyle = "#74513a"; ctx.fillRect(1035, 440, 9, 65);
+      ctx.fillStyle = "#f2d98c"; ctx.fillRect(1010, 420, 60, 28);
+      ctx.fillStyle = "rgba(255,225,143,.18)"; ctx.beginPath(); ctx.arc(1040, 445, 50, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#74513a"; ctx.fillRect(1020, 504, 38, 7);
+    } else if (item.kind === "bookcase") {
+      ctx.fillStyle = "#684832"; ctx.fillRect(920, 190, 115, 155);
+      ctx.fillStyle = "#c08a59"; ctx.fillRect(928, 197, 99, 7);
+      for (let row = 0; row < 3; row++) {
+        for (let col = 0; col < 6; col++) {
+          ctx.fillStyle = ["#b86e5c", "#7c8fbd", "#d0b36b", "#6b9b79", "#9f74a7"][(row + col) % 5];
+          ctx.fillRect(933 + col * 15, 210 + row * 42, 10, 32);
+        }
+      }
+    } else if (item.kind === "plant") {
+      ctx.fillStyle = "#a66b4e"; ctx.fillRect(430, 338, 42, 33);
+      ctx.fillStyle = "#426f47"; ctx.fillRect(448, 285, 8, 55);
+      ctx.fillStyle = "#5e9e65"; ctx.fillRect(414, 300, 34, 19); ctx.fillRect(455, 280, 35, 18);
+      ctx.fillStyle = "#83bd76"; ctx.fillRect(440, 268, 28, 25);
+    } else if (item.kind === "table") {
+      ctx.fillStyle = "#755238"; ctx.fillRect(650, 430, 110, 12);
+      ctx.fillStyle = "#bd8d5c"; ctx.fillRect(645, 420, 120, 14);
+      ctx.fillStyle = "#6b4b31"; ctx.fillRect(655, 442, 9, 45); ctx.fillRect(747, 442, 9, 45);
+      ctx.fillStyle = "#f3e0bd"; ctx.fillRect(680, 409, 42, 9);
+    }
+  }
+}
+
 function addTownItem(item, amount = 1) {
   if (Object.prototype.hasOwnProperty.call(save.inventory, item)) save.inventory[item] = Math.max(0, save.inventory[item] + amount);
 }
@@ -1221,12 +1520,17 @@ function leaveTownBuilding() {
 }
 function drawTownInterior(time) {
   const room = interiorRooms[insideBuilding] || interiorRooms.home;
+  const homeTheme = insideBuilding === "home"
+    ? HOME_THEMES.find(theme => theme.id === save.homeTheme)
+    : null;
+  const roomWall = homeTheme ? homeTheme.wall : room.wall;
+  const roomFloor = homeTheme ? homeTheme.floor : room.floor;
   ctx.fillStyle = "#47372b"; ctx.fillRect(0, 0, VIEW_W, VIEW_H);
-  ctx.fillStyle = room.wall; ctx.fillRect(35, 30, VIEW_W - 70, 112);
+  ctx.fillStyle = roomWall; ctx.fillRect(35, 30, VIEW_W - 70, 112);
   ctx.fillStyle = shadeColor(room.wall, -20); ctx.fillRect(35, 132, VIEW_W - 70, 12);
   ctx.fillStyle = "#8c7052"; ctx.fillRect(75, 60, 135, 48); ctx.fillRect(VIEW_W - 210, 60, 135, 48);
   ctx.fillStyle = "#b5d4d1"; ctx.fillRect(82, 66, 121, 36); ctx.fillRect(VIEW_W - 203, 66, 121, 36);
-  ctx.fillStyle = room.floor; ctx.fillRect(35, 144, VIEW_W - 70, VIEW_H - 180);
+  ctx.fillStyle = roomFloor; ctx.fillRect(35, 144, VIEW_W - 70, VIEW_H - 180);
   for (let y = 152; y < VIEW_H - 42; y += 34) for (let x = 42; x < VIEW_W - 42; x += 42) {
     ctx.fillStyle = ((x / 42 + y / 34) % 2 < 1) ? "rgba(255,236,190,.055)" : "rgba(66,45,31,.045)";
     ctx.fillRect(x, y, 40, 32);
@@ -1259,6 +1563,22 @@ function drawTownInterior(time) {
   } else if (insideBuilding === "home") {
     ctx.fillStyle = "#e2c5a0"; ctx.fillRect(170, 205, 240, 120); ctx.fillStyle = "#7d8fab"; ctx.fillRect(180, 215, 220, 90); ctx.fillStyle = "#f3e4c4"; ctx.fillRect(190, 222, 200, 70);
     ctx.fillStyle = "#78563e"; ctx.fillRect(770, 300, 150, 54);
+    drawHomeFurniture();
+  } else if (insideBuilding === "fashion") {
+    ctx.fillStyle = "#7c4e69"; ctx.fillRect(170, 215, 300, 34);
+    ctx.fillStyle = "#e1b9cf"; ctx.fillRect(160, 207, 320, 14);
+    for (let i = 0; i < 4; i++) {
+      const x = 205 + i * 215;
+      ctx.fillStyle = "#76506a"; ctx.fillRect(x, 255, 12, 135);
+      ctx.fillStyle = ["#e968ad", "#a578ce", "#6d9fce", "#dc9061"][i];
+      ctx.fillRect(x - 32, 280, 76, 68);
+      ctx.fillStyle = "#f3d6e4"; ctx.fillRect(x - 22, 288, 56, 10);
+      ctx.fillStyle = "#67445e"; ctx.fillRect(x - 25, 348, 8, 30); ctx.fillRect(x + 22, 348, 8, 30);
+    }
+    ctx.fillStyle = "#6b435b"; ctx.fillRect(745, 220, 290, 78);
+    ctx.fillStyle = "#f0c8dc"; ctx.fillRect(735, 210, 310, 17);
+    ctx.fillStyle = "#fff1f7"; ctx.font = "bold 14px Ubuntu"; ctx.textAlign = "center";
+    ctx.fillText("STELLARS FASHION", 890, 258); ctx.textAlign = "left";
   } else if (insideBuilding === "observatory") {
     ctx.fillStyle = "#4c527d"; ctx.beginPath(); ctx.arc(650, 285, 130, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = "#e9d9a9"; ctx.beginPath(); ctx.arc(650, 285, 106, 0, Math.PI * 2); ctx.fill();
@@ -1438,12 +1758,11 @@ function useTownWorkstation() {
     if (!spendTownItems({ starShard: 1 })) { showToast("Find glowing Star Shards around the valley first."); return; }
     rewardTown(22, 14, 4); showToast("Star fragment recorded! +22 Star Coins · +14 XP");
   } else if (insideBuilding === "market") {
-    if (save.coins < 12) { showToast("You need 12 Star Coins for a supply bundle."); return; }
-    save.coins -= 12; addTownItem("riceSeed", 3); addTownItem("coffeeBeans", 2); addTownItem("dye", 1);
-    addTownItem("books", 1); addTownItem("wood", 1); addTownItem("stone", 1);
-    persist(true); updateHud(); showToast("Supply bundle purchased! Seeds, beans, dye, books, wood and stone added.");
+    openFurnitureShop("shop");
   } else if (insideBuilding === "home") {
-    save.homeDecor++; rewardTown(0, 5, 1); showToast("Home improved! Decor level: " + save.homeDecor + ".");
+    openFurnitureShop("home");
+  } else if (insideBuilding === "fashion") {
+    openFashionShop();
   } else if (insideBuilding === "bakery") {
     if (spendTownItems({ rice: 1 })) { rewardTown(10, 5, 1); showToast("Rice traded! +10 Star Coins."); }
     else showToast("Bring harvested rice here to trade it for coins.");
