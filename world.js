@@ -43,7 +43,7 @@ const MAP_H = 100;
 const MAP_PIXEL_W = MAP_W * TILE;
 const MAP_PIXEL_H = MAP_H * TILE;
 const SAVE_PREFIX = "stellarsWorldTopDownV1";
-const ALLOWED_ROLES = ["student", "admin", "superAdmin", "super_admin"];
+const ALLOWED_ROLES = ["student", "member", "admin", "superAdmin", "super_admin"];
 
 const jobs = [
   { id: "farmer", name: "Farmer", icon: "🌱", desc: "Grow crops and care for the Stellar Farm." },
@@ -62,7 +62,8 @@ const buildings = [
   { id: "market", name: "Star Market", x: 49, y: 34, w: 5, h: 4, roof: "#d0a64e", wall: "#ead5a6", sign: "MARKET" },
   { id: "workshop", name: "Star Workshop", x: 67, y: 23, w: 6, h: 5, roof: "#8f8a68", wall: "#d7c69b", sign: "WORKSHOP" },
   { id: "observatory", name: "Stellar Observatory", x: 110, y: 34, w: 7, h: 6, roof: "#586f9b", wall: "#c7c8c5", sign: "OBSERVATORY" },
-  { id: "bakery", name: "Sunrise Bakery", x: 69, y: 66, w: 6, h: 5, roof: "#c78b55", wall: "#f0d5a3", sign: "BAKERY" }
+  { id: "bakery", name: "Sunrise Bakery", x: 69, y: 66, w: 6, h: 5, roof: "#c78b55", wall: "#f0d5a3", sign: "BAKERY" },
+  { id: "fashion", name: "Stellar Fashion House", x: 58, y: 34, w: 5, h: 4, roof: "#bf6e9d", wall: "#f0c8d9", sign: "FASHION" }
 ];
 
 const riverLine = [[7, 2], [9, 9], [8, 16], [11, 23], [10, 30], [13, 38], [12, 46], [17, 54], [20, 62], [23, 70], [23, 80], [30, 90], [35, 99]];
@@ -459,9 +460,12 @@ function drawCharacter(entity, isLocal, time) {
     { shirt: "#6b94bd", light: "#b3d3e8", pants: "#444b6b", hair: "#3b302b" },
     { shirt: "#c18cba", light: "#e5b9da", pants: "#55435e", hair: "#4a302f" }
   ][entity.palette || 0];
-  const palette = entity.gender === "female"
+  let palette = entity.gender === "female"
     ? { ...basePalette, shirt: "#e968ad", light: "#ffc0e4", pants: "#99547f" }
     : basePalette;
+  if (isSafeWorldColor(entity.shirtColor)) {
+    palette = { ...palette, shirt: entity.shirtColor, light: shadeColor(entity.shirtColor, 48) };
+  }
 
   ctx.fillStyle = "rgba(28,54,29,.3)";
   ctx.beginPath();
@@ -662,7 +666,13 @@ function drawClock() {
 function setGender(gender) {
   if (!requireWorldMember() || !["male", "female"].includes(gender)) return;
   save.gender = gender;
+  const defaultStyle = FASHION_STYLES.find(style => style.gender === gender && style.default);
+  if (defaultStyle) {
+    save.outfitId = defaultStyle.id;
+    save.shirtColor = defaultStyle.color;
+  }
   player.gender = gender;
+  player.shirtColor = save.shirtColor;
   persist(true);
   updateHud();
   $("genderDialog").close();
@@ -691,7 +701,7 @@ function setJob(id) {
   const job = jobs.find(item => item.id === id);
   if (!job) return;
   save.job = job.id;
-  save.xp += 5;
+  awardWorldXp(5);
   persist(true);
   updateHud();
   $("jobDialog").close();
@@ -724,14 +734,14 @@ function interact() {
   if (building.id === "home") {
     save.coins += 5;
     save.homeDecor += 1;
-    save.xp += 8;
+    awardWorldXp(8);
     save.townProgress = Math.min(100, save.townProgress + 2);
     persist(true);
     updateHud();
     showToast("Welcome home, " + player.name + "! +5 Star Coins");
   } else {
     save.coins += 2;
-    save.xp += 4;
+    awardWorldXp(4);
     save.townProgress = Math.min(100, save.townProgress + 1);
     persist(true);
     updateHud();
@@ -780,7 +790,7 @@ async function loadMemberProfile(user) {
     if (!snapshot.exists()) return { active: false, name: "Star", uid: user.uid };
     const profile = snapshot.data() || {};
     return {
-      active: profile.isActive === true && ALLOWED_ROLES.includes(profile.role),
+      active: profile.isActive === true,
       name: firstName(profile.fullName || user.displayName),
       uid: user.uid
     };
@@ -812,6 +822,7 @@ function startAuth() {
     storageKey = SAVE_PREFIX + ":member:" + profile.uid;
     applySave();
     player.gender = save.gender || "male";
+    player.shirtColor = save.shirtColor || "#6687a7";
     updateHud();
     updateWorldAccessUI();
     drawClock();
@@ -833,6 +844,7 @@ window.STELLARSWorld = Object.freeze({
     uid: player.uid, name: player.name, x: player.x, y: player.y,
     direction: player.direction, moving: player.moving,
     gender: save.gender || "male",
+    shirtColor: save.shirtColor || "#6687a7",
     area: insideBuilding || "outside", job: save.job || ""
   }),
   setRemotePlayers: (players) => {
@@ -860,6 +872,7 @@ window.STELLARSWorld = Object.freeze({
         direction: ["up", "down", "left", "right"].includes(person.direction) ? person.direction : "down",
         moving: person.moving === true,
         gender: person.gender === "female" ? "female" : "male",
+        shirtColor: isSafeWorldColor(person.shirtColor) ? person.shirtColor : "",
         job: typeof person.job === "string" ? person.job : "",
         receivedAt: now, palette: paletteFor(person.uid)
       });
@@ -879,6 +892,58 @@ const INVENTORY_ITEMS = [
   { key: "dye", label: "Dye", icon: "🎨" }
 ];
 const DEFAULT_INVENTORY = { riceSeed: 4, rice: 0, coffeeBeans: 3, coffee: 0, wood: 4, stone: 3, books: 2, starShard: 0, dye: 2 };
+
+const FURNITURE_CATALOG = [
+  { id: "starter-sofa", name: "Cloud Sofa", description: "A soft little place to rest.", cost: 0, kind: "sofa" },
+  { id: "star-rug", name: "Stardust Rug", description: "A warm centrepiece for your room.", cost: 38, kind: "rug" },
+  { id: "moon-lamp", name: "Moonlight Lamp", description: "A gentle glow for quiet evenings.", cost: 32, kind: "lamp" },
+  { id: "bookcase", name: "Little Bookcase", description: "Keep your favourite stories close.", cost: 46, kind: "bookcase" },
+  { id: "potted-plant", name: "Sunbeam Plant", description: "A little green for your home.", cost: 24, kind: "plant" },
+  { id: "coffee-table", name: "Comet Coffee Table", description: "A tiny table for slow mornings.", cost: 42, kind: "table" }
+];
+const HOME_THEMES = [
+  { id: "sage", name: "Sage & Oak", description: "A calm, leafy home.", cost: 0, wall: "#657d69", floor: "#b28a67" },
+  { id: "lavender", name: "Lavender Sky", description: "Soft violet walls and warm flooring.", cost: 55, wall: "#82729d", floor: "#b89b83" },
+  { id: "sunset", name: "Peach Sunset", description: "Warm peach tones for a cosy room.", cost: 65, wall: "#b87968", floor: "#c59a70" },
+  { id: "starlight", name: "Starlight Blue", description: "A cool midnight-inspired interior.", cost: 80, wall: "#566f91", floor: "#9c8d83" }
+];
+const FASHION_STYLES = [
+  { id: "male-classic", gender: "male", name: "Campus Classic", description: "A neat everyday look.", cost: 0, color: "#6687a7", default: true },
+  { id: "male-orbit", gender: "male", name: "Orbit Jacket", description: "A bold jacket for exploring.", cost: 58, color: "#c47b49" },
+  { id: "male-midnight", gender: "male", name: "Midnight Street", description: "Deep blue with a cool tone.", cost: 76, color: "#4e528f" },
+  { id: "female-classic", gender: "female", name: "Bloom Cardigan", description: "A soft pink everyday style.", cost: 0, color: "#e968ad", default: true },
+  { id: "female-orbit", gender: "female", name: "Starlight Hoodie", description: "A lavender look with a little sparkle.", cost: 58, color: "#a578ce" },
+  { id: "female-sunrise", gender: "female", name: "Sunrise Knit", description: "Warm peach tones for a bright day.", cost: 76, color: "#db866f" }
+];
+const FASHION_COLORS = [
+  { name: "Rose", value: "#e968ad" },
+  { name: "Lavender", value: "#a578ce" },
+  { name: "Sky", value: "#6d9fce" },
+  { name: "Ocean", value: "#4d8c99" },
+  { name: "Sage", value: "#6d9b73" },
+  { name: "Sunset", value: "#dc9061" },
+  { name: "Butter", value: "#c5a44e" },
+  { name: "Midnight", value: "#53547f" }
+];
+function isSafeWorldColor(value) {
+  return typeof value === "string" && /^#[0-9a-fA-F]{6}$/.test(value);
+}
+function xpRequiredForLevel(level) {
+  const safeLevel = Math.max(1, Math.floor(Number(level) || 1));
+  return 100 + 10 * ((safeLevel - 1) * safeLevel / 2);
+}
+function getWorldLevelProgress(totalXp) {
+  let remaining = Math.max(0, Math.floor(Number(totalXp) || 0));
+  let level = 1;
+  let needed = xpRequiredForLevel(level);
+  while (remaining >= needed && level < 9999) {
+    remaining -= needed;
+    level += 1;
+    needed = xpRequiredForLevel(level);
+  }
+  return { level, current: remaining, needed, percent: Math.min(100, remaining / needed * 100) };
+}
+
 const farmPlots = [];
 for (let row = 0; row < 3; row++) for (let col = 0; col < 4; col++) farmPlots.push({ x: 81 + col, y: 45 + row });
 const townNPCs = [
@@ -903,7 +968,8 @@ const interiorRooms = {
   townhall: { station: { x: 930, y: 285, label: "MURAL CANVAS" }, floor: "#bd9364", wall: "#a75e4d" },
   cafe: { station: { x: 920, y: 315, label: "COFFEE COUNTER" }, floor: "#b77f60", wall: "#9b604f" },
   home: { station: { x: 350, y: 330, label: "HOME CORNER" }, floor: "#b28a67", wall: "#657d9d" },
-  market: { station: { x: 930, y: 315, label: "SUPPLY COUNTER" }, floor: "#c39a61", wall: "#b38d42" },
+  market: { station: { x: 930, y: 315, label: "FURNITURE & SUPPLY SHOP" }, floor: "#c39a61", wall: "#b38d42" },
+  fashion: { station: { x: 920, y: 315, label: "FASHION COUNTER" }, floor: "#c58eaa", wall: "#9e6484" },
   workshop: { station: { x: 890, y: 330, label: "BUILDING BENCH" }, floor: "#9a7957", wall: "#777653" },
   observatory: { station: { x: 650, y: 280, label: "STAR CHART TABLE" }, floor: "#897da6", wall: "#536a96" },
   bakery: { station: { x: 910, y: 315, label: "BAKERY COUNTER" }, floor: "#c49a69", wall: "#bd8450" }
@@ -915,7 +981,8 @@ const indoorStaff = {
   market: { name: "Nico", x: 760, y: 330, palette: 0 },
   workshop: { name: "Raya", x: 700, y: 335, palette: 4 },
   observatory: { name: "Nova", x: 820, y: 300, palette: 0 },
-  bakery: { name: "Sora", x: 760, y: 330, palette: 2 }
+  bakery: { name: "Sora", x: 760, y: 330, palette: 2 },
+  fashion: { name: "Ari", x: 760, y: 330, palette: 4 }
 };
 let insideBuilding = null;
 let outsidePosition = null;
@@ -937,7 +1004,11 @@ function createTownSave() {
   return {
     job: "", coins: 100, xp: 0, townProgress: 0, homeDecor: 0,
     inventory: { ...DEFAULT_INVENTORY }, plots: {}, npcRewards: {}, gathered: [],
-    benches: 0, murals: 0, gender: "", x: 37 * TILE + 16, y: 43 * TILE + 16
+    benches: 0, murals: 0, gender: "",
+    ownedFashion: ["male-classic", "female-classic"], outfitId: "male-classic", shirtColor: "#6687a7",
+    ownedFurniture: ["starter-sofa"], placedFurniture: ["starter-sofa"],
+    ownedThemes: ["sage"], homeTheme: "sage",
+    x: 37 * TILE + 16, y: 43 * TILE + 16
   };
 }
 readSave = function readSaveTown(key) {
@@ -949,9 +1020,35 @@ readSave = function readSaveTown(key) {
     if (parsed.inventory && typeof parsed.inventory === "object") {
       Object.keys(inventory).forEach(item => inventory[item] = Math.max(0, Math.floor(Number(parsed.inventory[item]) || 0)));
     }
+    const gender = ["male", "female"].includes(parsed.gender) ? parsed.gender : "";
+    const ownedFashion = Array.isArray(parsed.ownedFashion)
+      ? [...new Set(parsed.ownedFashion.filter(id => FASHION_STYLES.some(style => style.id === id)))]
+      : ["male-classic", "female-classic"];
+    ["male-classic", "female-classic"].forEach(id => {
+      if (!ownedFashion.includes(id)) ownedFashion.push(id);
+    });
+    const defaultOutfitId = gender === "female" ? "female-classic" : "male-classic";
+    const requestedOutfit = FASHION_STYLES.find(style => style.id === parsed.outfitId);
+    const outfitId = requestedOutfit && requestedOutfit.gender === gender &&
+      ownedFashion.includes(requestedOutfit.id) ? requestedOutfit.id : defaultOutfitId;
+    const outfitStyle = FASHION_STYLES.find(style => style.id === outfitId) || FASHION_STYLES[0];
+    const ownedFurniture = Array.isArray(parsed.ownedFurniture)
+      ? [...new Set(parsed.ownedFurniture.filter(id => FURNITURE_CATALOG.some(item => item.id === id)))]
+      : ["starter-sofa"];
+    if (!ownedFurniture.includes("starter-sofa")) ownedFurniture.push("starter-sofa");
+    const placedFurniture = Array.isArray(parsed.placedFurniture)
+      ? [...new Set(parsed.placedFurniture.filter(id => ownedFurniture.includes(id)))]
+      : ["starter-sofa"];
+    const ownedThemes = Array.isArray(parsed.ownedThemes)
+      ? [...new Set(parsed.ownedThemes.filter(id => HOME_THEMES.some(theme => theme.id === id)))]
+      : ["sage"];
+    if (!ownedThemes.includes("sage")) ownedThemes.push("sage");
+    const homeTheme = ownedThemes.includes(parsed.homeTheme) ? parsed.homeTheme : "sage";
+    const shirtColor = isSafeWorldColor(parsed.shirtColor) ? parsed.shirtColor : outfitStyle.color;
     return {
       ...defaults, ...parsed,
-      gender: ["male", "female"].includes(parsed.gender) ? parsed.gender : "",
+      gender, ownedFashion, outfitId, shirtColor,
+      ownedFurniture, placedFurniture, ownedThemes, homeTheme,
       job: jobs.some(job => job.id === parsed.job) ? parsed.job : "",
       coins: Math.max(0, Math.floor(Number(parsed.coins) || 0)),
       xp: Math.max(0, Math.floor(Number(parsed.xp) || 0)),
@@ -977,9 +1074,16 @@ function spendTownItems(cost) {
   Object.entries(cost).forEach(([item, amount]) => addTownItem(item, -amount));
   return true;
 }
+function awardWorldXp(amount) {
+  save.xp = Math.max(0, Math.floor(Number(save.xp) || 0)) +
+    Math.max(0, Math.floor(Number(amount) || 0));
+}
 function rewardTown(coins, xp = 0, progress = 0) {
-  save.coins += coins; save.xp += xp; save.townProgress = Math.min(100, save.townProgress + progress);
-  persist(true); updateHud();
+  save.coins += coins;
+  if (xp) awardWorldXp(xp);
+  save.townProgress = Math.min(100, save.townProgress + progress);
+  persist(true);
+  updateHud();
 }
 updateHud = function updateTownHud() {
   const job = jobs.find(item => item.id === save.job);
@@ -987,11 +1091,12 @@ updateHud = function updateTownHud() {
   $("playerJob").textContent = job ? job.name : "New Resident";
   $("avatarInitial").textContent = player.name.slice(0, 1).toUpperCase();
   $("coinCount").textContent = Math.floor(save.coins).toLocaleString("en-US");
-  $("xpLabel").textContent = (save.xp % 100) + " / 100 XP";
-  $("xpBar").style.width = (save.xp % 100) + "%";
+  const levelProgress = getWorldLevelProgress(save.xp);
+  $("xpLabel").textContent = levelProgress.current + " / " + levelProgress.needed + " XP";
+  $("xpBar").style.width = levelProgress.percent + "%";
   $("townProgressBar").style.width = save.townProgress + "%";
   $("townProgressLabel").textContent = save.townProgress + "%";
-  $("townLevel").textContent = String(1 + Math.floor(save.townProgress / 25)).padStart(2, "0");
+  $("townLevel").textContent = String(levelProgress.level).padStart(2, "0");
   $("chooseJobButton").textContent = job ? "CHANGE PROFESSION" : "CHOOSE A PROFESSION";
   const hints = {
     farmer: "🌾 Farmer: at Stellar Farm, press E to plant, water three times, then harvest rice.",
@@ -1280,7 +1385,7 @@ function talkTownNpc(npc) {
   if (!save.npcRewards[npc.id]) {
     save.npcRewards[npc.id] = true;
     Object.entries(npc.reward || {}).forEach(([item, amount]) => addTownItem(item, amount));
-    save.xp += 4; persist(true); updateHud();
+    awardWorldXp(4); persist(true); updateHud();
     const gift = Object.entries(npc.reward || {}).map(([item, amount]) => {
       const meta = INVENTORY_ITEMS.find(entry => entry.key === item);
       return "+" + amount + " " + (meta ? meta.label : item);
@@ -1303,7 +1408,7 @@ function tendRicePlot(plot) {
   persist(true); updateHud();
 }
 function collectTownResource(resource) {
-  save.gathered.push(resource.id); addTownItem(resource.item, resource.amount); save.xp += 3;
+  save.gathered.push(resource.id); addTownItem(resource.item, resource.amount); awardWorldXp(3);
   persist(true); updateHud();
   const label = (INVENTORY_ITEMS.find(item => item.key === resource.item) || {}).label || resource.item;
   showToast("Collected " + resource.amount + " " + label + "!");
@@ -1390,6 +1495,7 @@ function currentWorldPresence() {
     direction: ["up", "down", "left", "right"].includes(player.direction) ? player.direction : "down",
     moving: player.moving === true, job: typeof save.job === "string" ? save.job : "",
     gender: save.gender === "female" ? "female" : "male",
+    shirtColor: isSafeWorldColor(save.shirtColor) ? save.shirtColor : "#6687a7",
     area: insideBuilding || "outside"
   };
 }
