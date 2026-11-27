@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css">
-  <link rel="stylesheet" href="world.css?v=topdown-singleplayer-v1-20261127">
+  <link rel="stylesheet" href="world.css?v=town-life-v2-20261127">
   <link rel="stylesheet" href="playful-theme.css?v=simple-motion-20261125">
   <link rel="stylesheet" href="navbar-unification.css?v=full-width-v1-20261126">
   <link rel="icon" type="image/svg+xml" href="favicon.svg?v=stellars-constellation-20261125">
@@ -33,7 +33,7 @@
         <div>
           <p class="pixel-kicker">A LITTLE UNIVERSE TO LIVE IN</p>
           <h1>Find your place in <span>Stellars Town.</span></h1>
-          <p class="intro-copy">Take a walk, find your favourite corner, and make this little town yours.</p>
+          <p class="intro-copy">Explore the valley, meet its people, collect resources, and make this town yours.</p>
         </div>
         <div class="intro-stats">
           <div><span class="stat-icon">⌂</span><strong>01</strong><small>YOUR LITTLE WORLD</small></div>
@@ -109,6 +109,12 @@
             <button class="pixel-button secondary-button" id="chooseJobButton" type="button">CHOOSE A PROFESSION</button>
           </section>
 
+          <section class="panel inventory-panel">
+            <div class="panel-heading"><span>YOUR BACKPACK</span><span>▦</span></div>
+            <p class="inventory-caption">Everything you collect, grow, or craft.</p>
+            <div class="inventory-grid" id="inventoryGrid" aria-live="polite"></div>
+          </section>
+
           <section class="panel town-panel">
             <div class="panel-heading"><span>OUR TOWN PROJECT</span><span>⌂</span></div>
             <strong class="project-title">Build the Town Square</strong>
@@ -121,7 +127,7 @@
             <div class="panel-heading"><span>HOW TO PLAY</span><span>⌘</span></div>
             <div class="instruction-row"><kbd>W A S D</kbd><span>Walk around</span></div>
             <div class="instruction-row"><kbd>↑ ↓ ← →</kbd><span>Move around</span></div>
-            <div class="instruction-row"><kbd>E</kbd><span>Interact nearby</span></div>
+            <div class="instruction-row"><kbd>E</kbd><span>Talk, enter, use, collect</span></div>
             <p class="task-hint" id="taskHint">Take a stroll and explore the town.</p>
           </section>
 
@@ -136,7 +142,7 @@
       </section>
 
       <p class="prototype-note" id="worldPrototypeNote" hidden>
-        <strong>Single-player prototype.</strong> Movement, map, collision, and player rendering are local for this test. The player-state structure is designed so other members can be rendered later when multiplayer sync is connected.
+        <strong>Single-player prototype.</strong> Buildings, NPCs, profession activities, farming, crafting, items, and progress are saved locally in this browser. Multiplayer sync is not connected yet.
       </p>
     </main>
   </div>
@@ -149,7 +155,7 @@
     <div class="job-grid" id="jobGrid"></div>
   </dialog>
 
-  <script type="module" src="world.js?v=topdown-singleplayer-v1-20261127"></script>
+  <script type="module" src="world.js?v=town-life-v2-20261127"></script>
   <script src="letters-launcher.js?v=private-mail-notifications-v6-20261126" defer></script>
 </body>
 </html>

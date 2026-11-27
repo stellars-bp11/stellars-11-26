@@ -188,3 +188,14 @@ kbd { min-width: 55px; padding: 5px 6px; border: 1px solid rgba(201,230,177,.22)
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
+
+
+/* Town-life backpack */
+.inventory-caption { margin: 8px 0 10px; color: var(--muted); font-size: 10px; }
+.inventory-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.inventory-item { min-width: 0; min-height: 42px; display: grid; grid-template-columns: 25px minmax(0, 1fr) auto; align-items: center; gap: 5px; padding: 6px 7px; border: 1px solid rgba(220,235,211,.1); border-radius: 5px; background: rgba(12,22,14,.22); }
+.inventory-icon { font-size: 17px; text-align: center; }
+.inventory-label { overflow: hidden; color: #d4dfcc; font-size: 9px; line-height: 1.2; text-overflow: ellipsis; }
+.inventory-item strong { color: #f4df9e; font: 10px var(--silk); }
+@media (max-width: 900px) { .inventory-panel { grid-column: 1 / -1; } }
+@media (max-width: 560px) { .inventory-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

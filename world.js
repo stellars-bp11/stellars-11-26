@@ -32,8 +32,8 @@ ctx.imageSmoothingEnabled = false;
 const VIEW_W = canvas.width;
 const VIEW_H = canvas.height;
 const TILE = 32;
-const MAP_W = 84;
-const MAP_H = 60;
+const MAP_W = 140;
+const MAP_H = 100;
 const MAP_PIXEL_W = MAP_W * TILE;
 const MAP_PIXEL_H = MAP_H * TILE;
 const SAVE_PREFIX = "stellarsWorldTopDownV1";
@@ -53,16 +53,24 @@ const buildings = [
   { id: "townhall", name: "Town Hall", x: 36, y: 11, w: 6, h: 5, roof: "#b66f58", wall: "#e6d1a5", sign: "TOWN HALL" },
   { id: "cafe", name: "Little Comet Café", x: 49, y: 21, w: 5, h: 4, roof: "#bb8064", wall: "#f0d4a1", sign: "CAFE" },
   { id: "home", name: "Your Little Home", x: 29, y: 34, w: 5, h: 4, roof: "#7f91ad", wall: "#e7d4ad", sign: "HOME" },
-  { id: "market", name: "Star Market", x: 49, y: 34, w: 5, h: 4, roof: "#d0a64e", wall: "#ead5a6", sign: "MARKET" }
+  { id: "market", name: "Star Market", x: 49, y: 34, w: 5, h: 4, roof: "#d0a64e", wall: "#ead5a6", sign: "MARKET" },
+  { id: "workshop", name: "Star Workshop", x: 67, y: 23, w: 6, h: 5, roof: "#8f8a68", wall: "#d7c69b", sign: "WORKSHOP" },
+  { id: "observatory", name: "Stellar Observatory", x: 110, y: 34, w: 7, h: 6, roof: "#586f9b", wall: "#c7c8c5", sign: "OBSERVATORY" },
+  { id: "bakery", name: "Sunrise Bakery", x: 69, y: 66, w: 6, h: 5, roof: "#c78b55", wall: "#f0d5a3", sign: "BAKERY" }
 ];
 
-const riverLine = [[7, 2], [9, 9], [8, 16], [11, 23], [10, 30], [13, 38], [12, 46], [17, 54], [20, 59]];
+const riverLine = [[7, 2], [9, 9], [8, 16], [11, 23], [10, 30], [13, 38], [12, 46], [17, 54], [20, 62], [23, 70], [23, 80], [30, 90], [35, 99]];
 const pathLines = [
-  [[37, 59], [37, 50], [37, 42], [37, 31], [39, 27], [39, 20], [39, 16]],
+  [[37, 99], [37, 75], [37, 58], [37, 50], [37, 42], [37, 31], [39, 27], [39, 20], [39, 16]],
   [[39, 27], [46, 25], [50, 23]],
   [[37, 31], [30, 29], [27, 25], [25, 22], [24, 21]],
   [[37, 31], [40, 35], [45, 36], [50, 36]],
-  [[37, 31], [32, 35], [31, 37]]
+  [[37, 31], [32, 35], [31, 37]],
+  [[37, 51], [52, 52], [66, 51], [78, 48], [83, 47]],
+  [[37, 51], [29, 64], [25, 78], [25, 89]],
+  [[68, 28], [78, 29], [92, 32], [108, 36]],
+  [[66, 51], [70, 61], [73, 68], [78, 70]],
+  [[78, 70], [93, 75], [109, 77], [122, 81]]
 ];
 
 const treeSpots = [];
@@ -73,7 +81,11 @@ let playerUser = null;
 let canPlayWorld = false;
 let authSequence = 0;
 let storageKey = SAVE_PREFIX + ":locked";
-let save = { job: "", coins: 100, xp: 0, townProgress: 0, homeDecor: 0 };
+let save = {
+  job: "", coins: 100, xp: 0, townProgress: 0, homeDecor: 0,
+  inventory: { riceSeed: 4, rice: 0, coffeeBeans: 3, coffee: 0, wood: 4, stone: 3, books: 2, starShard: 0, dye: 2 },
+  plots: {}, npcRewards: {}, gathered: [], benches: 0, murals: 0
+};
 let player = {
   uid: "local-preview",
   name: "Star",
@@ -115,7 +127,8 @@ function pathDistance(x, y) {
 }
 function isBridge(x, y) {
   return (x >= 9 && x <= 11 && y >= 14 && y <= 16) ||
-    (x >= 10 && x <= 12 && y >= 36 && y <= 38);
+    (x >= 10 && x <= 12 && y >= 36 && y <= 38) ||
+    (x >= 21 && x <= 24 && y >= 73 && y <= 76);
 }
 function terrainAt(x, y) {
   if (x < 0 || y < 0 || x >= MAP_W || y >= MAP_H) return "void";
@@ -769,6 +782,485 @@ window.STELLARSWorld = Object.freeze({
     });
   }
 });
+
+
+// ── TOWN LIFE SYSTEM: expanded overworld, rooms, NPCs, items and profession loops.
+const INVENTORY_ITEMS = [
+  { key: "riceSeed", label: "Rice Seeds", icon: "🌾" }, { key: "rice", label: "Rice", icon: "🍚" },
+  { key: "coffeeBeans", label: "Coffee Beans", icon: "🫘" }, { key: "coffee", label: "Coffee", icon: "☕" },
+  { key: "wood", label: "Wood", icon: "🪵" }, { key: "stone", label: "Stone", icon: "🪨" },
+  { key: "books", label: "Books", icon: "📚" }, { key: "starShard", label: "Star Shards", icon: "💎" },
+  { key: "dye", label: "Dye", icon: "🎨" }
+];
+const DEFAULT_INVENTORY = { riceSeed: 4, rice: 0, coffeeBeans: 3, coffee: 0, wood: 4, stone: 3, books: 2, starShard: 0, dye: 2 };
+const farmPlots = [];
+for (let row = 0; row < 3; row++) for (let col = 0; col < 4; col++) farmPlots.push({ x: 81 + col, y: 45 + row });
+const townNPCs = [
+  { id: "mira", name: "Mira", x: 80.2 * TILE, y: 43.1 * TILE, palette: 2, message: "Plant a seed, water it three times, then harvest your rice.", reward: { riceSeed: 3 } },
+  { id: "mika", name: "Mika", x: 55.5 * TILE, y: 26.8 * TILE, palette: 1, message: "Baristas brew beans into coffee, then serve each cup for Star Coins.", reward: { coffeeBeans: 2 } },
+  { id: "theo", name: "Theo", x: 28.4 * TILE, y: 23.6 * TILE, palette: 3, message: "Librarians sort books at the desk to earn coins and experience.", reward: { books: 2 } },
+  { id: "raya", name: "Raya", x: 74.6 * TILE, y: 29.6 * TILE, palette: 4, message: "Builders turn wood and stone into benches for the town square.", reward: { wood: 2, stone: 1 } },
+  { id: "nova", name: "Nova", x: 107.4 * TILE, y: 43.5 * TILE, palette: 0, message: "Star fragments are scattered around the valley. Bring them to the observatory.", reward: { starShard: 1 } }
+];
+const resourceSpots = [
+  { id: "wood-1", x: 60.5 * TILE, y: 66.5 * TILE, item: "wood", amount: 2 },
+  { id: "wood-2", x: 96.5 * TILE, y: 20.5 * TILE, item: "wood", amount: 2 },
+  { id: "wood-3", x: 119.5 * TILE, y: 64.5 * TILE, item: "wood", amount: 2 },
+  { id: "stone-1", x: 58.5 * TILE, y: 80.5 * TILE, item: "stone", amount: 2 },
+  { id: "stone-2", x: 101.5 * TILE, y: 87.5 * TILE, item: "stone", amount: 2 },
+  { id: "star-1", x: 91.5 * TILE, y: 14.5 * TILE, item: "starShard", amount: 1 },
+  { id: "star-2", x: 125.5 * TILE, y: 54.5 * TILE, item: "starShard", amount: 1 },
+  { id: "star-3", x: 108.5 * TILE, y: 91.5 * TILE, item: "starShard", amount: 1 }
+];
+const interiorRooms = {
+  library: { station: { x: 310, y: 280, label: "BOOK SORTING DESK" }, floor: "#b98d60", wall: "#79609a" },
+  townhall: { station: { x: 930, y: 285, label: "MURAL CANVAS" }, floor: "#bd9364", wall: "#a75e4d" },
+  cafe: { station: { x: 920, y: 315, label: "COFFEE COUNTER" }, floor: "#b77f60", wall: "#9b604f" },
+  home: { station: { x: 350, y: 330, label: "HOME CORNER" }, floor: "#b28a67", wall: "#657d9d" },
+  market: { station: { x: 930, y: 315, label: "SUPPLY COUNTER" }, floor: "#c39a61", wall: "#b38d42" },
+  workshop: { station: { x: 890, y: 330, label: "BUILDING BENCH" }, floor: "#9a7957", wall: "#777653" },
+  observatory: { station: { x: 650, y: 280, label: "STAR CHART TABLE" }, floor: "#897da6", wall: "#536a96" },
+  bakery: { station: { x: 910, y: 315, label: "BAKERY COUNTER" }, floor: "#c49a69", wall: "#bd8450" }
+};
+const indoorStaff = {
+  library: { name: "Theo", x: 440, y: 300, palette: 3 },
+  townhall: { name: "Elle", x: 760, y: 300, palette: 4 },
+  cafe: { name: "Mika", x: 760, y: 330, palette: 1 },
+  market: { name: "Nico", x: 760, y: 330, palette: 0 },
+  workshop: { name: "Raya", x: 700, y: 335, palette: 4 },
+  observatory: { name: "Nova", x: 820, y: 300, palette: 0 },
+  bakery: { name: "Sora", x: 760, y: 330, palette: 2 }
+};
+let insideBuilding = null;
+let outsidePosition = null;
+
+function createTownSave() {
+  return {
+    job: "", coins: 100, xp: 0, townProgress: 0, homeDecor: 0,
+    inventory: { ...DEFAULT_INVENTORY }, plots: {}, npcRewards: {}, gathered: [],
+    benches: 0, murals: 0, x: 37 * TILE + 16, y: 43 * TILE + 16
+  };
+}
+readSave = function readSaveTown(key) {
+  const defaults = createTownSave();
+  try {
+    const parsed = JSON.parse(localStorage.getItem(key) || "null");
+    if (!parsed || typeof parsed !== "object") return defaults;
+    const inventory = { ...DEFAULT_INVENTORY };
+    if (parsed.inventory && typeof parsed.inventory === "object") {
+      Object.keys(inventory).forEach(item => inventory[item] = Math.max(0, Math.floor(Number(parsed.inventory[item]) || 0)));
+    }
+    return {
+      ...defaults, ...parsed,
+      job: jobs.some(job => job.id === parsed.job) ? parsed.job : "",
+      coins: Math.max(0, Math.floor(Number(parsed.coins) || 0)),
+      xp: Math.max(0, Math.floor(Number(parsed.xp) || 0)),
+      townProgress: Math.max(0, Math.min(100, Number(parsed.townProgress) || 0)),
+      homeDecor: Math.max(0, Math.floor(Number(parsed.homeDecor) || 0)),
+      inventory,
+      plots: parsed.plots && typeof parsed.plots === "object" ? parsed.plots : {},
+      npcRewards: parsed.npcRewards && typeof parsed.npcRewards === "object" ? parsed.npcRewards : {},
+      gathered: Array.isArray(parsed.gathered) ? parsed.gathered : [],
+      benches: Math.max(0, Math.floor(Number(parsed.benches) || 0)),
+      murals: Math.max(0, Math.floor(Number(parsed.murals) || 0)),
+      x: Number.isFinite(parsed.x) ? Math.max(TILE * 2, Math.min(MAP_PIXEL_W - TILE * 2, parsed.x)) : defaults.x,
+      y: Number.isFinite(parsed.y) ? Math.max(TILE * 2, Math.min(MAP_PIXEL_H - TILE * 2, parsed.y)) : defaults.y
+    };
+  } catch (error) { console.warn("Could not read STELLARS World save:", error); return defaults; }
+};
+function addTownItem(item, amount = 1) {
+  if (Object.prototype.hasOwnProperty.call(save.inventory, item)) save.inventory[item] = Math.max(0, save.inventory[item] + amount);
+}
+function hasTownItems(cost) { return Object.entries(cost).every(([item, amount]) => (save.inventory[item] || 0) >= amount); }
+function spendTownItems(cost) {
+  if (!hasTownItems(cost)) return false;
+  Object.entries(cost).forEach(([item, amount]) => addTownItem(item, -amount));
+  return true;
+}
+function rewardTown(coins, xp = 0, progress = 0) {
+  save.coins += coins; save.xp += xp; save.townProgress = Math.min(100, save.townProgress + progress);
+  persist(true); updateHud();
+}
+updateHud = function updateTownHud() {
+  const job = jobs.find(item => item.id === save.job);
+  $("playerName").textContent = player.name;
+  $("playerJob").textContent = job ? job.name : "New Resident";
+  $("avatarInitial").textContent = player.name.slice(0, 1).toUpperCase();
+  $("coinCount").textContent = Math.floor(save.coins).toLocaleString("en-US");
+  $("xpLabel").textContent = (save.xp % 100) + " / 100 XP";
+  $("xpBar").style.width = (save.xp % 100) + "%";
+  $("townProgressBar").style.width = save.townProgress + "%";
+  $("townProgressLabel").textContent = save.townProgress + "%";
+  $("townLevel").textContent = String(1 + Math.floor(save.townProgress / 25)).padStart(2, "0");
+  $("chooseJobButton").textContent = job ? "CHANGE PROFESSION" : "CHOOSE A PROFESSION";
+  const hints = {
+    farmer: "🌾 Farmer: at Stellar Farm, press E to plant, water three times, then harvest rice.",
+    barista: "☕ Barista: enter Little Comet Café. Brew coffee beans, then serve each cup for coins.",
+    builder: "🧱 Builder: collect wood and stone, then build a bench at Star Workshop.",
+    librarian: "📚 Librarian: enter Stellar Library and sort books at the desk.",
+    explorer: "💎 Explorer: find glowing star shards around the valley and exchange them at the Observatory.",
+    artist: "🎨 Artist: use dye at the Town Hall mural canvas to decorate the town."
+  };
+  $("taskHint").textContent = job ? hints[job.id] : "Choose a profession, meet the townsfolk, and try a little task.";
+  const grid = $("inventoryGrid");
+  if (grid) {
+    grid.replaceChildren();
+    INVENTORY_ITEMS.forEach(item => {
+      const tile = document.createElement("div"); tile.className = "inventory-item";
+      const icon = document.createElement("span"); icon.className = "inventory-icon"; icon.textContent = item.icon;
+      const label = document.createElement("span"); label.className = "inventory-label"; label.textContent = item.label;
+      const count = document.createElement("strong"); count.textContent = String(save.inventory[item.key] || 0);
+      tile.append(icon, label, count); grid.append(tile);
+    });
+  }
+};
+updateCamera = function updateTownCamera() {
+  if (insideBuilding) { camera.x = 0; camera.y = 0; return; }
+  camera.x = Math.max(0, Math.min(MAP_PIXEL_W - VIEW_W, player.x - VIEW_W / 2));
+  camera.y = Math.max(0, Math.min(MAP_PIXEL_H - VIEW_H, player.y - VIEW_H / 2));
+};
+function plotKey(plot) { return plot.x + "," + plot.y; }
+function getPlotState(plot) {
+  const key = plotKey(plot);
+  if (!save.plots[key]) save.plots[key] = { planted: false, waterings: 0 };
+  return save.plots[key];
+}
+function nearestFarmPlot(maxDistance = 48) {
+  let nearest = null;
+  for (const plot of farmPlots) {
+    const distance = Math.hypot(player.x - (plot.x + .5) * TILE, player.y - (plot.y + .5) * TILE);
+    if (distance < maxDistance && (!nearest || distance < nearest.distance)) nearest = { ...plot, distance };
+  }
+  return nearest;
+}
+function nearestTownNpc(maxDistance = 58) {
+  let nearest = null;
+  for (const npc of townNPCs) {
+    const distance = Math.hypot(player.x - npc.x, player.y - npc.y);
+    if (distance < maxDistance && (!nearest || distance < nearest.distance)) nearest = { ...npc, distance };
+  }
+  return nearest;
+}
+function nearestTownResource(maxDistance = 55) {
+  let nearest = null;
+  for (const item of resourceSpots) {
+    if (save.gathered.includes(item.id)) continue;
+    const distance = Math.hypot(player.x - item.x, player.y - item.y);
+    if (distance < maxDistance && (!nearest || distance < nearest.distance)) nearest = { ...item, distance };
+  }
+  return nearest;
+}
+nearbyBuilding = function nearbyTownBuilding() {
+  if (insideBuilding) return null;
+  let nearest = null, best = 90;
+  for (const building of buildings) {
+    const cx = (building.x + building.w / 2) * TILE;
+    const cy = (building.y + building.h) * TILE + 8;
+    const distance = Math.hypot(player.x - cx, player.y - cy);
+    if (distance < best) { best = distance; nearest = building; }
+  }
+  return nearest;
+};
+function isTownDoorway(x, y, building) {
+  const cx = (building.x + building.w / 2) * TILE;
+  const bottom = (building.y + building.h) * TILE;
+  return Math.abs(x - cx) < 18 && y > bottom - 34 && y < bottom + 18;
+}
+isSolidAt = function isTownSolidAt(x, y) {
+  if (insideBuilding) return x < 105 || x > VIEW_W - 105 || y < 145 || y > VIEW_H - 95;
+  const tx = Math.floor(x / TILE), ty = Math.floor(y / TILE);
+  if (x < TILE || y < TILE || x > MAP_PIXEL_W - TILE || y > MAP_PIXEL_H - TILE || terrainAt(tx, ty) === "water") return true;
+  for (const b of buildings) {
+    if (x >= b.x * TILE - 4 && x <= (b.x + b.w) * TILE + 4 &&
+        y - 7 >= b.y * TILE - 4 && y - 7 <= (b.y + b.h) * TILE + 4 &&
+        !isTownDoorway(x, y - 7, b)) return true;
+  }
+  for (const tree of treeSpots) {
+    if (Math.abs(tree.x - x) < 24 && Math.abs(tree.y - y) < 26 && Math.hypot(tree.x - x, tree.y - y + 11) < 23) return true;
+  }
+  for (let i = 0; i < Math.min(save.benches, 5); i++) {
+    if (Math.abs(x - (44 + i * 2) * TILE) < 20 && Math.abs(y - 34 * TILE) < 20) return true;
+  }
+  return false;
+};
+movePlayer = function moveTownPlayer(dx, dy) {
+  if (!requireWorldMember() || (!dx && !dy)) return;
+  const length = Math.hypot(dx, dy) || 1;
+  const speed = insideBuilding ? 190 : 178;
+  const mx = (dx / length) * speed * deltaSeconds;
+  const my = (dy / length) * speed * deltaSeconds;
+  let moved = false;
+  if (!isSolidAt(player.x + mx, player.y)) { player.x += mx; moved = true; }
+  if (!isSolidAt(player.x, player.y + my)) { player.y += my; moved = true; }
+  if (moved) {
+    player.moving = true;
+    player.direction = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? "left" : "right") : (dy < 0 ? "up" : "down");
+    updateCamera();
+    if (!insideBuilding && (Math.floor(player.x / TILE) !== lastTileX || Math.floor(player.y / TILE) !== lastTileY)) {
+      lastTileX = Math.floor(player.x / TILE); lastTileY = Math.floor(player.y / TILE);
+      updateHud(); persist(true);
+    }
+  }
+};
+function enterTownBuilding(building) {
+  if (!building || !interiorRooms[building.id]) { showToast("This place is still being prepared."); return; }
+  outsidePosition = { x: player.x, y: player.y, direction: player.direction };
+  insideBuilding = building.id;
+  player.x = VIEW_W / 2; player.y = VIEW_H - 170; player.direction = "up"; player.moving = false;
+  updateCamera(); updateWorldHud(); showToast("Entered " + building.name + " · Find the glowing station!");
+}
+function leaveTownBuilding() {
+  insideBuilding = null;
+  if (outsidePosition) { player.x = outsidePosition.x; player.y = outsidePosition.y; player.direction = outsidePosition.direction || "down"; }
+  outsidePosition = null; updateCamera(); persist(true); showToast("Back outside · Keep exploring!");
+}
+function drawTownInterior(time) {
+  const room = interiorRooms[insideBuilding] || interiorRooms.home;
+  ctx.fillStyle = "#47372b"; ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+  ctx.fillStyle = room.wall; ctx.fillRect(35, 30, VIEW_W - 70, 112);
+  ctx.fillStyle = shadeColor(room.wall, -20); ctx.fillRect(35, 132, VIEW_W - 70, 12);
+  ctx.fillStyle = "#8c7052"; ctx.fillRect(75, 60, 135, 48); ctx.fillRect(VIEW_W - 210, 60, 135, 48);
+  ctx.fillStyle = "#b5d4d1"; ctx.fillRect(82, 66, 121, 36); ctx.fillRect(VIEW_W - 203, 66, 121, 36);
+  ctx.fillStyle = room.floor; ctx.fillRect(35, 144, VIEW_W - 70, VIEW_H - 180);
+  for (let y = 152; y < VIEW_H - 42; y += 34) for (let x = 42; x < VIEW_W - 42; x += 42) {
+    ctx.fillStyle = ((x / 42 + y / 34) % 2 < 1) ? "rgba(255,236,190,.055)" : "rgba(66,45,31,.045)";
+    ctx.fillRect(x, y, 40, 32);
+  }
+  // Distinct furniture for each interior type.
+  if (insideBuilding === "library") {
+    for (let x = 150; x < 390; x += 112) {
+      ctx.fillStyle = "#684832"; ctx.fillRect(x, 190, 82, 164);
+      ctx.fillStyle = "#a67851"; ctx.fillRect(x + 5, 196, 72, 7);
+      for (let j = 0; j < 5; j++) { ctx.fillStyle = ["#b86e5c", "#7c8fbd", "#d0b36b", "#6b9b79"][j % 4]; ctx.fillRect(x + 11 + j * 12, 210, 8, 38); ctx.fillRect(x + 11 + j * 12, 264, 8, 38); }
+    }
+    ctx.fillStyle = "#745137"; ctx.fillRect(550, 285, 240, 48);
+    ctx.fillStyle = "#d0aa71"; ctx.fillRect(558, 280, 224, 12);
+  } else if (insideBuilding === "cafe" || insideBuilding === "bakery") {
+    ctx.fillStyle = "#6a4735"; ctx.fillRect(760, 210, 300, 90);
+    ctx.fillStyle = "#d49a6b"; ctx.fillRect(750, 202, 320, 18);
+    for (const x of [210, 420, 560]) { ctx.fillStyle = "#81563c"; ctx.fillRect(x, 315, 104, 58); ctx.fillStyle = "#d8b486"; ctx.fillRect(x + 7, 307, 90, 48); ctx.fillStyle = "#76513e"; ctx.fillRect(x + 38, 354, 22, 42); }
+  } else if (insideBuilding === "workshop") {
+    ctx.fillStyle = "#684b32"; ctx.fillRect(740, 230, 315, 125); ctx.fillStyle = "#bc8c55"; ctx.fillRect(730, 220, 335, 25);
+    for (let i = 0; i < 5; i++) { ctx.fillStyle = "#d2b37b"; ctx.fillRect(770 + i * 48, 265, 28, 45); }
+    ctx.fillStyle = "#60442e"; ctx.fillRect(180, 250, 170, 100);
+  } else if (insideBuilding === "townhall") {
+    ctx.fillStyle = "#8e5642"; ctx.fillRect(820, 190, 220, 180);
+    ctx.fillStyle = "#f0d5a6"; ctx.fillRect(840, 210, 180, 136);
+    ctx.fillStyle = "#6c8d72"; ctx.fillRect(865, 235, 130, 86);
+    for (let i = 0; i < Math.min(save.murals, 5); i++) { ctx.fillStyle = ["#e7a36d", "#88b7a1", "#9285c4", "#dfcc7d", "#c67b8a"][i]; ctx.fillRect(875 + i * 19, 250 + (i % 2) * 13, 15, 18); }
+  } else if (insideBuilding === "market") {
+    ctx.fillStyle = "#73513a"; ctx.fillRect(760, 225, 300, 100); ctx.fillStyle = "#e4c387"; ctx.fillRect(750, 215, 320, 20);
+    for (let i = 0; i < 6; i++) { ctx.fillStyle = ["#cf805f", "#7a9b72", "#d5b46b"][i % 3]; ctx.fillRect(785 + i * 42, 254, 24, 34); }
+  } else if (insideBuilding === "home") {
+    ctx.fillStyle = "#e2c5a0"; ctx.fillRect(170, 205, 240, 120); ctx.fillStyle = "#7d8fab"; ctx.fillRect(180, 215, 220, 90); ctx.fillStyle = "#f3e4c4"; ctx.fillRect(190, 222, 200, 70);
+    ctx.fillStyle = "#78563e"; ctx.fillRect(770, 300, 150, 54);
+  } else if (insideBuilding === "observatory") {
+    ctx.fillStyle = "#4c527d"; ctx.beginPath(); ctx.arc(650, 285, 130, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#e9d9a9"; ctx.beginPath(); ctx.arc(650, 285, 106, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#7a78a3"; ctx.beginPath(); ctx.arc(650, 285, 86, 0, Math.PI * 2); ctx.fill();
+    for (let i = 0; i < 12; i++) { ctx.fillStyle = "#fff0b7"; ctx.fillRect(580 + (i * 37) % 140, 220 + (i * 23) % 130, 4, 4); }
+  }
+  const station = room.station;
+  ctx.fillStyle = "rgba(255,232,150,.18)"; ctx.beginPath(); ctx.arc(station.x, station.y + 25, 72 + Math.sin(time / 350) * 3, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#f1db9a"; ctx.fillRect(station.x - 64, station.y + 22, 128, 12);
+  ctx.fillStyle = "#725038"; ctx.fillRect(station.x - 57, station.y + 34, 12, 28); ctx.fillRect(station.x + 45, station.y + 34, 12, 28);
+  ctx.fillStyle = "#fff6d8"; ctx.font = "bold 11px Ubuntu"; ctx.textAlign = "center"; ctx.fillText(station.label, station.x, station.y + 13);
+  ctx.fillStyle = "#493323"; ctx.fillRect(590, 640, 100, 60); ctx.fillStyle = "#d6b06e"; ctx.fillRect(600, 640, 80, 8);
+  ctx.fillStyle = "#fff0c5"; ctx.font = "bold 10px Ubuntu"; ctx.fillText("EXIT · E", 640, 628);
+  ctx.textAlign = "left"; ctx.fillStyle = "#fff8e7"; ctx.font = "bold 17px Ubuntu";
+  ctx.fillText((buildings.find(item => item.id === insideBuilding) || { name: "STELLARS ROOM" }).name, 62, 176);
+  ctx.fillStyle = "rgba(45,32,24,.7)"; ctx.fillRect(60, 682, 1160, 25);
+  ctx.fillStyle = "#f8edce"; ctx.font = "10px Ubuntu"; ctx.fillText("Walk around · Visit the glowing station · Press E to use it or leave", 76, 699);
+}
+function drawTownFarm() {
+  for (const plot of farmPlots) {
+    const sx = plot.x * TILE - camera.x, sy = plot.y * TILE - camera.y;
+    if (sx < -TILE || sx > VIEW_W || sy < -TILE || sy > VIEW_H) continue;
+    const state = getPlotState(plot);
+    ctx.fillStyle = "#987247"; ctx.fillRect(sx + 2, sy + 2, TILE - 4, TILE - 4);
+    ctx.fillStyle = "#644c34"; ctx.fillRect(sx + 5, sy + 7, TILE - 10, TILE - 12);
+    ctx.fillStyle = "#b28a56"; for (let i = 0; i < 3; i++) ctx.fillRect(sx + 8, sy + 9 + i * 6, TILE - 16, 2);
+    if (state.planted) {
+      const mature = Number(state.waterings) >= 3, height = mature ? 17 : 4 + Number(state.waterings || 0) * 4;
+      ctx.fillStyle = mature ? "#d3bc69" : "#6ba64d";
+      for (let i = 0; i < 3; i++) { const px = sx + 9 + i * 7; ctx.fillRect(px, sy + 23 - height, 3, height); ctx.fillRect(px - 3, sy + 20 - height, 4, 3); }
+      if (mature) { ctx.fillStyle = "#f6e4a4"; ctx.fillRect(sx + 7, sy + 4, 3, 5); ctx.fillRect(sx + 17, sy + 3, 3, 5); }
+    } else { ctx.fillStyle = "#d4b178"; ctx.fillRect(sx + 13, sy + 14, 6, 3); }
+  }
+  const sx = 79 * TILE - camera.x, sy = 43 * TILE - camera.y;
+  if (sx > -80 && sx < VIEW_W + 80 && sy > -40 && sy < VIEW_H + 40) {
+    ctx.fillStyle = "#754c2d"; ctx.fillRect(sx, sy, 4, 38); ctx.fillStyle = "#e3c47b"; ctx.fillRect(sx - 26, sy - 12, 66, 20);
+    ctx.fillStyle = "#60482d"; ctx.font = "bold 9px Ubuntu"; ctx.textAlign = "center"; ctx.fillText("STELLAR FARM", sx + 7, sy + 2); ctx.textAlign = "left";
+  }
+}
+function drawTownResources() {
+  for (const spot of resourceSpots) {
+    if (save.gathered.includes(spot.id)) continue;
+    const x = spot.x - camera.x, y = spot.y - camera.y;
+    if (x < -30 || x > VIEW_W + 30 || y < -30 || y > VIEW_H + 30) continue;
+    const colors = { wood: "#d8b17a", stone: "#c2d0d3", starShard: "#b8b2ff" };
+    ctx.fillStyle = "rgba(255,246,190,.25)"; ctx.beginPath(); ctx.arc(x, y, 15 + Math.sin(performance.now() / 240 + x) * 2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = colors[spot.item] || "#fff"; ctx.beginPath(); ctx.moveTo(x, y - 10); ctx.lineTo(x + 8, y); ctx.lineTo(x, y + 10); ctx.lineTo(x - 8, y); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#fff8d4"; ctx.fillRect(x - 2, y - 4, 3, 3);
+  }
+}
+function drawTownBenches() {
+  for (let i = 0; i < Math.min(save.benches, 5); i++) {
+    const x = (44 + i * 2) * TILE - camera.x, y = 34 * TILE - camera.y;
+    ctx.fillStyle = "rgba(35,39,26,.25)"; ctx.fillRect(x - 15, y + 11, 31, 6);
+    ctx.fillStyle = "#855b37"; ctx.fillRect(x - 16, y - 4, 32, 8);
+    ctx.fillStyle = "#c18a52"; ctx.fillRect(x - 16, y - 8, 32, 7);
+    ctx.fillStyle = "#68482e"; ctx.fillRect(x - 12, y + 2, 4, 10); ctx.fillRect(x + 8, y + 2, 4, 10);
+  }
+}
+drawEntity = function drawTownEntity(entity, time) {
+  if (entity.kind === "tree") drawTree(entity);
+  else if (entity.kind === "building") drawBuilding(entity.data);
+  else drawCharacter(entity, entity.uid === player.uid, time);
+};
+drawWorld = function drawTownWorld(time) {
+  if (!canPlayWorld) return;
+  ctx.clearRect(0, 0, VIEW_W, VIEW_H);
+  if (insideBuilding) {
+    drawTownInterior(time); drawCharacter(player, true, time);
+    const staff = indoorStaff[insideBuilding];
+    if (staff) drawCharacter({ ...staff, uid: "staff-" + insideBuilding, direction: "down", moving: false }, false, time);
+    updateWorldHud(); return;
+  }
+  drawGround(time); drawTownFarm(); drawTownResources(); drawTownBenches();
+  const entities = [];
+  treeSpots.forEach(tree => {
+    if (tree.x >= camera.x - 90 && tree.x <= camera.x + VIEW_W + 90 && tree.y >= camera.y - 110 && tree.y <= camera.y + VIEW_H + 50) entities.push(tree);
+  });
+  buildings.forEach(data => entities.push({ kind: "building", y: (data.y + data.h) * TILE, x: (data.x + data.w / 2) * TILE, data }));
+  townNPCs.forEach(npc => entities.push({ ...npc, uid: "npc-" + npc.id, direction: "down", moving: false, kind: "npc", y: npc.y }));
+  renderablePlayers().forEach(person => entities.push({ ...person, kind: "player" }));
+  entities.sort((a, b) => a.y - b.y).forEach(entity => drawEntity(entity, time));
+  updateWorldHud();
+};
+areaName = function townAreaName(x, y) {
+  if (insideBuilding) return (buildings.find(item => item.id === insideBuilding) || { name: "INDOORS" }).name.toUpperCase();
+  const tx = x / TILE, ty = y / TILE;
+  if (tx > 76 && tx < 89 && ty > 41 && ty < 53) return "STELLAR FARM";
+  if (tx > 106 && ty > 31 && ty < 47) return "OBSERVATORY HILL";
+  if (tx > 62 && tx < 80 && ty > 20 && ty < 34) return "WORKSHOP LANE";
+  if (tx > 65 && tx < 82 && ty > 61 && ty < 75) return "SUNRISE CORNER";
+  if (tx > 46 && ty > 18 && ty < 29) return "LITTLE COMET CAFE";
+  if (tx > 33 && ty < 19) return "TOWN SQUARE";
+  if (tx < 30 && ty < 25) return "STELLAR LIBRARY";
+  if (tx > 45 && ty > 30 && ty < 42) return "STAR MARKET";
+  if (tx > 26 && tx < 39 && ty > 31 && ty < 41) return "RESIDENTIAL LANE";
+  if (riverDistance(Math.floor(tx), Math.floor(ty)) < 2.2) return "RIVERSIDE";
+  if (tx > 88 && ty > 55) return "SOUTHERN VALLEY";
+  if (tx > 90) return "EASTERN WOODS";
+  if (ty > 70) return "SOUTHERN MEADOW";
+  return "TOWN OUTSKIRTS";
+};
+updateWorldHud = function updateTownWorldHud() {
+  $("worldCoords").textContent = insideBuilding ? "INDOORS" : String(Math.floor(player.x / TILE)).padStart(2, "0") + " : " + String(Math.floor(player.y / TILE)).padStart(2, "0");
+  $("areaTag").textContent = areaName(player.x, player.y);
+  if (insideBuilding) {
+    const room = interiorRooms[insideBuilding];
+    const atStation = Math.hypot(player.x - room.station.x, player.y - room.station.y) < 108;
+    const atExit = Math.hypot(player.x - 640, player.y - 655) < 105;
+    $("interactionPrompt").textContent = atStation ? "E · " + room.station.label : atExit ? "E · LEAVE BUILDING" : "Explore the room · Find the glowing station";
+    return;
+  }
+  const plot = nearestFarmPlot(), resource = nearestTownResource(), npc = nearestTownNpc(), building = nearbyBuilding();
+  if (plot) {
+    const state = getPlotState(plot);
+    $("interactionPrompt").textContent = !state.planted ? "E · PLANT RICE SEED" : Number(state.waterings) < 3 ? "E · WATER RICE (" + Number(state.waterings || 0) + "/3)" : "E · HARVEST RICE";
+  } else if (resource) $("interactionPrompt").textContent = "E · COLLECT " + resource.item.toUpperCase();
+  else if (npc) $("interactionPrompt").textContent = "E · TALK TO " + npc.name.toUpperCase();
+  else if (building) $("interactionPrompt").textContent = "E · ENTER " + building.name.toUpperCase();
+  else $("interactionPrompt").textContent = "✦ Explore the valley · Meet townsfolk · Find glowing items";
+};
+function talkTownNpc(npc) {
+  if (!save.npcRewards[npc.id]) {
+    save.npcRewards[npc.id] = true;
+    Object.entries(npc.reward || {}).forEach(([item, amount]) => addTownItem(item, amount));
+    save.xp += 4; persist(true); updateHud();
+    const gift = Object.entries(npc.reward || {}).map(([item, amount]) => {
+      const meta = INVENTORY_ITEMS.find(entry => entry.key === item);
+      return "+" + amount + " " + (meta ? meta.label : item);
+    }).join(", ");
+    showToast(npc.name + ": " + npc.message + (gift ? " Gift: " + gift : ""));
+  } else showToast(npc.name + ": " + npc.message);
+}
+function tendRicePlot(plot) {
+  if (save.job !== "farmer") { showToast("Choose Farmer to work the Stellar Farm plots."); return; }
+  const state = getPlotState(plot);
+  if (!state.planted) {
+    if (!spendTownItems({ riceSeed: 1 })) { showToast("No rice seeds left. Visit Star Market."); return; }
+    state.planted = true; state.waterings = 0; showToast("Rice planted! Press E to water it.");
+  } else if (Number(state.waterings) < 3) {
+    state.waterings = Number(state.waterings || 0) + 1; showToast("Rice watered · " + state.waterings + "/3");
+  } else {
+    state.planted = false; state.waterings = 0; addTownItem("rice", 3); rewardTown(8, 8, 2);
+    showToast("Rice harvested! +3 Rice · +8 Star Coins"); return;
+  }
+  persist(true); updateHud();
+}
+function collectTownResource(resource) {
+  save.gathered.push(resource.id); addTownItem(resource.item, resource.amount); save.xp += 3;
+  persist(true); updateHud();
+  const label = (INVENTORY_ITEMS.find(item => item.key === resource.item) || {}).label || resource.item;
+  showToast("Collected " + resource.amount + " " + label + "!");
+}
+function useTownWorkstation() {
+  if (insideBuilding === "cafe") {
+    if (save.job !== "barista") { showToast("Choose Barista to work behind this counter."); return; }
+    if (save.inventory.coffee > 0) { spendTownItems({ coffee: 1 }); rewardTown(18, 10, 2); showToast("Coffee served! +18 Star Coins · +10 XP"); }
+    else if (spendTownItems({ coffeeBeans: 1 })) { addTownItem("coffee", 1); rewardTown(0, 3, 0); showToast("Fresh coffee brewed! Serve it for coins."); }
+    else showToast("No coffee beans left. Buy supplies at Star Market.");
+  } else if (insideBuilding === "library") {
+    if (save.job !== "librarian") { showToast("Choose Librarian to use the sorting desk."); return; }
+    if (!spendTownItems({ books: 1 })) { showToast("No books to sort. Talk to Theo or visit the market."); return; }
+    rewardTown(14, 10, 2); showToast("Books sorted and shelved! +14 Star Coins · +10 XP");
+  } else if (insideBuilding === "workshop") {
+    if (save.job !== "builder") { showToast("Choose Builder to use the construction bench."); return; }
+    if (save.benches >= 5) { showToast("Town Square already has five new benches."); return; }
+    if (!spendTownItems({ wood: 2, stone: 1 })) { showToast("A bench needs 2 Wood and 1 Stone. Explore the valley for materials."); return; }
+    save.benches++; rewardTown(10, 12, 10); showToast("Bench built and added to Town Square! +10 Star Coins · +12 XP");
+  } else if (insideBuilding === "townhall") {
+    if (save.job !== "artist") { showToast("Choose Artist to paint the Town Hall mural."); return; }
+    if (save.murals >= 5) { showToast("The mural wall is complete!"); return; }
+    if (!spendTownItems({ dye: 1 })) { showToast("No dye left. Pick up a supply bundle at Star Market."); return; }
+    save.murals++; rewardTown(15, 10, 8); showToast("A new mural is on the wall! +15 Star Coins · +10 XP");
+  } else if (insideBuilding === "observatory") {
+    if (save.job !== "explorer") { showToast("Choose Explorer to study star fragments here."); return; }
+    if (!spendTownItems({ starShard: 1 })) { showToast("Find glowing Star Shards around the valley first."); return; }
+    rewardTown(22, 14, 4); showToast("Star fragment recorded! +22 Star Coins · +14 XP");
+  } else if (insideBuilding === "market") {
+    if (save.coins < 12) { showToast("You need 12 Star Coins for a supply bundle."); return; }
+    save.coins -= 12; addTownItem("riceSeed", 3); addTownItem("coffeeBeans", 2); addTownItem("dye", 1);
+    addTownItem("books", 1); addTownItem("wood", 1); addTownItem("stone", 1);
+    persist(true); updateHud(); showToast("Supply bundle purchased! Seeds, beans, dye, books, wood and stone added.");
+  } else if (insideBuilding === "home") {
+    save.homeDecor++; rewardTown(0, 5, 1); showToast("Home improved! Decor level: " + save.homeDecor + ".");
+  } else if (insideBuilding === "bakery") {
+    if (spendTownItems({ rice: 1 })) { rewardTown(10, 5, 1); showToast("Rice traded! +10 Star Coins."); }
+    else showToast("Bring harvested rice here to trade it for coins.");
+  }
+}
+interact = function interactWithTown() {
+  if (!requireWorldMember()) return;
+  if (insideBuilding) {
+    if (Math.hypot(player.x - 640, player.y - 655) < 105) { leaveTownBuilding(); return; }
+    const station = interiorRooms[insideBuilding].station;
+    if (Math.hypot(player.x - station.x, player.y - station.y) < 108) { useTownWorkstation(); return; }
+    showToast("Walk closer to the glowing station or the EXIT door."); return;
+  }
+  const plot = nearestFarmPlot();
+  if (plot) { tendRicePlot(plot); return; }
+  const resource = nearestTownResource();
+  if (resource) { collectTownResource(resource); return; }
+  const npc = nearestTownNpc();
+  if (npc) { talkTownNpc(npc); return; }
+  const building = nearbyBuilding();
+  if (building) { enterTownBuilding(building); return; }
+  showToast("Find a person, glowing item, farm plot, or building door to interact with.");
+};
 
 bindControls();
 drawClock();
