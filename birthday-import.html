@@ -37,7 +37,7 @@
 
     <section class="panel" id="importPanel" hidden>
         <strong>Import the 45 crew birthdays</strong>
-        <p>Select the private JSON file provided for the STELLARS Birthday setup. The importer will refuse to overwrite an existing birthday directory.</p>
+        <p>Select the private JSON file provided for the STELLARS Birthday setup. The importer verifies existing records and writes in small batches. You can safely resume an interrupted import using the same JSON file.</p>
         <input id="seedFile" type="file" accept="application/json,.json">
         <p id="fileSummary">No file selected.</p>
         <button id="importButton" type="button" disabled>Import birthday directory</button>
@@ -123,7 +123,9 @@
         if (!isSuperAdmin || !currentRecords || !auth.currentUser) return;
         importButton.disabled = true;
         status.className = "";
-        status.textContent = "Verifying access and checking the existing directory…";
+        let stage = "re-checking the Super Admin account";
+        status.textContent = "Verifying access…";
+
         try {
             // Re-check the account immediately before writing. Firestore Rules
             // independently enforce the same Super Admin restriction.
@@ -137,33 +139,78 @@
                 throw new Error("This account is no longer an active Super Admin.");
             }
 
+            stage = "checking permission to read birthdayDirectory";
+            status.textContent = "Checking the existing Birthday Directory…";
             const existingDirectory = await getDocs(collection(db, "birthdayDirectory"));
-            if (!existingDirectory.empty) {
-                throw new Error("The Birthday Directory already contains data. Import stopped; no records were changed.");
+            const existingById = new Map(existingDirectory.docs.map(item => [item.id, item.data() || {}]));
+            const expectedIds = new Set(currentRecords.map((_, index) =>
+                "member-" + String(index + 1).padStart(3, "0")
+            ));
+
+            const unexpectedIds = [...existingById.keys()].filter(id => !expectedIds.has(id));
+            if (unexpectedIds.length) {
+                throw new Error("The directory contains unexpected document IDs (" +
+                    unexpectedIds.slice(0, 3).join(", ") +
+                    "). Import stopped to protect existing data.");
             }
 
-            // A single Firestore batch writes all 45 documents atomically.
-            // This works on Firebase Spark and does not use Cloud Functions.
-            const batch = writeBatch(db);
+            // Make the importer resumable: identical records from an earlier
+            // partial attempt are skipped; conflicting records are never overwritten.
+            const pending = [];
             currentRecords.forEach((record, index) => {
                 const memberId = "member-" + String(index + 1).padStart(3, "0");
-                batch.set(doc(db, "birthdayDirectory", memberId), record);
+                const existing = existingById.get(memberId);
+                if (!existing) {
+                    pending.push({ memberId, record });
+                    return;
+                }
+                if (existing.fullName !== record.fullName ||
+                    existing.birthMonthDay !== record.birthMonthDay) {
+                    throw new Error("Existing record " + memberId +
+                        " does not match this JSON file. Import stopped without overwriting it.");
+                }
             });
-            await batch.commit();
+
+            // Keep each atomic batch small. Firestore Rules have a 20 document-
+            // access-call limit across a multi-write batch; small batches avoid
+            // exhausting that limit when rules verify the Super Admin profile.
+            const batchSize = 4;
+            let saved = 0;
+            for (let offset = 0; offset < pending.length; offset += batchSize) {
+                const chunk = pending.slice(offset, offset + batchSize);
+                const firstRecord = offset + 1;
+                const lastRecord = offset + chunk.length;
+                stage = "saving records " + firstRecord + "–" + lastRecord;
+                status.textContent = "Importing " + firstRecord + "–" + lastRecord +
+                    " of " + pending.length + " remaining records…";
+
+                const batch = writeBatch(db);
+                chunk.forEach(({ memberId, record }) => {
+                    batch.set(doc(db, "birthdayDirectory", memberId), record);
+                });
+                await batch.commit();
+                saved += chunk.length;
+            }
 
             const importedCount = currentRecords.length;
+            const alreadyPresent = importedCount - pending.length;
             status.className = "ok";
-            status.textContent = "SUCCESS — " + importedCount + " birthday records imported. The full calendar is now available to active STELLARS class accounts.";
-            fileSummary.textContent = importedCount + " records imported successfully.";
+            status.textContent = "SUCCESS — " + importedCount +
+                " birthday records are ready. Newly saved: " + saved +
+                "; already present and verified: " + alreadyPresent +
+                ". The calendar is available to active STELLARS class accounts.";
+            fileSummary.textContent = importedCount + " records verified in Firestore.";
             currentRecords = null;
             fileInput.value = "";
         } catch (error) {
             status.className = "error";
-            status.textContent = error.message || "The import failed. Check the Firestore Rules deployment and try again.";
+            const code = error.code ? " [" + error.code + "]" : "";
+            status.textContent = "Failed while " + stage + ": " +
+                (error.message || "Unknown Firestore error.") + code +
+                ". You can retry with the same JSON; identical records will be skipped.";
             importButton.disabled = !currentRecords || !isSuperAdmin;
         }
     });
-
     onAuthStateChanged(auth, async user => {
         isSuperAdmin = false;
         importPanel.hidden = true;
@@ -183,7 +230,7 @@
                 return;
             }
             authState.textContent = "Verified: active STELLARS Super Admin.";
-            authHint.textContent = "The import will write the private records to Firestore. Existing records are never overwritten.";
+            authHint.textContent = "The import writes in small batches to stay within Firestore Security Rules limits. If interrupted, it can resume safely without overwriting existing records.";
             importPanel.hidden = false;
             importButton.disabled = !currentRecords;
         } catch (error) {
