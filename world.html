@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css">
-  <link rel="stylesheet" href="world.css?v=gender-settings-pink-v2-20261127">
+  <link rel="stylesheet" href="world.css?v=world-homes-fashion-levels-v1-20261127">
   <link rel="stylesheet" href="playful-theme.css?v=simple-motion-20261125">
   <link rel="stylesheet" href="navbar-unification.css?v=full-width-v1-20261126">
   <link rel="icon" type="image/svg+xml" href="favicon.svg?v=stellars-constellation-20261125">
@@ -37,7 +37,7 @@
         </div>
         <div class="intro-stats">
           <div><span class="stat-icon">⌂</span><strong>01</strong><small>YOUR LITTLE WORLD</small></div>
-          <div><span class="stat-icon">✦</span><strong id="townLevel">01</strong><small>TOWN LEVEL</small></div>
+          <div><span class="stat-icon">✦</span><strong id="townLevel">01</strong><small>YOUR LEVEL</small></div>
         </div>
       </section>
 
@@ -137,7 +137,8 @@
             <div class="place-row"><span>☕</span><div><strong>Little Comet Café</strong><small>A cozy stop for the crew</small></div></div>
             <div class="place-row"><span>🏛️</span><div><strong>Town Hall</strong><small>Where the town gathers</small></div></div>
             <div class="place-row"><span>📚</span><div><strong>Stellar Library</strong><small>A quiet little corner</small></div></div>
-            <div class="place-row"><span>⌂</span><div><strong>Your Little Home</strong><small>A place of your own</small></div></div>
+            <div class="place-row"><span>⌂</span><div><strong>Your Little Home</strong><small>Furniture and room themes</small></div></div>
+            <div class="place-row"><span>👗</span><div><strong>Stellar Fashion House</strong><small>Men's and women's collections</small></div></div>
           </section>
 
           <section class="panel settings-panel">
@@ -179,7 +180,43 @@
     <div class="job-grid" id="jobGrid"></div>
   </dialog>
 
-  <script type="module" src="world.js?v=gender-settings-pink-v2-20261127"></script>
+
+  <dialog class="job-dialog store-dialog" id="furnitureDialog" aria-labelledby="furnitureDialogTitle">
+    <div class="dialog-topline">
+      <span id="furnitureDialogKicker">STAR MARKET / HOME COLLECTION</span>
+      <button id="closeFurnitureDialog" type="button" aria-label="Close">×</button>
+    </div>
+    <p class="pixel-kicker">MAKE YOUR SPACE YOURS</p>
+    <h2 id="furnitureDialogTitle">Furniture & Home Decor.</h2>
+    <p class="dialog-description" id="furnitureDialogDescription">Pick up furniture and room themes for your home.</p>
+    <div class="store-balance-row">
+      <strong id="furnitureShopBalance">100 STAR COINS</strong>
+      <button class="pixel-button store-supply-button" id="buySupplyBundleButton" type="button">BUY SUPPLY BUNDLE · 12 COINS</button>
+    </div>
+    <h3 class="store-section-title">FURNITURE</h3>
+    <div class="store-grid" id="furnitureShopGrid"></div>
+    <h3 class="store-section-title">ROOM THEMES</h3>
+    <div class="store-grid" id="homeThemeGrid"></div>
+  </dialog>
+
+  <dialog class="job-dialog store-dialog fashion-dialog" id="fashionDialog" aria-labelledby="fashionDialogTitle">
+    <div class="dialog-topline">
+      <span>STELLARS FASHION HOUSE</span>
+      <button id="closeFashionDialog" type="button" aria-label="Close">×</button>
+    </div>
+    <p class="pixel-kicker">A LOOK THAT FEELS LIKE YOU</p>
+    <h2 id="fashionDialogTitle">Find your style.</h2>
+    <p class="dialog-description">Browse the collection made for your character, then pick a shirt colour in the Color Studio.</p>
+    <div class="store-balance-row">
+      <strong id="fashionGenderLabel">MEN'S COLLECTION</strong>
+      <strong id="fashionShopBalance">100 STAR COINS</strong>
+    </div>
+    <div class="store-grid fashion-style-grid" id="fashionStyleGrid"></div>
+    <h3 class="store-section-title">COLOR STUDIO · SHIRT COLOURS</h3>
+    <div class="fashion-color-grid" id="fashionColorGrid"></div>
+  </dialog>
+
+  <script type="module" src="world.js?v=world-homes-fashion-levels-v1-20261127"></script>
   <script src="letters-launcher.js?v=radio-comment-notifications-v8-20261127" defer></script>
 </body>
 </html>
