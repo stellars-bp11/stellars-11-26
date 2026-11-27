@@ -331,16 +331,29 @@ const db = getFirestore(app);
 
         const { photos, fallbackImage } = await loadCrewPhotos();
 
+        function renderLocalPreview() {
+            const preview = getFallbackPublicPreview(photos, fallbackImage);
+            renderPreview(preview, homePreview);
+            renderPreview(preview, pagePreview);
+        }
+
+        // Render a usable upcoming card immediately, without waiting for
+        // Firestore/Auth. Remote preview data may replace it after loading.
+        renderLocalPreview();
+
         async function renderPublicFallback() {
             if (publicSection) publicSection.hidden = false;
+            renderLocalPreview();
             try {
                 const preview = await readPublicPreview(photos, fallbackImage);
-                renderPreview(preview, homePreview);
-                renderPreview(preview, pagePreview);
+                if (preview.length) {
+                    renderPreview(preview, homePreview);
+                    renderPreview(preview, pagePreview);
+                }
             } catch (error) {
+                // Keep the local upcoming card visible when Firestore is
+                // unavailable or its public preview document is not ready.
                 console.error("STELLARS Birthday: Could not load the public birthday preview.", error);
-                showEmpty(homePreview, "Upcoming birthday details are being updated.");
-                showEmpty(pagePreview, "Upcoming birthday details are being updated.");
             }
         }
 
@@ -358,6 +371,7 @@ const db = getFirestore(app);
             // while the directory is being migrated or when Firestore denies access.
             if (publicSection) publicSection.hidden = false;
             if (directorySection) directorySection.hidden = true;
+            renderLocalPreview();
 
             try {
                 const upcoming = await readPrivateDirectory(photos, fallbackImage);
