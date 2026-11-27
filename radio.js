@@ -802,7 +802,15 @@ async function openRadioNotification(item) {
             const commentElement = document.getElementById("radio-comment-" + item.commentId);
             const replyToggle = commentElement && commentElement.querySelector(".radio-replies-toggle");
             const replyPanel = commentElement && commentElement.querySelector(".radio-replies-panel");
-            if (replyToggle && replyPanel && replyPanel.hidden) replyToggle.click();
+            const replyElement = document.getElementById("radio-reply-" + item.replyId);
+
+            if (replyElement) {
+                replyElement.classList.add("is-notification-target");
+                replyElement.scrollIntoView({ behavior: "smooth", block: "center" });
+                pendingReplyTarget = null;
+            } else if (replyToggle && replyPanel && replyPanel.hidden) {
+                replyToggle.click();
+            }
         }
     } catch (error) {
         console.error("Could not open Radio notification:", error);
