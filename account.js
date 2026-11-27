@@ -895,15 +895,17 @@ authReady
                 const fullName = profile.fullName || user.displayName || "STELLARS Member";
                 avatar.textContent = initials(fullName);
                 nameLabel.textContent = fullName;
+                const normalizedRole = String(profile.role || "").trim().toLowerCase();
                 const roleNames = {
                     student: "Student",
+                    member: "Member",
                     admin: "Admin",
-                    superAdmin: "Super Admin",
+                    superadmin: "Super Admin",
                     super_admin: "Super Admin"
                 };
-                metaLabel.textContent = roleNames[profile.role] || "Signed in";
+                metaLabel.textContent = roleNames[normalizedRole] || "Signed in";
                 const canSecureAccount =
-                    ["student", "admin", "superAdmin", "super_admin"].includes(profile.role) &&
+                    ["student", "member", "admin", "superadmin", "super_admin"].includes(normalizedRole) &&
                     profile.isActive === true;
                 setMemberOnlyVisibility(canSecureAccount);
                 portalLink.hidden = !canSecureAccount;
