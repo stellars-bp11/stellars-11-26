@@ -202,3 +202,26 @@ kbd { min-width: 55px; padding: 5px 6px; border: 1px solid rgba(201,230,177,.22)
 
 .world-player-count{padding:6px 8px;color:#d8e8c2;border:1px solid rgba(201,230,177,.2);border-radius:4px;background:rgba(157,224,173,.08);font:8px var(--silk);white-space:nowrap}
 @media(max-width:560px){.world-player-count{font-size:7px;padding:5px}}
+
+
+/* Character gender selection */
+.character-button { margin: -2px 0 12px; }
+.gender-dialog {
+  width: min(520px, calc(100% - 28px)); padding: 22px; color: var(--cream);
+  background: linear-gradient(145deg, #304635, #223629); border: 1px solid rgba(229,242,210,.2);
+  border-radius: 10px; box-shadow: 0 24px 70px rgba(0,0,0,.45);
+}
+.gender-dialog::backdrop { background: rgba(8,15,10,.76); backdrop-filter: blur(4px); }
+.gender-dialog h2 { margin: 0; font-size: clamp(20px, 4vw, 27px); line-height: 1.25; }
+.gender-dialog .dialog-description { color: var(--muted); font-size: 13px; line-height: 1.5; }
+.gender-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; margin-top: 20px; }
+.gender-card {
+  min-height: 155px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  border: 1px solid var(--line); border-radius: 8px; background: rgba(12,22,15,.35); color: var(--cream); cursor: pointer;
+}
+.gender-card:hover, .gender-card:focus-visible { outline: none; border-color: var(--gold); background: rgba(244,216,139,.09); }
+.gender-preview { width: 64px; height: 64px; display: grid; place-items: center; border-radius: 50%; font-size: 36px; background: rgba(201,186,255,.13); color: #d7c9ff; }
+.female-preview { color: #f0b8d9; background: rgba(240,184,217,.13); }
+.gender-card strong { font: 10px var(--silk); }
+.gender-card small { color: var(--muted); font-size: 11px; }
+@media (max-width: 480px) { .gender-dialog { padding: 18px; } .gender-grid { gap: 8px; } .gender-card { min-height: 135px; } }
