@@ -183,12 +183,12 @@
                     }));
                 } catch (error) {
                     console.warn("STELLARS mail notification could not initialize:", error);
-                    setUnreadMailCount(0);
+                    setUnreadNotificationCounts({ mail: 0, radio: 0 });
                 }
             });
         } catch (error) {
             console.warn("STELLARS mail notification could not load Firebase:", error);
-            setUnreadMailCount(0);
+            setUnreadNotificationCounts({ mail: 0, radio: 0 });
         }
     })();
 
