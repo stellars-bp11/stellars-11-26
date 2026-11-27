@@ -18,13 +18,6 @@ const db = getFirestore(app);
 (function () {
     const FALLBACK = "images/placeholder.jpg";
 
-    // Temporary public-safe preview while the Firebase preview document is
-    // being provisioned. This contains only the next few celebrations, not
-    // the complete birthday roster.
-    const PUBLIC_PREVIEW_BACKUP = [
-        { fullName: "Patricia Devina", birthMonthDay: "11-28" },
-        { fullName: "Grace Abigail Wijaya", birthMonthDay: "11-30" }
-    ];
     const PHOTO_ALIASES = {
         "anita lestari elisabet siregar": "anita lestari elisabet",
         "nicke mega amelia truono": "nicke mega amelia trijono",
@@ -263,46 +256,6 @@ const db = getFirestore(app);
         directory.replaceChildren(...upcoming.map(item => personCard(item.person, item.next)));
     }
 
-    function getFallbackPublicPreview(photos, fallbackImage) {
-        return makeUpcoming(PUBLIC_PREVIEW_BACKUP, photos, fallbackImage);
-    }
-
-    async function readPublicPreview(photos, fallbackImage) {
-        const fallback = () => getFallbackPublicPreview(photos, fallbackImage);
-        let snapshot;
-        try {
-            snapshot = await getDoc(doc(db, "birthdayPreview", "current"));
-        } catch (error) {
-            console.warn("STELLARS Birthday: Public preview document unavailable; using temporary preview.", error);
-            return fallback();
-        }
-        if (!snapshot.exists()) return fallback();
-
-        const data = snapshot.data() || {};
-        const nextDateParts = String(data.nextDate || "").split("-").map(Number);
-        const [year, month, day] = nextDateParts;
-        const publishedDate = nextDateParts.length === 3 ? new Date(year, month - 1, day) : null;
-        if (!publishedDate || publishedDate.getFullYear() !== year ||
-            publishedDate.getMonth() !== month - 1 || publishedDate.getDate() !== day) return fallback();
-
-        const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const days = Math.round((publishedDate - today) / 86400000);
-        if (days < 0) return fallback();
-
-        const records = Array.isArray(data.people) ? data.people : [];
-        const people = records.map(record => {
-            const person = makePerson(record, photos, fallbackImage);
-            if (!person) return null;
-            const observedLeapDay = person.birthday.month === 1 &&
-                person.birthday.day === 29 && !isLeapYear(year);
-            return {
-                person,
-                next: { date: publishedDate, days, observedLeapDay }
-            };
-        }).filter(Boolean);
-        return people.length ? people : fallback();
-    }
 
     async function readPrivateDirectory(photos, fallbackImage) {
         const snapshot = await getDocs(collection(db, "birthdayDirectory"));
@@ -313,7 +266,10 @@ const db = getFirestore(app);
         if (!user) return false;
         try {
             const profile = await getDoc(doc(db, "users", user.uid));
-            return profile.exists() && profile.data()?.isActive === true;
+            if (!profile.exists()) return false;
+            const data = profile.data() || {};
+            return data.isActive === true &&
+                ["student", "member", "admin", "superAdmin", "super_admin"].includes(data.role);
         } catch (error) {
             console.warn("STELLARS Birthday: Could not verify member status.", error);
             return false;
@@ -321,84 +277,43 @@ const db = getFirestore(app);
     }
 
     async function init() {
+        const homeSection = document.getElementById("birthdayHomeSection");
         const homePreview = document.getElementById("birthdayPreview");
-        const pagePreview = document.getElementById("birthdayPagePreview");
-        const publicSection = document.getElementById("birthdayPublicPreviewSection");
-        const directorySection = document.getElementById("birthdayDirectorySection");
+        const birthdayMain = document.getElementById("birthdayMain");
+        const accessNotice = document.getElementById("birthdayAccessNotice");
         const directory = document.getElementById("birthdayDirectory");
         const count = document.getElementById("birthdayCount");
-        if (!homePreview && !pagePreview && !directory) return;
+        if (!homeSection && !birthdayMain && !directory) return;
 
-        let photos = new Map();
-        let fallbackImage = resolveAssetPath(FALLBACK, document.baseURI);
-
-        function renderLocalPreview() {
-            const preview = getFallbackPublicPreview(photos, fallbackImage);
-            renderPreview(preview, homePreview);
-            renderPreview(preview, pagePreview);
-        }
-
-        // Render the upcoming card before any network request. Crew portraits
-        // are enhanced after their page is fetched; data visibility never
-        // depends on Firebase or the Crewmates page responding.
-        renderLocalPreview();
-        try {
-            const crewAssets = await loadCrewPhotos();
-            photos = crewAssets.photos;
-            fallbackImage = crewAssets.fallbackImage;
-            renderLocalPreview();
-        } catch (error) {
-            console.warn("STELLARS Birthday: Could not load crew portraits; using fallback artwork.", error);
-        }
-
-        async function renderPublicFallback() {
-            if (publicSection) publicSection.hidden = false;
-            renderLocalPreview();
-            try {
-                const preview = await readPublicPreview(photos, fallbackImage);
-                if (preview.length) {
-                    renderPreview(preview, homePreview);
-                    renderPreview(preview, pagePreview);
-                }
-            } catch (error) {
-                // Keep the local upcoming card visible when Firestore is
-                // unavailable or its public preview document is not ready.
-                console.error("STELLARS Birthday: Could not load the public birthday preview.", error);
-            }
-        }
+        // All Birthday content starts hidden. It is revealed only after the
+        // signed-in profile is confirmed as an active class account.
+        if (homeSection) homeSection.hidden = true;
+        if (birthdayMain) birthdayMain.hidden = true;
+        if (accessNotice) accessNotice.hidden = true;
 
         onAuthStateChanged(auth, async user => {
             const activeMember = await isActiveMember(user);
 
             if (!activeMember) {
-                if (directorySection) directorySection.hidden = true;
-                await renderPublicFallback();
+                if (homeSection) homeSection.hidden = true;
+                if (birthdayMain) birthdayMain.hidden = true;
+                if (accessNotice) accessNotice.hidden = false;
                 return;
             }
 
-            // Keep the public preview available until the private directory
-            // has actually loaded. This avoids a blank page for active members
-            // while the directory is being migrated or when Firestore denies access.
-            if (publicSection) publicSection.hidden = false;
-            if (directorySection) directorySection.hidden = true;
-            renderLocalPreview();
+            if (accessNotice) accessNotice.hidden = true;
+            if (homeSection) homeSection.hidden = false;
+            if (birthdayMain) birthdayMain.hidden = false;
 
+            const { photos, fallbackImage } = await loadCrewPhotos();
             try {
                 const upcoming = await readPrivateDirectory(photos, fallbackImage);
-                if (upcoming.length) {
-                    if (publicSection) publicSection.hidden = true;
-                    if (directorySection) directorySection.hidden = false;
-                    renderDirectory(upcoming, directory, count);
-                    renderPreview(upcoming, homePreview);
-                    return;
-                }
-
-                if (directorySection) directorySection.hidden = true;
-                await renderPublicFallback();
+                renderDirectory(upcoming, directory, count);
+                renderPreview(upcoming, homePreview);
             } catch (error) {
                 console.error("STELLARS Birthday: Could not load the private directory.", error);
-                if (directorySection) directorySection.hidden = true;
-                await renderPublicFallback();
+                showEmpty(directory, "The birthday calendar could not be loaded. Please refresh the page.");
+                showEmpty(homePreview, "Upcoming birthdays could not be loaded.");
             }
         });
     }
