@@ -65,6 +65,16 @@ let unsubscribeVotes = null;
 let creatingPollFor = "";
 let currentPollError = "";
 
+const PULSE_ALLOWED_ROLES = ["student", "admin", "superAdmin", "super_admin"];
+
+function hasPulseAccess() {
+    return Boolean(
+        currentUser &&
+        hasPulseAccess() &&
+        PULSE_ALLOWED_ROLES.includes(currentProfile.role)
+    );
+}
+
 function slugify(value) {
     return String(value)
         .normalize("NFD")
@@ -195,14 +205,18 @@ function renderGate(message) {
     gate.append(
         makeElement("span", "pulse-gate-icon", "✦"),
         makeElement("strong", "", message),
-        makeElement("p", "", "Sign in with your active STELLARS account to participate and see the class results.")
+        makeElement("p", "", currentUser
+            ? "This account is not registered as an active STELLARS class member."
+            : "Sign in with an active STELLARS class account to participate and see the class results.")
     );
-    const button = makeElement("button", "pulse-signin-button", "Sign in to STELLARS");
-    button.type = "button";
-    button.addEventListener("click", () => {
-        window.location.assign("index.html?login=1");
-    });
-    gate.append(button);
+    if (!currentUser) {
+        const button = makeElement("button", "pulse-signin-button", "Sign in to STELLARS");
+        button.type = "button";
+        button.addEventListener("click", () => {
+            window.location.assign("index.html?login=1");
+        });
+        gate.append(button);
+    }
     el.panel.append(gate);
 }
 
@@ -358,6 +372,13 @@ function renderResults(poll) {
 }
 
 function renderPulse() {
+    if (!hasPulseAccess()) {
+        el.phase.textContent = "CLASS MEMBERS ONLY";
+        return renderGate(currentUser
+            ? "STELLARS Pulse is locked for this account."
+            : "STELLARS Pulse is for active class members.");
+    }
+
     const phase = getPollPhase();
     const dateText = formatDate();
     el.date.textContent = dateText;
@@ -369,9 +390,6 @@ function renderPulse() {
 
     if (phase === "open") {
         el.phase.textContent = "VOTING CLOSES IN";
-        if (!currentUser || currentProfile?.isActive !== true) {
-            return renderGate("Today's random question is live.");
-        }
         if (!activePoll) {
             const loading = makeElement("div", "pulse-waiting");
             loading.append(
@@ -386,9 +404,6 @@ function renderPulse() {
     }
 
     el.phase.textContent = "TODAY'S RESULT";
-    if (!currentUser || currentProfile?.isActive !== true) {
-        return renderGate("Today's STELLARS Pulse result is ready.");
-    }
     if (!activePoll) return renderNotStarted();
     return renderResults(activePoll);
 }
@@ -422,13 +437,13 @@ function updateClock() {
 
     if (phase !== lastUiPhase) {
         lastUiPhase = phase;
-        if (activePoll && currentUser && currentProfile?.isActive === true && voteListenerMode !== phase) {
+        if (activePoll && currentUser && hasPulseAccess() && voteListenerMode !== phase) {
             startVoteListener();
         }
         renderPulse();
     }
 
-    if (phase === "open" && currentUser && currentProfile?.isActive === true && !activePoll) {
+    if (phase === "open" && currentUser && hasPulseAccess() && !activePoll) {
         ensureDailyPoll();
     }
 }
@@ -619,13 +634,12 @@ function handleAuthChange(user) {
             if (auth.currentUser?.uid !== user.uid) return;
             const profile = snapshot.exists() ? snapshot.data() : null;
 
-            if (!profile || profile.isActive !== true) {
-                currentProfile = null;
+            currentProfile = profile || null;
+            if (!hasPulseAccess()) {
                 renderPulse();
                 return;
             }
 
-            currentProfile = profile;
             startPollListener();
         })
         .catch(error => {
