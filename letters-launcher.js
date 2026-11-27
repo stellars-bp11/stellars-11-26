@@ -42,7 +42,16 @@
                     <strong>Letters from the Stars</strong>
                     <small>Open the mailbox · private notes</small>
                 </span>
-                <span class="stellars-drawer-unread-badge" hidden aria-label="Unread private letters"></span>
+                <span class="stellars-drawer-unread-badge stellars-mail-unread-badge" hidden aria-label="Unread private letters"></span>
+                <i class="bx bx-chevron-right stellars-drawer-item-arrow" aria-hidden="true"></i>
+            </a>
+            <a class="stellars-drawer-item" href="radio.html">
+                <span class="stellars-drawer-item-icon"><i class="bx bx-radio" aria-hidden="true"></i></span>
+                <span class="stellars-drawer-item-copy">
+                    <strong>STELLARS Radio</strong>
+                    <small>Song wall · comments on your song</small>
+                </span>
+                <span class="stellars-drawer-unread-badge stellars-radio-unread-badge" hidden aria-label="Unread Radio comments"></span>
                 <i class="bx bx-chevron-right stellars-drawer-item-arrow" aria-hidden="true"></i>
             </a>
         </div>
@@ -52,28 +61,39 @@
     document.body.append(scrim, drawer);
 
     const closeButton = drawer.querySelector(".stellars-drawer-close");
-    const featureLink = drawer.querySelector(".stellars-drawer-item");
+    const lettersLink = drawer.querySelector('a[href="letters.html"]');
+    const radioLink = drawer.querySelector('a[href="radio.html"]');
+    const featureLinks = Array.from(drawer.querySelectorAll(".stellars-drawer-item"));
     const unreadLogoBadge = document.createElement("span");
     unreadLogoBadge.className = "stellars-mail-badge";
     unreadLogoBadge.hidden = true;
     unreadLogoBadge.setAttribute("aria-hidden", "true");
     trigger.append(unreadLogoBadge);
-    const unreadDrawerBadge = drawer.querySelector(".stellars-drawer-unread-badge");
+    const unreadMailDrawerBadge = drawer.querySelector(".stellars-mail-unread-badge");
+    const unreadRadioDrawerBadge = drawer.querySelector(".stellars-radio-unread-badge");
 
-    const setUnreadMailCount = count => {
-        const unread = Math.max(0, Number(count) || 0);
-        const label = unread > 99 ? "99+" : String(unread);
-        unreadLogoBadge.textContent = label;
-        unreadLogoBadge.hidden = unread === 0;
-        unreadDrawerBadge.textContent = unread ? `${label} new` : "";
-        unreadDrawerBadge.hidden = unread === 0;
+    const setUnreadNotificationCounts = counts => {
+        const mail = Math.max(0, Number(counts.mail) || 0);
+        const radio = Math.max(0, Number(counts.radio) || 0);
+        const total = mail + radio;
+        const label = value => value > 99 ? "99+" : String(value);
+
+        unreadLogoBadge.textContent = label(total);
+        unreadLogoBadge.hidden = total === 0;
+        unreadMailDrawerBadge.textContent = mail ? label(mail) + " new" : "";
+        unreadMailDrawerBadge.hidden = mail === 0;
+        unreadRadioDrawerBadge.textContent = radio ? label(radio) + " new" : "";
+        unreadRadioDrawerBadge.hidden = radio === 0;
+
         trigger.setAttribute(
             "aria-label",
-            unread
-                ? `Open STELLARS quick access. ${unread} unread private letter(s).`
+            total
+                ? "Open STELLARS quick access. " + total + " unread notification(s)."
                 : "Open STELLARS quick access"
         );
-        trigger.title = unread ? `${unread} unread private letter(s)` : "STELLARS quick access";
+        trigger.title = total
+            ? total + " unread notification(s) · " + mail + " letters · " + radio + " Radio comments"
+            : "STELLARS quick access";
     };
 
     // Only the signed-in recipient's own inbox is queried for the cross-page badge.
@@ -106,7 +126,7 @@
                 const generation = ++authGeneration;
                 stopInbox.forEach(unsubscribe => unsubscribe());
                 stopInbox = [];
-                setUnreadMailCount(0);
+                setUnreadNotificationCounts({ mail: 0, radio: 0 });
                 if (!user) return;
 
                 try {
@@ -116,10 +136,11 @@
                     if (generation !== authGeneration) return;
                     if (!profileSnapshot.exists() || profileSnapshot.data().isActive !== true) return;
 
-                    const unreadCounts = { mailbox: 0, legacy: 0 };
-                    const updateBadge = () => setUnreadMailCount(
-                        unreadCounts.mailbox + unreadCounts.legacy
-                    );
+                    const unreadCounts = { mailbox: 0, legacy: 0, radio: 0 };
+                    const updateBadge = () => setUnreadNotificationCounts({
+                        mail: unreadCounts.mailbox + unreadCounts.legacy,
+                        radio: unreadCounts.radio
+                    });
 
                     const inboxQuery = firestoreModule.query(
                         firestoreModule.collection(db, "privateMailboxes", user.uid, "received"),
@@ -147,6 +168,19 @@
                     }, error => {
                         console.warn("Legacy private-letter notification skipped:", error);
                     }));
+
+                    const radioNotificationsQuery = firestoreModule.query(
+                        firestoreModule.collection(db, "radioNotifications", user.uid, "items"),
+                        firestoreModule.orderBy("createdAt", "desc"),
+                        firestoreModule.limit(100)
+                    );
+                    stopInbox.push(firestoreModule.onSnapshot(radioNotificationsQuery, snapshot => {
+                        if (generation !== authGeneration) return;
+                        unreadCounts.radio = snapshot.docs.filter(item => !item.data().readAt).length;
+                        updateBadge();
+                    }, error => {
+                        console.warn("STELLARS Radio comment notifications unavailable:", error);
+                    }));
                 } catch (error) {
                     console.warn("STELLARS mail notification could not initialize:", error);
                     setUnreadMailCount(0);
@@ -158,9 +192,9 @@
         }
     })();
 
-    if (window.location.pathname.toLowerCase().endsWith("/letters.html")) {
-        featureLink.setAttribute("aria-current", "page");
-    }
+    const currentPath = window.location.pathname.toLowerCase();
+    if (currentPath.endsWith("/letters.html")) lettersLink.setAttribute("aria-current", "page");
+    if (currentPath.endsWith("/radio.html")) radioLink.setAttribute("aria-current", "page");
 
     const openDrawer = () => {
         drawer.classList.add("is-open");
@@ -186,7 +220,7 @@
     });
     closeButton.addEventListener("click", () => closeDrawer(true));
     scrim.addEventListener("click", () => closeDrawer());
-    featureLink.addEventListener("click", () => closeDrawer());
+    featureLinks.forEach(link => link.addEventListener("click", () => closeDrawer()));
     document.addEventListener("keydown", event => {
         if (event.key === "Escape" && drawer.classList.contains("is-open")) {
             closeDrawer(true);
