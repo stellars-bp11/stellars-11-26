@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>STELLARS Birthday Setup</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; min-height: 100vh; padding: 36px 18px; display: grid; place-items: center; background: #f5f2fb; color: #29204e; font-family: Ubuntu, sans-serif; }
+        main { width: min(620px, 100%); padding: 30px; border: 1px solid #e5def5; border-radius: 22px; background: #fff; box-shadow: 0 18px 55px rgba(43,31,83,.08); }
+        .eyebrow { color: #8c77c8; font-size: 11px; font-weight: 700; letter-spacing: 2px; }
+        h1 { margin: 10px 0; font-size: clamp(28px, 6vw, 38px); }
+        p { color: #706985; line-height: 1.6; }
+        .panel { margin-top: 22px; padding: 20px; border: 1px solid #eee9f7; border-radius: 15px; background: #faf9fd; }
+        input[type=file] { display: block; width: 100%; margin: 14px 0; }
+        button { border: 0; border-radius: 12px; padding: 13px 18px; background: #4e3b83; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+        button:disabled { opacity: .45; cursor: not-allowed; }
+        #status { min-height: 24px; margin-top: 16px; font-size: 13px; overflow-wrap: anywhere; }
+        .ok { color: #26744c; } .error { color: #a33b4a; }
+        [hidden] { display: none !important; }
+        a { color: #6955a8; }
+    </style>
+</head>
+<body>
+<main>
+    <span class="eyebrow">STELLARS · ONE-TIME SETUP</span>
+    <h1>Birthday Directory</h1>
+    <p>This private setup page imports the class birthday calendar into Firestore. Only an active Super Admin account can submit the import. The JSON file stays on your device and is not uploaded to this website.</p>
+
+    <section class="panel" id="authPanel">
+        <strong id="accountState">Checking STELLARS account…</strong>
+        <p id="accountHint">This page uses the STELLARS account already signed in in this browser.</p>
+    </section>
+
+    <section class="panel" id="importPanel" hidden>
+        <strong>Import the 45 crew birthdays</strong>
+        <p>Select the private JSON file provided for the STELLARS Birthday setup. The importer will refuse to overwrite an existing birthday directory.</p>
+        <input id="seedFile" type="file" accept="application/json,.json">
+        <p id="fileSummary">No file selected.</p>
+        <button id="importButton" type="button" disabled>Import birthday directory</button>
+        <p id="status" role="status" aria-live="polite"></p>
+    </section>
+    <p><a href="index.html">Return to STELLARS</a></p>
+</main>
+
+<script type="module">
+    import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-functions.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyD3ptwKTkLqFCmvrTVJFooFiVLE63mh83c",
+        authDomain: "class-web-7241e.firebaseapp.com",
+        projectId: "class-web-7241e",
+        storageBucket: "class-web-7241e.firebasestorage.app",
+        messagingSenderId: "167560389153",
+        appId: "1:167560389153:web:f61f4f821275c48373f960",
+        measurementId: "G-DTHTZNT135"
+    };
+
+    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const functions = getFunctions(app, "asia-southeast2");
+    const runImport = httpsCallable(functions, "importBirthdayDirectory");
+
+    const authState = document.getElementById("accountState");
+    const authHint = document.getElementById("accountHint");
+    const importPanel = document.getElementById("importPanel");
+    const fileInput = document.getElementById("seedFile");
+    const fileSummary = document.getElementById("fileSummary");
+    const importButton = document.getElementById("importButton");
+    const status = document.getElementById("status");
+
+    let currentRecords = null;
+    let isSuperAdmin = false;
+
+    function validateRecords(value) {
+        if (!Array.isArray(value) || value.length !== 45) {
+            throw new Error("The file must contain exactly 45 birthday records.");
+        }
+        const names = new Set();
+        return value.map((item, index) => {
+            const fullName = String(item?.fullName || "").trim();
+            const birthMonthDay = String(item?.birthMonthDay || "").trim();
+            const match = /^(0[1-9]|1[0-2])-([0-9]{2})$/.exec(birthMonthDay);
+            if (!fullName || fullName.length > 100 || !match) {
+                throw new Error("Record " + (index + 1) + " has an invalid name or date.");
+            }
+            const [month, day] = birthMonthDay.split("-").map(Number);
+            const date = new Date(Date.UTC(2000, month - 1, day));
+            if (date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) {
+                throw new Error("Record " + (index + 1) + " has an invalid calendar date.");
+            }
+            const key = fullName.normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
+                .toLocaleLowerCase("id-ID").replace(/[^a-z0-9]+/g, " ").trim();
+            if (names.has(key)) throw new Error("Duplicate name: " + fullName);
+            names.add(key);
+            return { fullName, birthMonthDay };
+        });
+    }
+
+    fileInput.addEventListener("change", async () => {
+        currentRecords = null;
+        importButton.disabled = true;
+        status.textContent = "";
+        status.className = "";
+        const file = fileInput.files?.[0];
+        if (!file) {
+            fileSummary.textContent = "No file selected.";
+            return;
+        }
+        try {
+            currentRecords = validateRecords(JSON.parse(await file.text()));
+            fileSummary.textContent = currentRecords.length + " valid birthday records ready.";
+            importButton.disabled = !isSuperAdmin;
+        } catch (error) {
+            fileSummary.textContent = error.message || "Could not read this JSON file.";
+        }
+    });
+
+    importButton.addEventListener("click", async () => {
+        if (!isSuperAdmin || !currentRecords) return;
+        importButton.disabled = true;
+        status.className = "";
+        status.textContent = "Importing the private birthday directory…";
+        try {
+            const result = await runImport({ records: currentRecords });
+            const importedCount = result.data?.importedCount || currentRecords.length;
+            status.className = "ok";
+            status.textContent = "SUCCESS — " + importedCount + " birthday records imported. The full calendar is now available to active STELLARS class accounts.";
+            fileSummary.textContent = importedCount + " records imported successfully.";
+            currentRecords = null;
+            fileInput.value = "";
+        } catch (error) {
+            status.className = "error";
+            status.textContent = error.message || "The import failed. No existing birthday records were overwritten.";
+            importButton.disabled = !currentRecords;
+        }
+    });
+
+    onAuthStateChanged(auth, async user => {
+        isSuperAdmin = false;
+        importPanel.hidden = true;
+        importButton.disabled = true;
+        if (!user) {
+            authState.textContent = "No active STELLARS session found.";
+            authHint.innerHTML = 'Sign in on the <a href="index.html">STELLARS homepage</a> with the Super Admin account, then reopen this page.';
+            return;
+        }
+        try {
+            const profileSnapshot = await getDoc(doc(db, "users", user.uid));
+            const profile = profileSnapshot.exists() ? profileSnapshot.data() || {} : {};
+            isSuperAdmin = profile.isActive === true && ["superAdmin", "super_admin"].includes(profile.role);
+            if (!isSuperAdmin) {
+                authState.textContent = "This account cannot run the import.";
+                authHint.textContent = "Use an active STELLARS Super Admin account. No data has been changed.";
+                return;
+            }
+            authState.textContent = "Verified: active STELLARS Super Admin.";
+            authHint.textContent = "The import will write the private records to Firestore. Existing records are never overwritten.";
+            importPanel.hidden = false;
+            importButton.disabled = !currentRecords;
+        } catch (error) {
+            authState.textContent = "Could not verify this account.";
+            authHint.textContent = error.message || "Please refresh and try again.";
+        }
+    });
+</script>
+</body>
+</html>
