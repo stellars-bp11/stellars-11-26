@@ -516,7 +516,7 @@ function startPollListener() {
     currentVotes = [];
     ownVote = null;
 
-    if (!currentUser || currentProfile?.isActive !== true) {
+    if (!hasPulseAccess()) {
         renderPulse();
         return;
     }
@@ -576,7 +576,7 @@ async function ensureDailyPoll() {
 }
 
 async function castVote(candidate) {
-    if (!currentUser || currentProfile?.isActive !== true || !activePoll) return;
+    if (!hasPulseAccess() || !activePoll) return;
     if (getPollPhase() !== "open") {
         renderPulse();
         return;
