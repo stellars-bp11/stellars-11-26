@@ -1031,10 +1031,13 @@ function startDailyFeed() {
 }
 
 let itunesJsonpSequence = 0;
+const appleArtworkCache = new Map();
+let appleArtworkLastRequestAt = 0;
 
-function searchItunesArtworkJsonp(searchUrl, timeoutMs = 15000) {
+function searchItunesArtworkJsonp(searchUrl, timeoutMs = 12000) {
     return new Promise((resolve, reject) => {
-        const callbackName = "__stellarsItunesSearch_" + (++itunesJsonpSequence) + "_" + Date.now();
+        // Keep the callback name to a simple identifier accepted by Apple's JSONP endpoint.
+        const callbackName = "stellarsItunesSearch" + Date.now() + (++itunesJsonpSequence);
         const script = document.createElement("script");
         let timeoutId = null;
         let settled = false;
@@ -1057,12 +1060,32 @@ function searchItunesArtworkJsonp(searchUrl, timeoutMs = 15000) {
             else resolve(payload);
         };
 
-        window[callbackName] = payload => finish(null, payload);
+        window[callbackName] = payload => {
+            if (!payload || !Array.isArray(payload.results)) {
+                const error = new Error("Apple returned an unexpected search response.");
+                error.code = "itunes/invalid-response";
+                finish(error);
+                return;
+            }
+            finish(null, payload);
+        };
+
         script.async = true;
+        script.referrerPolicy = "strict-origin-when-cross-origin";
         script.onerror = () => {
             const error = new Error("Apple's artwork search script could not be loaded.");
             error.code = "itunes/jsonp-load-failed";
             finish(error);
+        };
+        script.onload = () => {
+            // JSONP invokes the callback while executing the script, before load.
+            // If it did not, report a response-format issue instead of waiting for timeout.
+            setTimeout(() => {
+                if (settled) return;
+                const error = new Error("Apple's response did not call the expected JSONP callback.");
+                error.code = "itunes/jsonp-callback-missing";
+                finish(error);
+            }, 0);
         };
 
         const url = new URL(searchUrl.toString());
@@ -1077,6 +1100,54 @@ function searchItunesArtworkJsonp(searchUrl, timeoutMs = 15000) {
 
         document.head.append(script);
     });
+}
+
+async function searchAppleArtwork(songTitle, artistName) {
+    const cacheKey = (songTitle + "|" + artistName).toLocaleLowerCase("en");
+    const cached = appleArtworkCache.get(cacheKey);
+    if (cached && Date.now() - cached.savedAt < 30 * 60 * 1000) {
+        return cached.results;
+    }
+
+    // Apple documents JSONP for cross-site requests. The media/entity pair below
+    // explicitly requests music tracks instead of leaving media at the "all" default.
+    const regions = ["id", "us"];
+    let lastError = null;
+
+    for (const country of regions) {
+        const url = new URL("https://itunes.apple.com/search");
+        url.search = new URLSearchParams({
+            term: songTitle + " " + artistName,
+            media: "music",
+            entity: "musicTrack",
+            country,
+            limit: "20",
+            lang: "en_us",
+            version: "2"
+        }).toString();
+
+        // Respect Apple's approximate Search API request guidance and avoid rapid repeated calls.
+        const waitForSpacing = Math.max(0, 1200 - (Date.now() - appleArtworkLastRequestAt));
+        if (waitForSpacing) {
+            await new Promise(resolve => setTimeout(resolve, waitForSpacing));
+        }
+        appleArtworkLastRequestAt = Date.now();
+
+        try {
+            const payload = await searchItunesArtworkJsonp(url);
+            const results = Array.isArray(payload.results) ? payload.results : [];
+            if (results.length) {
+                appleArtworkCache.set(cacheKey, { results, savedAt: Date.now() });
+                return results;
+            }
+        } catch (error) {
+            lastError = error;
+            console.warn("Apple artwork search attempt failed for store", country, error);
+        }
+    }
+
+    if (lastError) throw lastError;
+    return [];
 }
 
 function openSpotifySearch() {
@@ -1202,29 +1273,12 @@ async function searchArtwork() {
     elements.searchButton.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Searching…';
     elements.results.replaceChildren();
     elements.results.hidden = false;
-    setComposerMessage("Searching for matching album artwork…", "info");
+    setComposerMessage("Searching Apple Music's catalog…", "info");
 
     try {
-        const url = new URL("https://itunes.apple.com/search");
-        url.search = new URLSearchParams({
-            term: `${songTitle} ${artistName}`,
-            entity: "song",
-            limit: "12",
-            country: "id"
-        }).toString();
-
-        // Apple documents callback-based JSONP for cross-site Search API requests.
-        // This avoids depending on browser CORS access to the iTunes JSON response.
-        let payload = await searchItunesArtworkJsonp(url);
-
-        if (!Array.isArray(payload.results) || payload.results.length === 0) {
-            url.searchParams.set("country", "us");
-            payload = await searchItunesArtworkJsonp(url);
-        }
-
-        const results = Array.isArray(payload.results) ? payload.results : [];
+        const results = await searchAppleArtwork(songTitle, artistName);
         if (!results.length) {
-            setComposerMessage("No matching artwork found. Try a shorter search or upload the cover manually.", "error");
+            setComposerMessage("Apple Music did not find a match. Try a shorter title or use Spotify search below.", "error");
             elements.results.hidden = true;
             return;
         }
@@ -1259,7 +1313,7 @@ async function searchArtwork() {
                 selectedArtwork = {
                     url: artworkUrl,
                     source: "itunes",
-                    storeUrl: buildSpotifySearchUrl(result.trackName || songTitle, result.artistName || artistName),
+                    storeUrl: result.trackViewUrl || buildSpotifySearchUrl(result.trackName || songTitle, result.artistName || artistName),
                     albumName: result.collectionName || ""
                 };
                 setCoverPreview(
@@ -1267,7 +1321,7 @@ async function searchArtwork() {
                     result.collectionName || "Album artwork selected",
                     `Matched with ${result.trackName || songTitle} · ${result.artistName || artistName}`
                 );
-                setComposerMessage("Artwork selected. You can replace it manually if it isn't the right cover.", "success");
+                setComposerMessage("Apple artwork selected. You can now share your song.", "success");
             });
 
             elements.results.append(resultButton);
@@ -1275,17 +1329,17 @@ async function searchArtwork() {
 
         if (!elements.results.children.length) {
             elements.results.hidden = true;
-            setComposerMessage("No artwork was included in those results. Upload the cover manually.", "error");
+            setComposerMessage("Apple returned matches without artwork. Try Spotify search or upload the cover manually.", "error");
         } else {
-            setComposerMessage("Choose the correct artwork below.", "success");
+            setComposerMessage("Choose the correct Apple Music artwork below.", "success");
         }
     } catch (error) {
         console.error("Apple artwork search failed:", error);
         const message = error.code === "itunes/jsonp-timeout"
-            ? "Apple's artwork catalog is taking too long to respond. Try again, or upload the cover manually."
-            : error.code === "itunes/jsonp-load-failed"
-                ? "Apple's artwork catalog could not be reached from this browser right now. Try again later, or upload the cover manually."
-                : "Apple's artwork search could not be completed. Try again, or upload the cover manually.";
+            ? "Apple's catalog did not respond in time. Try again in a moment, or use Spotify search below."
+            : error.code === "itunes/jsonp-callback-missing" || error.code === "itunes/invalid-response"
+                ? "Apple returned an unreadable search response. Try again, or use Spotify search below."
+                : "Apple's catalog could not be reached from this browser. Try Spotify search below, or upload the cover manually.";
         setComposerMessage(message, "error");
         elements.results.hidden = true;
     } finally {
