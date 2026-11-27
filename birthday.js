@@ -310,25 +310,8 @@ const db = getFirestore(app);
 
         const { photos, fallbackImage } = await loadCrewPhotos();
 
-        onAuthStateChanged(auth, async user => {
-            const activeMember = await isActiveMember(user);
-            if (activeMember) {
-                if (publicSection) publicSection.hidden = true;
-                if (directorySection) directorySection.hidden = false;
-                try {
-                    const upcoming = await readPrivateDirectory(photos, fallbackImage);
-                    renderDirectory(upcoming, directory, count);
-                    renderPreview(upcoming, homePreview);
-                } catch (error) {
-                    console.error("STELLARS Birthday: Could not load the private directory.", error);
-                    showEmpty(directory, "The birthday directory could not be loaded. Please refresh the page.");
-                    renderPreview([], homePreview);
-                }
-                return;
-            }
-
+        async function renderPublicFallback() {
             if (publicSection) publicSection.hidden = false;
-            if (directorySection) directorySection.hidden = true;
             try {
                 const preview = await readPublicPreview(photos, fallbackImage);
                 renderPreview(preview, homePreview);
@@ -337,6 +320,44 @@ const db = getFirestore(app);
                 console.error("STELLARS Birthday: Could not load the public birthday preview.", error);
                 showEmpty(homePreview, "Upcoming birthday details are being updated.");
                 showEmpty(pagePreview, "Upcoming birthday details are being updated.");
+            }
+        }
+
+        onAuthStateChanged(auth, async user => {
+            const activeMember = await isActiveMember(user);
+
+            if (!activeMember) {
+                if (directorySection) directorySection.hidden = true;
+                await renderPublicFallback();
+                return;
+            }
+
+            // Keep the public preview available until the private directory
+            // has actually loaded. This avoids a blank page for active members
+            // while the directory is being migrated or when Firestore denies access.
+            if (publicSection) publicSection.hidden = false;
+            if (directorySection) directorySection.hidden = true;
+
+            try {
+                const upcoming = await readPrivateDirectory(photos, fallbackImage);
+                if (upcoming.length) {
+                    if (publicSection) publicSection.hidden = true;
+                    if (directorySection) directorySection.hidden = false;
+                    renderDirectory(upcoming, directory, count);
+                    renderPreview(upcoming, homePreview);
+                    return;
+                }
+
+                if (directorySection) {
+                    directorySection.hidden = false;
+                    if (count) count.textContent = "0 crew birthdays";
+                    showEmpty(directory, "The full birthday calendar is waiting for its first import.");
+                }
+                await renderPublicFallback();
+            } catch (error) {
+                console.error("STELLARS Birthday: Could not load the private directory.", error);
+                if (directorySection) directorySection.hidden = true;
+                await renderPublicFallback();
             }
         });
     }
