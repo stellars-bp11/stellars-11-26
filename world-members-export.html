@@ -19,21 +19,26 @@ textarea{display:block;width:100%;min-height:220px;margin-top:16px;padding:12px;
 <p class="small">In Firebase Console → Realtime Database → Data, create/select the <code>worldMembers</code> node and import this JSON at that node. Do not import at the database root after World is in use.</p><p class="small"><a href="world.html">← Return to STELLARS World</a></p>
 </main><script type="module">
 import{initializeApp,getApps,getApp}from"https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-import{getAuth,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import{getAuth,onAuthStateChanged,setPersistence,browserLocalPersistence}from"https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import{getFirestore,doc,getDoc,collection,getDocs}from"https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 const config={apiKey:"AIzaSyD3ptwKTkLqFCmvrTVJFooFiVLE63mh83c",authDomain:"class-web-7241e.firebaseapp.com",projectId:"class-web-7241e",storageBucket:"class-web-7241e.firebasestorage.app",messagingSenderId:"167560389153",appId:"1:167560389153:web:f61f4f821275c48373f960",measurementId:"G-DTHTZNT135"};
 const app=getApps().length?getApp():initializeApp(config),auth=getAuth(app),db=getFirestore(app);
 const status=document.getElementById("status"),generate=document.getElementById("generate"),download=document.getElementById("download"),output=document.getElementById("output");
 let verified=false,generated=false;
-onAuthStateChanged(auth,async user=>{
- verified=false;generate.disabled=true;download.disabled=true;generated=false;output.value="";
- if(!user){status.textContent="Not signed in. Sign in to STELLARS first, then open this page again.";return;}
- try{const snap=await getDoc(doc(db,"users",user.uid)),p=snap.exists()?snap.data():{};
- verified=p.isActive===true&&["superAdmin","super_admin"].includes(p.role);
- status.textContent=verified?"Verified: active Super Admin. You can generate the allowlist.":"Access denied. This tool is reserved for an active Super Admin.";
- generate.disabled=!verified;
- }catch(error){status.textContent="Could not verify the account. Check Firestore permissions and try again.";console.error(error);}
-});
+setPersistence(auth,browserLocalPersistence)
+ .then(()=>onAuthStateChanged(auth,async user=>{
+  verified=false;generate.disabled=true;download.disabled=true;generated=false;output.value="";
+  if(!user){status.textContent="No active STELLARS login session detected on this browser origin. Open the main STELLARS site on this same address, sign in, then reload this page.";return;}
+  try{const snap=await getDoc(doc(db,"users",user.uid)),p=snap.exists()?snap.data():{};
+  verified=p.isActive===true&&["superAdmin","super_admin"].includes(p.role);
+  status.textContent=verified?"Verified: active Super Admin. You can generate the allowlist.":"Access denied. This tool is reserved for an active Super Admin.";
+  generate.disabled=!verified;
+  }catch(error){status.textContent="Could not verify the account ("+(error.code||"unknown error")+"). Check Firestore permissions and try again.";console.error(error);}
+ }))
+ .catch(error=>{
+  status.textContent="Could not initialize the STELLARS login session ("+(error.code||"unknown error")+"). Reload this page and try again.";
+  console.error(error);
+ });
 generate.addEventListener("click",async()=>{
  if(!verified)return;generate.disabled=true;status.textContent="Reading active member profiles…";
  try{const profiles=await getDocs(collection(db,"users")),members={};
