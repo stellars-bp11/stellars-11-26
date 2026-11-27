@@ -46,6 +46,12 @@ service cloud.firestore {
       return activeMember() && currentRole() == 'student';
     }
 
+    // Pulse is reserved for genuine STELLARS class accounts, not visitor profiles.
+    function isPulseMember() {
+      return activeMember() &&
+        currentRole() in ['student', 'admin', 'superAdmin', 'super_admin'];
+    }
+
     function validActivationCodeCreate() {
       let data = request.resource.data;
       let nimPath = /databases/$(database)/documents/nimIndex/$(data.nim);
@@ -685,21 +691,21 @@ service cloud.firestore {
     }
 
     match /pulseDays/{dayId} {
-      allow get, list: if activeMember() && isCurrentJakartaRadioDay(dayId);
-      allow create: if activeMember() &&
+      allow get, list: if isPulseMember() && isCurrentJakartaRadioDay(dayId);
+      allow create: if isPulseMember() &&
         isCurrentJakartaRadioDay(dayId) &&
         isPulseVotingOpen() &&
         validPulsePoll(dayId);
       allow update, delete: if false;
 
       match /votes/{memberId} {
-        allow get: if activeMember() &&
+        allow get: if isPulseMember() &&
           isCurrentJakartaRadioDay(dayId) &&
           ((request.auth.uid == memberId && isPulseVotingOpen()) || isPulseVotingClosed());
-        allow list: if activeMember() &&
+        allow list: if isPulseMember() &&
           isCurrentJakartaRadioDay(dayId) &&
           isPulseVotingClosed();
-        allow create: if activeMember() &&
+        allow create: if isPulseMember() &&
           request.auth.uid == memberId &&
           isCurrentJakartaRadioDay(dayId) &&
           isPulseVotingOpen() &&
