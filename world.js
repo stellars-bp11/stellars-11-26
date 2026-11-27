@@ -752,7 +752,7 @@ function interact() {
 }
 function bindControls() {
   document.addEventListener("keydown", event => {
-    if ($("jobDialog").open || $("furnitureDialog").open || $("fashionDialog").open ||
+    if (homeEditorActive || $("jobDialog").open || $("furnitureDialog").open || $("fashionDialog").open ||
         $("genderDialog").open || event.repeat && ["e", "E"].includes(event.key)) return;
     const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
     if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "w", "a", "s", "d"].includes(key)) {
@@ -1491,6 +1491,7 @@ isSolidAt = function isTownSolidAt(x, y) {
   const tx = Math.floor(x / TILE), ty = Math.floor(y / TILE);
   if (x < TILE || y < TILE || x > MAP_PIXEL_W - TILE || y > MAP_PIXEL_H - TILE || terrainAt(tx, ty) === "water") return true;
   for (const b of buildings) {
+    if (b.id === "moon-garden" && !isWorldBuildingUnlocked(b)) continue;
     if (x >= b.x * TILE - 4 && x <= (b.x + b.w) * TILE + 4 &&
         y - 7 >= b.y * TILE - 4 && y - 7 <= (b.y + b.h) * TILE + 4 &&
         !isTownDoorway(x, y - 7, b)) return true;
@@ -3220,6 +3221,43 @@ function startMiniGame(id) {
 }
 
 
+
+const worldUseWorkstationBeforeSkillYield = useTownWorkstation;
+useTownWorkstation = function useTownWorkstationWithSkillYield() {
+  const job = save.job;
+  const beforeXp = Number(save.xp) || 0;
+  const before = { ...save.inventory };
+  const beforeBenches = Number(save.benches) || 0;
+  const beforeMurals = Number(save.murals) || 0;
+  worldUseWorkstationBeforeSkillYield();
+  if ((Number(save.xp) || 0) <= beforeXp) return;
+
+  let bonusItem = "";
+  if (job === "barista" && hasProfessionSkill("barista-blend") &&
+      (before.coffee || 0) > (save.inventory.coffee || 0) && Math.random() < 1) {
+    bonusItem = "coffee";
+  } else if (job === "builder" && hasProfessionSkill("builder-reuse") &&
+      save.benches > beforeBenches && Math.random() < .35) {
+    bonusItem = "wood";
+  } else if (job === "librarian" && hasProfessionSkill("librarian-rare") &&
+      (before.books || 0) > (save.inventory.books || 0) && Math.random() < .25) {
+    bonusItem = "books";
+  } else if (job === "explorer" && hasProfessionSkill("explorer-shard") &&
+      (before.starShard || 0) > (save.inventory.starShard || 0) && Math.random() < .3) {
+    bonusItem = "starShard";
+  } else if (job === "artist" && hasProfessionSkill("artist-palette") &&
+      save.murals > beforeMurals && Math.random() < .25) {
+    bonusItem = "dye";
+  }
+  if (bonusItem) {
+    addTownItem(bonusItem, 1);
+    persist(true);
+    updateHud();
+    showToast("SKILL BONUS · +" + (INVENTORY_ITEMS.find(item => item.key === bonusItem)?.label || bonusItem));
+  }
+};
+
+
 bindControls();
 bindHomeEditorPointer();
 $("openQuestBoardButton").addEventListener("click", openQuestBoard);
@@ -3231,12 +3269,13 @@ $("closeMiniGameDialog").addEventListener("click", () => {
   clearMiniGameTimers();
   $("miniGameDialog").close();
 });
+$("miniGameDialog").addEventListener("close", clearMiniGameTimers);
 document.querySelectorAll("[data-world-emote]").forEach(button => {
   button.addEventListener("click", () => sendWorldEmote(button.dataset.worldEmote));
 });
 $("editHomeLayoutButton").addEventListener("click", toggleHomeLayoutEditor);
 $("expandHomeButton").addEventListener("click", buyHomeExpansion);
 drawClock();
-setInterval(drawClock, 30000);
+// The in-game clock now advances locally with the World day/night cycle.
 startAuth();
 requestAnimationFrame(loop);
