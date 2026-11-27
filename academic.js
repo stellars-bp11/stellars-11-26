@@ -571,19 +571,19 @@ async function loadAdminResults({ silent = false } = {}) {
 
         // Match the signed-in admin's profile NIM against the private roster.
         // Do not display scores unless that NIM resolves back to this exact Auth UID.
-        const rosterSnapshot = await getDocs(collection(db, "nimIndex"));
+        // NIM records are keyed by the NIM itself. Read only this member's
+        // roster document instead of listing the entire private directory.
+        const rosterSnapshot = await getDoc(doc(db, "nimIndex", nimKey));
         let rosterMatch = null;
 
-        rosterSnapshot.forEach((memberDoc) => {
-            if (normalizeAcademicNim(memberDoc.id) === nimKey) {
-                const member = memberDoc.data() || {};
-                rosterMatch = {
-                    uid: String(member.uid || ""),
-                    fullName: String(member.fullName || ""),
-                    isActive: member.isActive === true
-                };
-            }
-        });
+        if (rosterSnapshot.exists()) {
+            const member = rosterSnapshot.data() || {};
+            rosterMatch = {
+                uid: String(member.uid || ""),
+                fullName: String(member.fullName || ""),
+                isActive: member.isActive === true
+            };
+        }
 
         if (!rosterMatch || !rosterMatch.isActive || rosterMatch.uid !== currentAuthUser.uid) {
             throw new Error("The NIM on this profile does not match an active roster entry for this account. No scores were displayed.");
