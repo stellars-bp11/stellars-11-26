@@ -39,15 +39,19 @@ const profileLink = document.getElementById("siteAccountProfileLink");
 const loginButton = document.getElementById("siteAccountLoginButton");
 const logoutButton = document.getElementById("siteAccountLogout");
 
-const memberOnlyElements = Array.from(new Set(
+const libraryOnlyElements = Array.from(new Set(
     Array.from(document.querySelectorAll(
-        '.nav-links a[href^="library.html"], .nav-links a[href^="academic.html"], ' +
-        'a.quick-access-card[href^="library.html"], a.quick-access-card[href^="academic.html"]'
+        '.nav-links a[href^="library.html"], a.quick-access-card[href^="library.html"]'
+    )).map(element => element.closest("li") || element)
+));
+const academicOnlyElements = Array.from(new Set(
+    Array.from(document.querySelectorAll(
+        '.nav-links a[href^="academic.html"], a.quick-access-card[href^="academic.html"]'
     )).map(element => element.closest("li") || element)
 ));
 
-function setMemberOnlyVisibility(visible) {
-    memberOnlyElements.forEach(element => {
+function setElementsVisibility(elements, visible) {
+    elements.forEach(element => {
         if (visible) {
             element.style.removeProperty("display");
             element.hidden = false;
@@ -56,6 +60,11 @@ function setMemberOnlyVisibility(visible) {
             element.style.setProperty("display", "none", "important");
         }
     });
+}
+
+function setMemberOnlyVisibility(libraryVisible, academicVisible = libraryVisible) {
+    setElementsVisibility(libraryOnlyElements, libraryVisible);
+    setElementsVisibility(academicOnlyElements, academicVisible);
 }
 setMemberOnlyVisibility(false);
 portalLink.hidden = true;
@@ -904,10 +913,13 @@ authReady
                     super_admin: "Super Admin"
                 };
                 metaLabel.textContent = roleNames[normalizedRole] || "Signed in";
+                const isActiveProfile = profile.isActive === true;
+                const canViewLibrary = isActiveProfile &&
+                    ["student", "member", "admin", "superadmin", "super_admin"].includes(normalizedRole);
                 const canSecureAccount =
-                    ["student", "member", "admin", "superadmin", "super_admin"].includes(normalizedRole) &&
-                    profile.isActive === true;
-                setMemberOnlyVisibility(canSecureAccount);
+                    ["student", "admin", "superadmin", "super_admin"].includes(normalizedRole) &&
+                    isActiveProfile;
+                setMemberOnlyVisibility(canViewLibrary, canSecureAccount);
                 portalLink.hidden = !canSecureAccount;
                 profileLink.hidden = !canSecureAccount;
                 securityMenuButton.hidden = !canSecureAccount;
