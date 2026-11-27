@@ -2311,7 +2311,261 @@ function openSkillTree() {
   $("skillDialog").showModal();
 }
 
+
+// ── HOME LAYOUT EDITOR ─────────────────────────────────────────────────────
+let homeEditorActive = false;
+let homeDraggingFurniture = null;
+let homeSelectedFurniture = null;
+let homeDragOffset = { x: 0, y: 0 };
+
+function furnitureDimensions(item) {
+  const sizes = {
+    sofa: [178, 72], rug: [220, 82], lamp: [60, 82],
+    bookcase: [100, 150], plant: [70, 88], table: [120, 68]
+  };
+  return sizes[item.kind] || [72, 72];
+}
+
+function drawHomeFurniture() {
+  const placed = new Set(save.placedFurniture || []);
+  FURNITURE_CATALOG.forEach(item => {
+    if (!placed.has(item.id)) return;
+    const layout = save.homeLayout[item.id] || defaultHomeFurnitureLayout()[item.id] || { x: 500, y: 400, rotation: 0 };
+    const size = furnitureDimensions(item);
+    ctx.save();
+    ctx.translate(layout.x + size[0] / 2, layout.y + size[1] / 2);
+    ctx.rotate((Number(layout.rotation) || 0) * Math.PI / 2);
+    ctx.translate(-size[0] / 2, -size[1] / 2);
+    ctx.fillStyle = "rgba(25,30,25,.2)";
+    ctx.fillRect(4, size[1] - 4, size[0], 9);
+    if (item.kind === "sofa") {
+      ctx.fillStyle = "#526b85"; ctx.fillRect(4, 13, 170, 56);
+      ctx.fillStyle = "#8faec4"; ctx.fillRect(13, 18, 151, 42);
+      ctx.fillStyle = "#dce8e1"; ctx.fillRect(24, 23, 52, 31); ctx.fillRect(88, 23, 52, 31);
+      ctx.fillStyle = "#40566c"; ctx.fillRect(0, 28, 12, 42); ctx.fillRect(166, 28, 12, 42);
+    } else if (item.kind === "rug") {
+      ctx.fillStyle = "#765d8d"; ctx.fillRect(2, 5, 216, 72);
+      ctx.fillStyle = "#d7b8d9"; ctx.fillRect(9, 11, 202, 60);
+      ctx.fillStyle = "#a881b5"; ctx.fillRect(19, 20, 182, 43);
+      ctx.fillStyle = "#f1d9ef"; ctx.fillRect(102, 24, 16, 33);
+    } else if (item.kind === "lamp") {
+      ctx.fillStyle = "rgba(255,223,144,.2)"; ctx.beginPath(); ctx.arc(30, 32, 46, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#76533b"; ctx.fillRect(27, 31, 7, 42);
+      ctx.fillStyle = "#f3d88d"; ctx.fillRect(8, 5, 45, 27);
+      ctx.fillStyle = "#fff1be"; ctx.fillRect(14, 10, 33, 5);
+    } else if (item.kind === "bookcase") {
+      ctx.fillStyle = "#5e3f2c"; ctx.fillRect(3, 2, 94, 145);
+      ctx.fillStyle = "#ad7c4d"; ctx.fillRect(9, 8, 82, 7);
+      for (let row = 0; row < 3; row++) {
+        ctx.fillStyle = "#bd8b5b"; ctx.fillRect(9, 18 + row * 41, 82, 5);
+        for (let col = 0; col < 6; col++) {
+          ctx.fillStyle = ["#b86e5c", "#7c8fbd", "#d0b36b", "#6b9b79", "#9f74a7"][(row + col) % 5];
+          ctx.fillRect(13 + col * 13, 23 + row * 41, 9, 31);
+        }
+      }
+    } else if (item.kind === "plant") {
+      ctx.fillStyle = "#a66b4e"; ctx.fillRect(17, 56, 38, 28);
+      ctx.fillStyle = "#426f47"; ctx.fillRect(34, 23, 7, 37);
+      ctx.fillStyle = "#5e9e65"; ctx.fillRect(5, 30, 34, 17); ctx.fillRect(39, 24, 28, 19);
+      ctx.fillStyle = "#83bd76"; ctx.fillRect(22, 11, 29, 22);
+    } else if (item.kind === "table") {
+      ctx.fillStyle = "#67472f"; ctx.fillRect(10, 23, 9, 43); ctx.fillRect(101, 23, 9, 43);
+      ctx.fillStyle = "#bd8d5c"; ctx.fillRect(3, 13, 116, 17);
+      ctx.fillStyle = "#f3e0bd"; ctx.fillRect(38, 5, 45, 7);
+    }
+    if (homeEditorActive && homeSelectedFurniture === item.id) {
+      ctx.strokeStyle = "#fff4b6"; ctx.lineWidth = 3; ctx.setLineDash([8, 5]);
+      ctx.strokeRect(-3, -3, size[0] + 6, size[1] + 6);
+      ctx.setLineDash([]);
+    }
+    ctx.restore();
+  });
+}
+
+function toggleHomeLayoutEditor() {
+  if (!requireWorldMember()) return;
+  if (insideBuilding !== "home") {
+    showToast("Enter Your Little Home before editing its layout.");
+    return;
+  }
+  homeEditorActive = !homeEditorActive;
+  homeDraggingFurniture = null;
+  homeSelectedFurniture = null;
+  if ($("furnitureDialog").open) $("furnitureDialog").close();
+  showToast(homeEditorActive
+    ? "HOME EDITOR ON · Drag furniture · R rotate · ESC finish"
+    : "Home layout saved!");
+  $("interactionPrompt").textContent = homeEditorActive
+    ? "DRAG FURNITURE · R ROTATE · ESC FINISH"
+    : "E · HOME DESIGN STUDIO";
+  persist(true);
+}
+
+function finishHomeLayoutEditor() {
+  if (!homeEditorActive) return;
+  homeEditorActive = false;
+  homeDraggingFurniture = null;
+  homeSelectedFurniture = null;
+  persist(true);
+  showToast("Your home layout has been saved.");
+}
+
+function furnitureCanvasPoint(event) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (event.clientX - rect.left) * (VIEW_W / rect.width),
+    y: (event.clientY - rect.top) * (VIEW_H / rect.height)
+  };
+}
+
+function bindHomeEditorPointer() {
+  canvas.addEventListener("pointerdown", event => {
+    if (!homeEditorActive || insideBuilding !== "home") return;
+    const point = furnitureCanvasPoint(event);
+    const items = [...(save.placedFurniture || [])].reverse();
+    for (const id of items) {
+      const item = FURNITURE_CATALOG.find(entry => entry.id === id);
+      if (!item) continue;
+      const size = furnitureDimensions(item);
+      const layout = save.homeLayout[id] || { x: 500, y: 400, rotation: 0 };
+      if (point.x >= layout.x - 5 && point.x <= layout.x + size[0] + 5 &&
+          point.y >= layout.y - 5 && point.y <= layout.y + size[1] + 5) {
+        homeSelectedFurniture = id;
+        homeDraggingFurniture = id;
+        homeDragOffset = { x: point.x - layout.x, y: point.y - layout.y };
+        canvas.setPointerCapture(event.pointerId);
+        event.preventDefault();
+        return;
+      }
+    }
+  });
+  canvas.addEventListener("pointermove", event => {
+    if (!homeEditorActive || !homeDraggingFurniture) return;
+    const item = FURNITURE_CATALOG.find(entry => entry.id === homeDraggingFurniture);
+    if (!item) return;
+    const point = furnitureCanvasPoint(event);
+    const size = furnitureDimensions(item);
+    const x = Math.max(125, Math.min(1140 - size[0], point.x - homeDragOffset.x));
+    const y = Math.max(165, Math.min(625 - size[1], point.y - homeDragOffset.y));
+    save.homeLayout[homeDraggingFurniture] = {
+      ...save.homeLayout[homeDraggingFurniture],
+      x: Math.round(x / 8) * 8,
+      y: Math.round(y / 8) * 8
+    };
+  });
+  const stopDragging = event => {
+    if (!homeDraggingFurniture) return;
+    homeDraggingFurniture = null;
+    persist(true);
+    if (event && event.pointerId !== undefined && canvas.hasPointerCapture(event.pointerId)) {
+      canvas.releasePointerCapture(event.pointerId);
+    }
+  };
+  canvas.addEventListener("pointerup", stopDragging);
+  canvas.addEventListener("pointercancel", stopDragging);
+  document.addEventListener("keydown", event => {
+    if (!homeEditorActive) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      finishHomeLayoutEditor();
+    } else if (event.key.toLowerCase() === "r" && homeSelectedFurniture) {
+      const item = save.homeLayout[homeSelectedFurniture] || { x: 400, y: 400, rotation: 0 };
+      item.rotation = (Number(item.rotation || 0) + 1) % 4;
+      save.homeLayout[homeSelectedFurniture] = item;
+      persist(true);
+    }
+  });
+}
+
+function buyHomeExpansion() {
+  const next = Number(save.homeExpansion || 0) + 1;
+  if (next > 2) return;
+  const requiredLevel = next === 1 ? 5 : 10;
+  const cost = next === 1 ? 250 : 500;
+  if (getWorldLevelProgress(save.xp).level < requiredLevel) {
+    showToast("Reach World Level " + requiredLevel + " to unlock this home expansion.");
+    return;
+  }
+  if (save.coins < cost) {
+    showToast("You need " + cost + " Star Coins for this expansion.");
+    return;
+  }
+  save.coins -= cost;
+  save.homeExpansion = next;
+  persist(true);
+  updateHud();
+  renderFurnitureShop();
+  unlockWorldAchievement("home-expansion");
+  showToast(next === 1 ? "A sunny side room has been added to your home!" : "Your home has a new starlight loft!");
+}
+
+const renderFurnitureShopBeforeEditor = renderFurnitureShop;
+renderFurnitureShop = function renderFurnitureShopWithEditor() {
+  renderFurnitureShopBeforeEditor();
+  const editButton = $("editHomeLayoutButton");
+  const expansionButton = $("expandHomeButton");
+  const expansionStatus = $("homeExpansionStatus");
+  const isHome = furnitureDialogMode === "home";
+  if (editButton) editButton.hidden = !isHome;
+  if (expansionButton) {
+    const next = Number(save.homeExpansion || 0) + 1;
+    const requiredLevel = next === 1 ? 5 : 10;
+    const cost = next === 1 ? 250 : 500;
+    expansionButton.hidden = !isHome;
+    expansionButton.disabled = next > 2;
+    expansionButton.textContent = next > 2 ? "HOME FULLY EXPANDED" : "EXPAND · " + cost + " COINS · LVL " + requiredLevel;
+  }
+  if (expansionStatus) {
+    expansionStatus.hidden = !isHome;
+    expansionStatus.textContent = "HOME EXPANSION " + (save.homeExpansion || 0) + "/2";
+  }
+};
+
+const toggleFurniturePlacementBeforeLayout = toggleFurniturePlacement;
+toggleFurniturePlacement = function toggleFurniturePlacementWithLayout(id) {
+  const wasPlaced = save.placedFurniture.includes(id);
+  toggleFurniturePlacementBeforeLayout(id);
+  const isPlaced = save.placedFurniture.includes(id);
+  if (!wasPlaced && isPlaced && !save.homeLayout[id]) {
+    const defaults = defaultHomeFurnitureLayout();
+    save.homeLayout[id] = defaults[id] || {
+      x: 280 + (save.placedFurniture.length % 3) * 240,
+      y: 260 + Math.floor(save.placedFurniture.length / 3) * 130,
+      rotation: 0
+    };
+    persist(true);
+  }
+  if (wasPlaced && !isPlaced) {
+    delete save.homeLayout[id];
+    persist(true);
+  }
+  checkWorldAchievements();
+  if ($("furnitureDialog") && $("furnitureDialog").open) renderFurnitureShop();
+};
+
+function drawHomeExpansion() {
+  if (insideBuilding !== "home" || !save.homeExpansion) return;
+  ctx.fillStyle = "#6b4d3a"; ctx.fillRect(890, 180, 270, 20);
+  ctx.fillStyle = save.homeExpansion > 1 ? "#64789a" : "#9b7659";
+  ctx.fillRect(900, 195, 245, 245);
+  ctx.fillStyle = save.homeExpansion > 1 ? "#a7c3e1" : "#e5c99f";
+  ctx.fillRect(910, 205, 225, 225);
+  ctx.fillStyle = "#76543a"; ctx.fillRect(915, 430, 215, 12);
+  if (save.homeExpansion > 1) {
+    ctx.fillStyle = "#f1d88f";
+    for (let i = 0; i < 8; i++) {
+      const x = 945 + i * 25, y = 235 + (i % 3) * 33;
+      ctx.fillRect(x, y, 5, 5);
+    }
+  } else {
+    ctx.fillStyle = "#718ba0"; ctx.fillRect(950, 245, 120, 95);
+    ctx.fillStyle = "#d9edf0"; ctx.fillRect(958, 253, 104, 79);
+    ctx.fillStyle = "#806044"; ctx.fillRect(1005, 340, 8, 88);
+  }
+}
+
 bindControls();
+bindHomeEditorPointer();
 drawClock();
 setInterval(drawClock, 30000);
 startAuth();
