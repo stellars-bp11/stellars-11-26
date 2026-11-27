@@ -17,6 +17,14 @@ const db = getFirestore(app);
 
 (function () {
     const FALLBACK = "images/placeholder.jpg";
+
+    // Temporary public-safe preview while the Firebase preview document is
+    // being provisioned. This contains only the next few celebrations, not
+    // the complete birthday roster.
+    const PUBLIC_PREVIEW_BACKUP = [
+        { fullName: "Patricia Devina", birthMonthDay: "11-28" },
+        { fullName: "Grace Abigail Wijaya", birthMonthDay: "11-30" }
+    ];
     const PHOTO_ALIASES = {
         "anita lestari elisabet siregar": "anita lestari elisabet",
         "nicke mega amelia truono": "nicke mega amelia trijono",
@@ -255,23 +263,35 @@ const db = getFirestore(app);
         directory.replaceChildren(...upcoming.map(item => personCard(item.person, item.next)));
     }
 
+    function getFallbackPublicPreview(photos, fallbackImage) {
+        return makeUpcoming(PUBLIC_PREVIEW_BACKUP, photos, fallbackImage);
+    }
+
     async function readPublicPreview(photos, fallbackImage) {
-        const snapshot = await getDoc(doc(db, "birthdayPreview", "current"));
-        if (!snapshot.exists()) return [];
+        const fallback = () => getFallbackPublicPreview(photos, fallbackImage);
+        let snapshot;
+        try {
+            snapshot = await getDoc(doc(db, "birthdayPreview", "current"));
+        } catch (error) {
+            console.warn("STELLARS Birthday: Public preview document unavailable; using temporary preview.", error);
+            return fallback();
+        }
+        if (!snapshot.exists()) return fallback();
+
         const data = snapshot.data() || {};
         const nextDateParts = String(data.nextDate || "").split("-").map(Number);
         const [year, month, day] = nextDateParts;
         const publishedDate = nextDateParts.length === 3 ? new Date(year, month - 1, day) : null;
         if (!publishedDate || publishedDate.getFullYear() !== year ||
-            publishedDate.getMonth() !== month - 1 || publishedDate.getDate() !== day) return [];
+            publishedDate.getMonth() !== month - 1 || publishedDate.getDate() !== day) return fallback();
 
         const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const days = Math.round((publishedDate - today) / 86400000);
-        if (days < 0) return [];
+        if (days < 0) return fallback();
 
         const records = Array.isArray(data.people) ? data.people : [];
-        return records.map(record => {
+        const people = records.map(record => {
             const person = makePerson(record, photos, fallbackImage);
             if (!person) return null;
             const observedLeapDay = person.birthday.month === 1 &&
@@ -281,6 +301,7 @@ const db = getFirestore(app);
                 next: { date: publishedDate, days, observedLeapDay }
             };
         }).filter(Boolean);
+        return people.length ? people : fallback();
     }
 
     async function readPrivateDirectory(photos, fallbackImage) {
@@ -348,11 +369,7 @@ const db = getFirestore(app);
                     return;
                 }
 
-                if (directorySection) {
-                    directorySection.hidden = false;
-                    if (count) count.textContent = "0 crew birthdays";
-                    showEmpty(directory, "The full birthday calendar is waiting for its first import.");
-                }
+                if (directorySection) directorySection.hidden = true;
                 await renderPublicFallback();
             } catch (error) {
                 console.error("STELLARS Birthday: Could not load the private directory.", error);
