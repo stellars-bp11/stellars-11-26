@@ -623,9 +623,9 @@ function handleAuthChange(user) {
     activePoll = null;
     currentVotes = [];
     ownVote = null;
+    renderPulse();
 
     if (!user) {
-        renderPulse();
         return;
     }
 
