@@ -914,8 +914,7 @@ authReady
                 };
                 metaLabel.textContent = roleNames[normalizedRole] || "Signed in";
                 const isActiveProfile = profile.isActive === true;
-                const canViewLibrary = isActiveProfile &&
-                    ["student", "member", "admin", "superadmin", "super_admin"].includes(normalizedRole);
+                const canViewLibrary = isActiveProfile;
                 const canSecureAccount =
                     ["student", "admin", "superadmin", "super_admin"].includes(normalizedRole) &&
                     isActiveProfile;
