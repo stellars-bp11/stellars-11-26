@@ -84,6 +84,8 @@ let uploadedArtworkFile = null;
 let unsubscribeDailyFeed = null;
 let unsubscribeRadioNotifications = null;
 let commentSubscriptions = new Map();
+let replySubscriptions = new Map();
+let pendingReplyTarget = null;
 let radioNotifications = [];
 let toastTimeout = null;
 
@@ -224,6 +226,18 @@ function openComposer() {
 function stopCommentSubscriptions() {
     commentSubscriptions.forEach(unsubscribe => unsubscribe());
     commentSubscriptions.clear();
+    replySubscriptions.forEach(unsubscribe => unsubscribe());
+    replySubscriptions.clear();
+    pendingReplyTarget = null;
+}
+
+function stopSongReplySubscriptions(songUid) {
+    const prefix = activeDayKey + ":" + songUid + ":";
+    for (const [key, unsubscribe] of replySubscriptions.entries()) {
+        if (!key.startsWith(prefix)) continue;
+        unsubscribe();
+        replySubscriptions.delete(key);
+    }
 }
 
 function formatRadioTimestamp(timestamp, includeDate = false) {
@@ -251,6 +265,7 @@ function renderSongComments(song, snapshot, list, toggleButton) {
     comments.forEach(comment => {
         const item = document.createElement("article");
         item.className = "radio-comment-item";
+        item.id = "radio-comment-" + comment.id;
 
         const header = document.createElement("div");
         header.className = "radio-comment-header";
@@ -289,7 +304,16 @@ function renderSongComments(song, snapshot, list, toggleButton) {
             });
             item.append(remove);
         }
+
+        item.append(createCommentReplies(song, comment));
         list.append(item);
+
+        if (pendingReplyTarget && pendingReplyTarget.commentId === comment.id &&
+            Date.now() <= pendingReplyTarget.expiresAt) {
+            const replyToggle = item.querySelector(".radio-replies-toggle");
+            const replyPanel = item.querySelector(".radio-replies-panel");
+            if (replyToggle && replyPanel && replyPanel.hidden) replyToggle.click();
+        }
     });
 }
 
@@ -382,6 +406,245 @@ async function submitSongComment(song, input, submitButton) {
     }
 }
 
+function renderCommentReplies(song, comment, snapshot, list, toggleButton) {
+    list.replaceChildren();
+    const replies = snapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+    toggleButton.textContent = replies.length
+        ? "Replies (" + replies.length + ")"
+        : "Reply";
+
+    if (!replies.length) {
+        const empty = document.createElement("p");
+        empty.className = "radio-replies-empty";
+        empty.textContent = "No replies yet.";
+        list.append(empty);
+    }
+
+    replies.forEach(reply => {
+        const item = document.createElement("article");
+        item.className = "radio-reply-item";
+        item.id = "radio-reply-" + reply.id;
+
+        const header = document.createElement("div");
+        header.className = "radio-reply-header";
+        const author = document.createElement("strong");
+        author.textContent = reply.displayName || "STELLARS Member";
+        const time = document.createElement("time");
+        time.textContent = formatRadioTimestamp(reply.createdAt);
+        header.append(author, time);
+
+        const body = document.createElement("p");
+        body.className = "radio-reply-text";
+        body.textContent = reply.text || "";
+        item.append(header, body);
+
+        const canDelete = currentProfile && currentProfile.isActive === true &&
+            (reply.uid === (currentUser && currentUser.uid) ||
+             song.uid === (currentUser && currentUser.uid) ||
+             comment.uid === (currentUser && currentUser.uid));
+        if (canDelete) {
+            const remove = document.createElement("button");
+            remove.type = "button";
+            remove.className = "radio-comment-delete";
+            remove.textContent = "Delete reply";
+            remove.addEventListener("click", async () => {
+                if (!currentUser || !currentProfile || currentProfile.isActive !== true) return;
+                remove.disabled = true;
+                try {
+                    await deleteDoc(doc(
+                        db, "radioDays", activeDayKey, "songs", song.uid,
+                        "comments", comment.id, "replies", reply.id
+                    ));
+                    showToast("Reply deleted.");
+                } catch (error) {
+                    console.error("Could not delete Radio reply:", error);
+                    showToast("This reply could not be deleted.", "error");
+                    remove.disabled = false;
+                }
+            });
+            item.append(remove);
+        }
+
+        list.append(item);
+
+        if (pendingReplyTarget &&
+            pendingReplyTarget.commentId === comment.id &&
+            pendingReplyTarget.replyId === reply.id) {
+            item.classList.add("is-notification-target");
+            item.scrollIntoView({ behavior: "smooth", block: "center" });
+            pendingReplyTarget = null;
+        }
+    });
+
+    if (pendingReplyTarget && pendingReplyTarget.commentId === comment.id &&
+        Date.now() > pendingReplyTarget.expiresAt) {
+        pendingReplyTarget = null;
+    }
+}
+
+function subscribeCommentReplies(song, comment, list, toggleButton) {
+    const key = activeDayKey + ":" + song.uid + ":" + comment.id;
+    if (replySubscriptions.has(key)) return;
+
+    const repliesQuery = query(
+        collection(
+            db, "radioDays", activeDayKey, "songs", song.uid,
+            "comments", comment.id, "replies"
+        ),
+        orderBy("createdAt", "asc"),
+        limit(100)
+    );
+
+    const unsubscribe = onSnapshot(repliesQuery, snapshot => {
+        renderCommentReplies(song, comment, snapshot, list, toggleButton);
+    }, error => {
+        console.error("Could not load Radio replies:", error);
+        list.replaceChildren();
+        const message = document.createElement("p");
+        message.className = "radio-replies-empty";
+        message.textContent = "Replies are unavailable right now. Check the latest Firestore rules.";
+        list.append(message);
+    });
+
+    replySubscriptions.set(key, unsubscribe);
+}
+
+async function submitCommentReply(song, comment, input, submitButton) {
+    const text = input.value.trim();
+    if (!currentUser || !currentProfile || currentProfile.isActive !== true) {
+        showToast("Sign in with an active STELLARS account to reply.", "error");
+        return;
+    }
+    if (!text) {
+        input.focus();
+        return;
+    }
+    if (text.length > 280) {
+        showToast("Replies can contain up to 280 characters.", "error");
+        return;
+    }
+
+    submitButton.disabled = true;
+    try {
+        const replyRef = doc(collection(
+            db, "radioDays", activeDayKey, "songs", song.uid,
+            "comments", comment.id, "replies"
+        ));
+        const replierName = String(
+            currentProfile.fullName || currentUser.displayName || "STELLARS Member"
+        );
+        const batch = writeBatch(db);
+
+        batch.set(replyRef, {
+            uid: currentUser.uid,
+            displayName: replierName,
+            text: text,
+            createdAt: serverTimestamp()
+        });
+
+        // Notify the author of the original comment, not necessarily the song owner.
+        if (comment.uid !== currentUser.uid) {
+            const notificationRef = doc(
+                db, "radioNotifications", comment.uid, "items", replyRef.id
+            );
+            batch.set(notificationRef, {
+                type: "radio_reply",
+                dayKey: activeDayKey,
+                songOwnerUid: song.uid,
+                songTitle: String(song.songTitle || "a STELLARS Radio song"),
+                commentId: comment.id,
+                replyId: replyRef.id,
+                commenterUid: currentUser.uid,
+                commenterName: replierName,
+                commentText: text,
+                createdAt: serverTimestamp(),
+                readAt: null
+            });
+        }
+
+        await batch.commit();
+        input.value = "";
+        showToast(comment.uid === currentUser.uid
+            ? "Your reply has been added."
+            : "Reply posted. The original commenter has been notified.");
+    } catch (error) {
+        console.error("Could not post Radio reply:", error);
+        showToast(
+            error && error.code === "permission-denied"
+                ? "Reply access is not ready yet. Deploy the latest Firestore rules."
+                : ((error && error.message) || "Your reply could not be posted."),
+            "error"
+        );
+    } finally {
+        submitButton.disabled = false;
+    }
+}
+
+function createCommentReplies(song, comment) {
+    const section = document.createElement("section");
+    section.className = "radio-replies";
+
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "radio-replies-toggle";
+    toggle.textContent = "Reply";
+    toggle.setAttribute("aria-expanded", "false");
+
+    const panel = document.createElement("div");
+    panel.className = "radio-replies-panel";
+    panel.hidden = true;
+
+    const list = document.createElement("div");
+    list.className = "radio-replies-list";
+    panel.append(list);
+
+    if (currentUser && currentProfile && currentProfile.isActive === true) {
+        const form = document.createElement("form");
+        form.className = "radio-reply-form";
+
+        const input = document.createElement("textarea");
+        input.maxLength = 280;
+        input.rows = 2;
+        input.placeholder = "Write a reply…";
+        input.setAttribute("aria-label", "Reply to " + (comment.displayName || "this comment"));
+
+        const submit = document.createElement("button");
+        submit.type = "submit";
+        submit.className = "radio-reply-submit";
+        submit.innerHTML = '<i class="bx bx-reply" aria-hidden="true"></i><span>Reply</span>';
+
+        form.append(input, submit);
+        form.addEventListener("submit", event => {
+            event.preventDefault();
+            void submitCommentReply(song, comment, input, submit);
+        });
+        panel.append(form);
+    } else {
+        const signInNote = document.createElement("p");
+        signInNote.className = "radio-replies-empty";
+        signInNote.textContent = "Sign in with an active STELLARS account to reply.";
+        panel.append(signInNote);
+    }
+
+    toggle.addEventListener("click", () => {
+        const opening = panel.hidden;
+        panel.hidden = !opening;
+        toggle.setAttribute("aria-expanded", String(opening));
+
+        const key = activeDayKey + ":" + song.uid + ":" + comment.id;
+        if (opening) {
+            subscribeCommentReplies(song, comment, list, toggle);
+        } else {
+            const unsubscribe = replySubscriptions.get(key);
+            if (unsubscribe) unsubscribe();
+            replySubscriptions.delete(key);
+        }
+    });
+
+    section.append(toggle, panel);
+    return section;
+}
+
 function createSongComments(song) {
     const section = document.createElement("section");
     section.className = "radio-comments";
@@ -442,6 +705,7 @@ function createSongComments(song) {
             const unsubscribe = commentSubscriptions.get(key);
             if (unsubscribe) unsubscribe();
             commentSubscriptions.delete(key);
+            stopSongReplySubscriptions(song.uid);
         }
     });
 
@@ -475,14 +739,18 @@ function renderRadioNotifications(items) {
         const top = document.createElement("span");
         top.className = "radio-notification-top";
         const title = document.createElement("strong");
-        title.textContent = (item.commenterName || "A STELLARS member") + " commented on your song";
+        title.textContent = item.type === "radio_reply"
+            ? (item.commenterName || "A STELLARS member") + " replied to your comment"
+            : (item.commenterName || "A STELLARS member") + " commented on your song";
         const time = document.createElement("time");
         time.textContent = formatRadioTimestamp(item.createdAt, true);
         top.append(title, time);
 
         const song = document.createElement("span");
         song.className = "radio-notification-song";
-        song.textContent = item.songTitle ? "“" + item.songTitle + "”" : "Your Radio song";
+        song.textContent = item.type === "radio_reply"
+            ? "Reply in the conversation on “" + (item.songTitle || "a song") + "”"
+            : (item.songTitle ? "“" + item.songTitle + "”" : "Your Radio song");
 
         const preview = document.createElement("span");
         preview.className = "radio-notification-preview";
@@ -519,7 +787,23 @@ async function openRadioNotification(item) {
         card.scrollIntoView({ behavior: "smooth", block: "center" });
         const toggle = card.querySelector(".radio-comments-toggle");
         const panel = card.querySelector(".radio-comments-panel");
-        if (toggle && panel && panel.hidden) toggle.click();
+
+        if (item.type === "radio_reply") {
+            pendingReplyTarget = {
+                commentId: item.commentId,
+                replyId: item.replyId,
+                expiresAt: Date.now() + 15000
+            };
+        }
+
+        if (toggle && panel && panel.hidden) {
+            toggle.click();
+        } else if (item.type === "radio_reply") {
+            const commentElement = document.getElementById("radio-comment-" + item.commentId);
+            const replyToggle = commentElement && commentElement.querySelector(".radio-replies-toggle");
+            const replyPanel = commentElement && commentElement.querySelector(".radio-replies-panel");
+            if (replyToggle && replyPanel && replyPanel.hidden) replyToggle.click();
+        }
     } catch (error) {
         console.error("Could not open Radio notification:", error);
         showToast("This notification could not be opened.", "error");
