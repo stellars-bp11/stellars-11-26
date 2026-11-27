@@ -99,9 +99,10 @@
               <div class="profile-copy">
                 <strong id="playerName">Star</strong>
                 <span id="playerJob">New Resident</span>
-                <small>Resident of Stellars Town</small>
+                <small id="playerGender">Choose your character</small>
               </div>
             </div>
+            <button class="pixel-button secondary-button character-button" id="changeGenderButton" type="button">CHANGE CHARACTER</button>
             <div class="wallet-row"><span>✧ STAR COINS</span><strong id="coinCount">100</strong></div>
             <div class="xp-row">
               <div class="xp-label"><span>EXPERIENCE</span><span id="xpLabel">0 / 100 XP</span></div>
@@ -148,6 +149,17 @@
     </main>
   </div>
 
+  <dialog class="gender-dialog" id="genderDialog" aria-labelledby="genderDialogTitle">
+    <div class="dialog-topline"><span>YOUR STELLARS AVATAR</span><button id="closeGenderDialog" type="button" aria-label="Close">×</button></div>
+    <p class="pixel-kicker">CHOOSE YOUR LOOK</p>
+    <h2 id="genderDialogTitle">Who will you be in Stellars Town?</h2>
+    <p class="dialog-description">Choose the character style you want. You can change it anytime.</p>
+    <div class="gender-grid">
+      <button class="gender-card" type="button" data-gender="male"><span class="gender-preview male-preview" aria-hidden="true">♂</span><strong>Male</strong><small>Short hairstyle</small></button>
+      <button class="gender-card" type="button" data-gender="female"><span class="gender-preview female-preview" aria-hidden="true">♀</span><strong>Female</strong><small>Long hairstyle</small></button>
+    </div>
+  </dialog>
+
   <dialog class="job-dialog" id="jobDialog" aria-labelledby="jobDialogTitle">
     <div class="dialog-topline"><span>YOUR NEXT CHAPTER</span><button id="closeJobDialog" type="button" aria-label="Close">×</button></div>
     <p class="pixel-kicker">THERE'S A PLACE FOR EVERY STAR</p>
@@ -156,7 +168,7 @@
     <div class="job-grid" id="jobGrid"></div>
   </dialog>
 
-  <script type="module" src="world.js?v=multiplayer-v1-20261127"></script>
+  <script type="module" src="world.js?v=gender-avatar-v1-20261127"></script>
   <script src="letters-launcher.js?v=private-mail-notifications-v6-20261126" defer></script>
 </body>
 </html>
