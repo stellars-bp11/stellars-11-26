@@ -190,7 +190,7 @@ service cloud.firestore {
       data.artworkUrl.size() > 0 &&
       data.artworkUrl.size() <= 2048 &&
       data.artworkUrl.matches('^https://.*') &&
-      data.artworkSource in ['itunes', 'upload'] &&
+      data.artworkSource in ['itunes', 'upload', 'spotify'] &&
       data.storeUrl is string &&
       data.storeUrl.size() <= 2048 &&
       (data.storeUrl == '' || data.storeUrl.matches('^https://.*')) &&

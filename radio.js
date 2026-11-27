@@ -1350,8 +1350,9 @@ async function searchArtwork() {
 
 function previewUploadedArtwork(file) {
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
-        setComposerMessage("Please choose an image file.", "error");
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+        setComposerMessage("Please choose a JPG, PNG, or WebP image.", "error");
         elements.upload.value = "";
         return;
     }
@@ -1359,6 +1360,10 @@ function previewUploadedArtwork(file) {
         setComposerMessage("The artwork must be 5 MB or smaller.", "error");
         elements.upload.value = "";
         return;
+    }
+
+    if (selectedArtwork?.url?.startsWith("blob:")) {
+        URL.revokeObjectURL(selectedArtwork.url);
     }
 
     uploadedArtworkFile = file;
@@ -1373,24 +1378,61 @@ function previewUploadedArtwork(file) {
     elements.cover.hidden = false;
     elements.coverPlaceholder.hidden = true;
     elements.coverTitle.textContent = file.name;
-    elements.coverHint.textContent = "Your uploaded image will replace the automatic artwork.";
+    elements.coverHint.textContent = "Preview ready. The image uploads to STELLARS when you share your song.";
     elements.results.querySelectorAll(".artwork-result").forEach(item => item.setAttribute("aria-pressed", "false"));
-    setComposerMessage("Custom cover selected.", "success");
+    setComposerMessage("Image selected. Click Share today's song to upload it.", "success");
 }
 
-async function uploadArtwork(file) {
-    const endpoint = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", UPLOAD_PRESET);
+function uploadArtwork(file, onProgress = () => {}) {
+    return new Promise((resolve, reject) => {
+        const endpoint = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", UPLOAD_PRESET);
 
-    const response = await fetch(endpoint, { method: "POST", body: formData });
-    const result = await response.json().catch(() => ({}));
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", endpoint);
+        xhr.timeout = 60000;
 
-    if (!response.ok || !result.secure_url) {
-        throw new Error(result?.error?.message || "The cover image could not be uploaded.");
-    }
-    return result.secure_url;
+        xhr.upload.onprogress = event => {
+            if (event.lengthComputable) {
+                onProgress(Math.round((event.loaded / event.total) * 100));
+            }
+        };
+
+        xhr.onerror = () => reject(new Error(
+            "The browser could not reach Cloudinary. Check browser extensions, firewall, or network filtering."
+        ));
+        xhr.ontimeout = () => reject(new Error(
+            "Cloudinary did not finish the upload within 60 seconds. Try a smaller image."
+        ));
+        xhr.onabort = () => reject(new Error("The cover upload was cancelled."));
+
+        xhr.onload = () => {
+            let result;
+            try {
+                result = JSON.parse(xhr.responseText || "{}");
+            } catch {
+                reject(new Error("Cloudinary returned an unreadable response (HTTP " + xhr.status + ")."));
+                return;
+            }
+
+            if (xhr.status < 200 || xhr.status >= 300) {
+                const details = result?.error?.message || ("HTTP " + xhr.status);
+                reject(new Error("Cloudinary rejected the image: " + details));
+                return;
+            }
+
+            if (!result?.secure_url) {
+                reject(new Error("Cloudinary accepted the request but did not return an image URL."));
+                return;
+            }
+
+            resolve(result.secure_url);
+        };
+
+        xhr.send(formData);
+    });
 }
 
 async function submitSong(event) {
@@ -1417,14 +1459,25 @@ async function submitSong(event) {
     elements.submitButton.disabled = true;
     elements.submitButton.querySelector("span").textContent = uploadedArtworkFile ? "Uploading cover…" : "Sharing…";
 
+    let saveStage = "firestore";
     try {
         let artworkUrl = selectedArtwork.url;
         let artworkSource = selectedArtwork.source;
         if (uploadedArtworkFile) {
-            artworkUrl = await uploadArtwork(uploadedArtworkFile);
+            saveStage = "cloudinary";
+            setComposerMessage("Uploading cover to STELLARS… 0%", "info");
+            artworkUrl = await uploadArtwork(uploadedArtworkFile, percent => {
+                setComposerMessage("Uploading cover to STELLARS… " + percent + "%", "info");
+            });
             artworkSource = "upload";
+            uploadedArtworkFile = null;
+            selectedArtwork = { ...selectedArtwork, url: artworkUrl, source: "upload" };
+            elements.cover.src = artworkUrl;
+            elements.coverTitle.textContent = "Cover uploaded";
+            elements.coverHint.textContent = "Your cover is ready. Saving your song…";
         }
 
+        saveStage = "firestore";
         const submissionRef = doc(db, "radioDays", activeDayKey, "songs", currentUser.uid);
         const payload = {
             uid: currentUser.uid,
@@ -1453,13 +1506,17 @@ async function submitSong(event) {
         showToast(mySubmission ? "Your song story has been updated." : "Your song is now on today's STELLARS Radio wall.");
         resetComposer();
     } catch (error) {
-        console.error("Could not save STELLARS Radio entry:", error);
-        setComposerMessage(
-            error?.code === "permission-denied"
-                ? "Radio access is not ready yet. The latest Firestore rules need to be published in Firebase Console."
-                : (error.message || "Your song could not be saved. Please try again."),
-            "error"
-        );
+        console.error("STELLARS Radio submission failed during " + saveStage + ":", error);
+        let message;
+        if (saveStage === "cloudinary") {
+            message = "Cover upload failed: " + (error?.message || "Unknown Cloudinary error.");
+        } else if (error?.code === "permission-denied") {
+            message = "The cover is uploaded, but Firestore rejected the song entry. Publish the latest firestore.rules, then retry.";
+        } else {
+            message = "The cover is ready, but the song could not be saved: " +
+                (error?.message || error?.code || "Unknown Firestore error.");
+        }
+        setComposerMessage(message, "error");
         elements.submitButton.disabled = false;
         elements.submitButton.querySelector("span").textContent = mySubmission ? "Update today's song" : "Share with STELLARS";
     }
