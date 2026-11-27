@@ -136,8 +136,44 @@
                     <h2 id="radioFeedTitle">Today's song wall<span>.</span></h2>
                     <p>Listen to the stories your fellow stars are sharing today.</p>
                 </div>
-                <span class="radio-live-indicator"><i></i> LIVE TODAY</span>
+                <div class="radio-feed-actions">
+                    <button class="radio-notifications-button" id="radioNotificationsButton" type="button" aria-expanded="false" aria-controls="radioNotificationsPanel" hidden>
+                        <i class="bx bx-bell" aria-hidden="true"></i>
+                        <span>Notifications</span>
+                        <span class="radio-notifications-count" id="radioNotificationsCount" hidden>0</span>
+                    </button>
+                    <div class="radio-feed-actions">
+                    <button class="radio-notifications-button" id="radioNotificationsButton" type="button" aria-expanded="false" aria-controls="radioNotificationsPanel" hidden>
+                        <i class="bx bx-bell" aria-hidden="true"></i>
+                        <span>Notifications</span>
+                        <span class="radio-notifications-count" id="radioNotificationsCount" hidden>0</span>
+                    </button>
+                    <span class="radio-live-indicator"><i></i> LIVE TODAY</span>
+                </div>
+                </div>
             </div>
+
+            <section class="radio-notifications-panel" id="radioNotificationsPanel" aria-label="Radio notifications" hidden>
+                <div class="radio-notifications-heading">
+                    <div>
+                        <span>YOUR STELLARS INBOX</span>
+                        <h3>Song comments</h3>
+                    </div>
+                    <button id="markAllNotificationsRead" type="button">Mark all as read</button>
+                </div>
+                <div class="radio-notifications-list" id="radioNotificationsList" aria-live="polite"></div>
+            </section>
+
+            <section class="radio-notifications-panel" id="radioNotificationsPanel" aria-label="Radio notifications" hidden>
+                <div class="radio-notifications-heading">
+                    <div>
+                        <span>YOUR STELLARS INBOX</span>
+                        <h3>Song comments</h3>
+                    </div>
+                    <button id="markAllNotificationsRead" type="button">Mark all as read</button>
+                </div>
+                <div class="radio-notifications-list" id="radioNotificationsList" aria-live="polite"></div>
+            </section>
 
             <div class="radio-auth-gate" id="radioAuthGate" hidden>
                 <div class="gate-icon"><i class="bx bx-music"></i></div>
@@ -230,7 +266,7 @@
 
     <div class="radio-toast" id="radioToast" role="status" aria-live="polite"></div>
 
-    <script type="module" src="radio.js?v=spotify-v2-20261125"></script>
+    <script type="module" src="radio.js?v=song-comments-notifications-v1-20261127"></script>
     <script type="module" src="account.js?v=member-role-visibility-v9-20261127"></script>
     <script src="letters-launcher.js?v=private-mail-notifications-v6-20261126" defer></script>
 </body>
