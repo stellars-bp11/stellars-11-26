@@ -36,7 +36,7 @@
           ".validate": "newData.isString() && newData.val().length <= 24"
         },
         "area": {
-          ".validate": "newData.val() === 'outside' || newData.val() === 'library' || newData.val() === 'townhall' || newData.val() === 'cafe' || newData.val() === 'home' || newData.val() === 'market' || newData.val() === 'workshop' || newData.val() === 'observatory' || newData.val() === 'bakery' || newData.val() === 'fashion'"
+          ".validate": "newData.val() === 'outside' || newData.val() === 'library' || newData.val() === 'townhall' || newData.val() === 'cafe' || newData.val() === 'home' || newData.val() === 'market' || newData.val() === 'workshop' || newData.val() === 'observatory' || newData.val() === 'bakery' || newData.val() === 'fashion' || newData.val() === 'moon-garden'"
         },
         "updatedAt": {
           ".validate": "newData.isNumber()"
@@ -46,6 +46,21 @@
         },
         "shirtColor": {
           ".validate": "newData.isString() && newData.val().matches(/^#[0-9A-Fa-f]{6}$/)"
+        },
+        "hairStyle": {
+          ".validate": "newData.val() === 'short' || newData.val() === 'wave' || newData.val() === 'curly' || newData.val() === 'long' || newData.val() === 'bob' || newData.val() === 'bun'"
+        },
+        "accessory": {
+          ".validate": "newData.val() === 'none' || newData.val() === 'starclip' || newData.val() === 'glasses' || newData.val() === 'cap' || newData.val() === 'bow'"
+        },
+        "pantsColor": {
+          ".validate": "newData.isString() && newData.val().matches(/^#[0-9A-Fa-f]{6}$/)"
+        },
+        "shoeColor": {
+          ".validate": "newData.isString() && newData.val().matches(/^#[0-9A-Fa-f]{6}$/)"
+        },
+        "emote": {
+          ".validate": "newData.val() === '' || newData.val() === '👋' || newData.val() === '💖' || newData.val() === '🎉' || newData.val() === '🎵' || newData.val() === '✨'"
         }
       }
     }
