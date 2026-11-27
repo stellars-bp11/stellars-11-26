@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css">
-  <link rel="stylesheet" href="world.css?v=gender-avatar-v1-20261127">
+  <link rel="stylesheet" href="world.css?v=gender-settings-pink-v2-20261127">
   <link rel="stylesheet" href="playful-theme.css?v=simple-motion-20261125">
   <link rel="stylesheet" href="navbar-unification.css?v=full-width-v1-20261126">
   <link rel="icon" type="image/svg+xml" href="favicon.svg?v=stellars-constellation-20261125">
@@ -102,7 +102,6 @@
                 <small id="playerGender">Choose your character</small>
               </div>
             </div>
-            <button class="pixel-button secondary-button character-button" id="changeGenderButton" type="button">CHANGE CHARACTER</button>
             <div class="wallet-row"><span>✧ STAR COINS</span><strong id="coinCount">100</strong></div>
             <div class="xp-row">
               <div class="xp-label"><span>EXPERIENCE</span><span id="xpLabel">0 / 100 XP</span></div>
@@ -140,6 +139,18 @@
             <div class="place-row"><span>📚</span><div><strong>Stellar Library</strong><small>A quiet little corner</small></div></div>
             <div class="place-row"><span>⌂</span><div><strong>Your Little Home</strong><small>A place of your own</small></div></div>
           </section>
+
+          <section class="panel settings-panel">
+            <div class="panel-heading"><span>SETTINGS</span><span class="settings-icon">⚙</span></div>
+            <div class="settings-option">
+              <div class="settings-option-copy">
+                <strong>Character appearance</strong>
+                <small id="settingsGenderLabel">Choose your character</small>
+              </div>
+              <button class="pixel-button settings-change-button" id="changeGenderButton" type="button">CHANGE</button>
+            </div>
+            <p class="settings-note">Your character style is visible to other players in town.</p>
+          </section>
         </aside>
       </section>
 
@@ -168,7 +179,7 @@
     <div class="job-grid" id="jobGrid"></div>
   </dialog>
 
-  <script type="module" src="world.js?v=gender-avatar-v1-20261127"></script>
+  <script type="module" src="world.js?v=gender-settings-pink-v2-20261127"></script>
   <script src="letters-launcher.js?v=private-mail-notifications-v6-20261126" defer></script>
 </body>
 </html>
