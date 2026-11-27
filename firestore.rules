@@ -867,36 +867,26 @@ service cloud.firestore {
 );
     }
 
-    // The complete birthday directory is private to active STELLARS members.
-    // Only Super Admins maintain it; no member opt-in or self-sharing is used.
+    function isBirthdayMember() {
+      return activeMember() &&
+        currentRole() in ['student', 'member', 'admin', 'superAdmin', 'super_admin'];
+    }
+
+    // All birthday names and dates are visible only to active class accounts.
     match /birthdayDirectory/{memberId} {
-      allow get, list: if activeMember();
+      allow get, list: if isBirthdayMember();
       allow create, update: if isSuperAdmin() &&
         request.resource.data.keys().hasAll(['fullName', 'birthMonthDay']) &&
         request.resource.data.keys().hasOnly(['fullName', 'birthMonthDay']) &&
         request.resource.data.fullName is string &&
         request.resource.data.fullName.size() > 0 &&
         request.resource.data.fullName.size() <= 100 &&
-        request.resource.data.birthMonthDay is string &&
-        request.resource.data.birthMonthDay.matches('^(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$');
+        validBirthdayMonthDay(request.resource.data.birthMonthDay);
       allow delete: if isSuperAdmin();
     }
 
-    // Guests can fetch one upcoming celebration only, never list the private roster.
-    match /birthdayPreview/{previewId} {
-      allow get: if previewId == 'current';
-      allow list: if false;
-      allow create, update: if isSuperAdmin() &&
-        previewId == 'current' &&
-        request.resource.data.keys().hasAll(['people', 'nextDate', 'updatedAt']) &&
-        request.resource.data.keys().hasOnly(['people', 'nextDate', 'updatedAt']) &&
-        request.resource.data.people is list &&
-        request.resource.data.people.size() <= 45 &&
-        request.resource.data.nextDate is string &&
-        request.resource.data.updatedAt is timestamp;
-      allow delete: if false;
-    }
-
+    // No public Birthday preview document is readable. Missing rules deny access.
+    
     match /nimIndex/{nim} {
       // Active members can search the minimal directory fields (UID, name, NIM, status).
       allow get: if activeMember() && resource.data.isActive == true;
