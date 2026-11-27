@@ -1672,6 +1672,7 @@ areaName = function townAreaName(x, y) {
   if (tx > 62 && tx < 80 && ty > 20 && ty < 34) return "WORKSHOP LANE";
   if (tx > 65 && tx < 82 && ty > 61 && ty < 75) return "SUNRISE CORNER";
   if (tx > 46 && ty > 18 && ty < 29) return "LITTLE COMET CAFE";
+  if (tx > 56 && tx < 65 && ty > 31 && ty < 40) return "STELLAR FASHION HOUSE";
   if (tx > 33 && ty < 19) return "TOWN SQUARE";
   if (tx < 30 && ty < 25) return "STELLAR LIBRARY";
   if (tx > 45 && ty > 30 && ty < 42) return "STAR MARKET";
