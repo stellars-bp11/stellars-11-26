@@ -54,7 +54,7 @@ const buildings = [
 
 let player = { x: 8, y: 9, facing: "down", name: "Star Visitor" };
 let save = { job: "", coins: 100, xp: 0, townProgress: 0, homeDecor: 0 };
-let storageKey = SAVE_PREFIX + ":guest";
+let storageKey = SAVE_PREFIX + ":locked";
 let playerUser = null;
 let canPlayWorld = false;
 let lastAccessNoticeAt = 0;
@@ -139,35 +139,42 @@ function requireWorldMember() {
   if (canPlayWorld) return true;
   const now = Date.now();
   if (now - lastAccessNoticeAt > 1800) {
-    showToast("Preview mode — sign in with an active STELLARS account to play.");
+    showToast("STELLARS World is locked for visitor accounts.");
     lastAccessNoticeAt = now;
   }
   return false;
 }
 
 function updateWorldAccessUI() {
-  document.body.classList.toggle("world-guest-preview", !canPlayWorld);
-  const banner = $("worldPreviewBanner");
-  if (banner) banner.hidden = canPlayWorld;
+  const gate = $("worldAccessGate");
+  const intro = $("worldMemberIntro");
+  const game = $("worldGameLayout");
+  const prototypeNote = $("worldPrototypeNote");
+  const accessMessage = $("worldAccessMessage");
+  const signInLink = $("worldSignInLink");
 
-  [
-    $("chooseJobButton"),
-    $("mobileInteract"),
-    ...document.querySelectorAll("[data-move], [data-place]")
-  ].forEach(control => {
-    if (!control) return;
-    control.disabled = !canPlayWorld;
-    control.setAttribute("aria-disabled", String(!canPlayWorld));
-  });
+  if (gate) gate.hidden = canPlayWorld;
+  if (intro) intro.hidden = !canPlayWorld;
+  if (game) game.hidden = !canPlayWorld;
+  if (prototypeNote) prototypeNote.hidden = !canPlayWorld;
 
-  $("saveState").textContent = canPlayWorld ? "● MEMBER SAVE ON" : "● PREVIEW MODE";
   if (!canPlayWorld) {
-    $("taskHint").textContent = "You're viewing a preview. Sign in with an active STELLARS account to explore and play.";
-  } else {
-    $("taskHint").textContent = save.job
-      ? "Your path: " + (jobs.find(item => item.id === save.job)?.name || "your profession") + ". Find your workplace and press E."
-      : "Choose a profession, then explore the town.";
+    if (accessMessage) {
+      accessMessage.textContent = playerUser
+        ? "This account does not have access to STELLARS World. Sign in with an active class account to enter."
+        : "Sign in with an active STELLARS class account to unlock the town.";
+    }
+    if (signInLink) signInLink.hidden = Boolean(playerUser);
+    $("saveState").textContent = "● ACCESS LOCKED";
+    $("taskHint").textContent = "STELLARS World is available only to active class accounts.";
+    return;
   }
+
+  if (signInLink) signInLink.hidden = true;
+  $("saveState").textContent = "● MEMBER SAVE ON";
+  $("taskHint").textContent = save.job
+    ? "Your path: " + (jobs.find(item => item.id === save.job)?.name || "your profession") + ". Find your workplace and press E."
+    : "Choose a profession, then explore the town.";
 }
 
 function setJob(id) {
@@ -740,7 +747,7 @@ function startAuth() {
     player.name = canPlayWorld ? profile.name : "Star Visitor";
     storageKey = canPlayWorld && user
       ? SAVE_PREFIX + ":member:" + user.uid
-      : SAVE_PREFIX + ":guest-preview";
+      : SAVE_PREFIX + ":locked";
     applySave();
     updateWorldAccessUI();
   });
