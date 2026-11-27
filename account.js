@@ -76,6 +76,15 @@ securityMenuButton.textContent = "Secure My Account";
 securityMenuButton.hidden = true;
 menu.insertBefore(securityMenuButton, portalLink);
 
+const profileRetryButton = document.createElement("button");
+profileRetryButton.type = "button";
+profileRetryButton.id = "siteAccountRetryButton";
+profileRetryButton.className = "site-account-security-button";
+profileRetryButton.textContent = "Retry account check";
+profileRetryButton.hidden = true;
+menu.insertBefore(profileRetryButton, portalLink);
+profileRetryButton.addEventListener("click", () => window.location.reload());
+
 const loginDialog = document.createElement("dialog");
 loginDialog.className = "site-login-dialog";
 loginDialog.id = "siteLoginDialog";
@@ -746,8 +755,8 @@ registrationForm.addEventListener("submit", async event => {
         portalLink.textContent = "Open Academic Results";
         portalLink.href = "academic.html";
 
-        if (returnTarget === "academic.html") {
-            window.location.assign("academic.html");
+        if (["academic.html", "world.html"].includes(returnTarget)) {
+            window.location.assign(returnTarget);
         }
     } catch (error) {
         console.error("STELLARS account creation failed:", error);
@@ -896,6 +905,7 @@ authReady
             profileLink.hidden = true;
             logoutButton.hidden = true;
             securityMenuButton.hidden = true;
+            profileRetryButton.hidden = true;
 
             if ((shouldAutoOpenLogin || shouldAutoOpenSecurity) && !loginDialog.open) {
                 shouldAutoOpenLogin = false;
@@ -917,9 +927,14 @@ authReady
         portalLink.href = "academic.html";
         profileLink.hidden = false;
         logoutButton.hidden = false;
+        profileRetryButton.hidden = true;
 
         try {
-            const profileSnapshot = await getDoc(doc(db, "users", user.uid));
+            const profileSnapshot = await waitForAuthOperation(
+                getDoc(doc(db, "users", user.uid)),
+                12000,
+                "Pengecekan profil STELLARS belum merespons."
+            );
             if (profileSnapshot.exists()) {
                 const profile = profileSnapshot.data();
                 const fullName = profile.fullName || user.displayName || "STELLARS Member";
@@ -958,6 +973,12 @@ authReady
             }
         } catch (error) {
             console.error("Could not load the STELLARS account profile:", error);
+            metaLabel.textContent = "Account check failed";
+            profileRetryButton.hidden = false;
+            setMemberOnlyVisibility(false);
+            portalLink.hidden = true;
+            profileLink.hidden = true;
+            securityMenuButton.hidden = true;
             if (shouldAutoOpenSecurity) {
                 shouldAutoOpenSecurity = false;
                 alert("Profil akun belum berhasil dimuat. Muat ulang halaman lalu coba lagi.");
