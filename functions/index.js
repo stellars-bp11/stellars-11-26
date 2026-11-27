@@ -61,20 +61,6 @@ exports.clearExpiredRadioSongs = onSchedule(
  * STELLARS Birthday data is stored privately in Firestore.
  * Only the next celebration is copied into the public preview document.
  */
-function getJakartaDateParts(date = new Date()) {
-    const parts = new Intl.DateTimeFormat("en-CA", {
-        timeZone: "Asia/Jakarta",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit"
-    }).formatToParts(date);
-    return Object.fromEntries(parts.map(part => [part.type, part.value]));
-}
-
-function isBirthdayLeapYear(year) {
-    return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
-}
-
 function isValidBirthdayMonthDay(value) {
     const match = /^(0[1-9]|1[0-2])-([0-9]{2})$/.exec(String(value || ""));
     if (!match) return false;
@@ -86,75 +72,6 @@ function isValidBirthdayMonthDay(value) {
         check.getUTCDate() === day;
 }
 
-function getBirthdayDateUtc(monthDay, year) {
-    let [month, day] = monthDay.split("-").map(Number);
-    if (month === 2 && day === 29 && !isBirthdayLeapYear(year)) {
-        month = 3;
-        day = 1;
-    }
-    return new Date(Date.UTC(year, month - 1, day));
-}
-
-function birthdayDateKey(date) {
-    return [
-        date.getUTCFullYear(),
-        String(date.getUTCMonth() + 1).padStart(2, "0"),
-        String(date.getUTCDate()).padStart(2, "0")
-    ].join("-");
-}
-
-async function publishBirthdayPreview() {
-    const today = getJakartaDateParts();
-    const todayUtc = Date.UTC(Number(today.year), Number(today.month) - 1, Number(today.day));
-    const year = Number(today.year);
-    const roster = await db.collection("birthdayDirectory").get();
-
-    const upcoming = roster.docs.map(snapshot => {
-        const data = snapshot.data() || {};
-        const monthDay = String(data.birthMonthDay || "");
-        const fullName = String(data.fullName || "").trim();
-        if (!isValidBirthdayMonthDay(monthDay) || !fullName) return null;
-
-        let nextDate = getBirthdayDateUtc(monthDay, year);
-        if (nextDate.getTime() < todayUtc) nextDate = getBirthdayDateUtc(monthDay, year + 1);
-        return { fullName, birthMonthDay: monthDay, nextDate, dateKey: birthdayDateKey(nextDate) };
-    }).filter(Boolean).sort((a, b) =>
-        a.nextDate.getTime() - b.nextDate.getTime() || a.fullName.localeCompare(b.fullName)
-    );
-
-    const previewRef = db.collection("birthdayPreview").doc("current");
-    if (!upcoming.length) {
-        await previewRef.set({ people: [], nextDate: "", updatedAt: new Date() });
-        logger.warn("Birthday preview is empty because no valid private birthdays were found.");
-        return { directoryCount: roster.size, previewDate: "", previewPeople: 0 };
-    }
-
-    const nextDate = upcoming[0].dateKey;
-    const people = upcoming
-        .filter(person => person.dateKey === nextDate)
-        .map(({ fullName, birthMonthDay }) => ({ fullName, birthMonthDay }));
-
-    await previewRef.set({ people, nextDate, updatedAt: new Date() });
-    logger.info("Public STELLARS birthday preview refreshed.", {
-        nextDate,
-        peopleCount: people.length,
-        directoryCount: roster.size
-    });
-    return { directoryCount: roster.size, previewDate: nextDate, previewPeople: people.length };
-}
-
-exports.refreshBirthdayPreviewDaily = onSchedule(
-    {
-        schedule: "5 0 * * *",
-        timeZone: "Asia/Jakarta",
-        region: "asia-southeast2",
-        memory: "256MiB",
-        timeoutSeconds: 120
-    },
-    async () => {
-        await publishBirthdayPreview();
-    }
-);
 
 /**
  * One-time STELLARS account reset.
