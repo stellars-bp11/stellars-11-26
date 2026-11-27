@@ -759,7 +759,9 @@ service cloud.firestore {
     function validBirthdayMonthDay(value) {
       return value is string &&
         value.matches('^(01|03|05|07|08|10|12)-(0[1-9]|[12][0-9]|3[01])$|^(04|06|09|11)-(0[1-9]|[12][0-9]|30)$|^02-(0[1-9]|1[0-9]|2[0-9])$');
-    // Only Super Admins maintain it; no member opt-in or self-sharing is used.
+    }
+
+    // Only Super Admins maintain the private calendar; no member opt-in or self-sharing is used.
     match /birthdayDirectory/{memberId} {
       allow get, list: if activeMember();
       allow create, update: if isSuperAdmin() &&
