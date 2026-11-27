@@ -9,9 +9,7 @@ import {
     updatePassword,
     updateProfile,
     deleteUser,
-    signOut,
-    setPersistence,
-    browserLocalPersistence
+    signOut
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
@@ -234,7 +232,22 @@ const securityClose = document.getElementById("siteAccountSecurityClose");
 
 
 
-const authReady = setPersistence(auth, browserLocalPersistence);
+// Firebase Auth uses local persistence by default in browsers, so there is no
+// separate persistence migration to wait for before signing in.
+const authReady = Promise.resolve();
+
+function waitForAuthOperation(operation, timeoutMs, message) {
+    let timeoutId;
+    const timeout = new Promise((_, reject) => {
+        timeoutId = setTimeout(() => {
+            const error = new Error(message);
+            error.code = "auth/timeout";
+            reject(error);
+        }, timeoutMs);
+    });
+    return Promise.race([operation, timeout]).finally(() => clearTimeout(timeoutId));
+}
+
 let registrationInProgress = false;
 const pageParams = new URLSearchParams(window.location.search);
 let shouldAutoOpenLogin = pageParams.get("login") === "1";
@@ -823,8 +836,14 @@ loginForm.addEventListener("submit", async event => {
     loginMessage.dataset.type = "info";
 
     try {
+        loginMessage.textContent = "Menghubungkan ke layanan login…";
         await authReady;
-        await signInWithEmailAndPassword(auth, emailAlias, password);
+        loginMessage.textContent = "Memverifikasi username dan password…";
+        await waitForAuthOperation(
+            signInWithEmailAndPassword(auth, emailAlias, password),
+            15000,
+            "Koneksi ke layanan login belum merespons. Periksa koneksi internet, lalu coba lagi."
+        );
         loginPassword.value = "";
         loginDialog.close();
 
@@ -837,7 +856,8 @@ loginForm.addEventListener("submit", async event => {
             "auth/user-not-found": "Akun tidak ditemukan. Periksa penulisan username.",
             "auth/wrong-password": "Password tidak sesuai.",
             "auth/too-many-requests": "Terlalu banyak percobaan. Coba lagi nanti.",
-            "auth/network-request-failed": "Koneksi bermasalah. Periksa internet lalu coba lagi."
+            "auth/network-request-failed": "Koneksi bermasalah. Periksa internet lalu coba lagi.",
+            "auth/timeout": "Layanan login belum merespons setelah 15 detik. Periksa koneksi lalu coba lagi."
         };
 
         loginMessage.textContent =
@@ -885,6 +905,7 @@ authReady
         }
 
         shouldAutoOpenLogin = false;
+        if (loginDialog.open) loginDialog.close();
         setMemberOnlyVisibility(false);
         portalLink.hidden = true;
         profileLink.hidden = true;
