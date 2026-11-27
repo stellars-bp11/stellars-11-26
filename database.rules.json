@@ -29,6 +29,9 @@
         "moving": {
           ".validate": "newData.isBoolean()"
         },
+        "gender": {
+          ".validate": "newData.val() === 'male' || newData.val() === 'female'"
+        },
         "job": {
           ".validate": "newData.isString() && newData.val().length <= 24"
         },
