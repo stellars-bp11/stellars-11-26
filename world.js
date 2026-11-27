@@ -2761,7 +2761,8 @@ currentWorldPresence = function currentWorldPresenceWithAvatar() {
 const worldPresenceChangeBeforeAvatar = presenceHasChanged;
 presenceHasChanged = function presenceHasChangedWithAvatar(next) {
   if (worldPresenceChangeBeforeAvatar(next)) return true;
-  return next.hairStyle !== lastPresenceState.hairStyle ||
+  return next.shirtColor !== lastPresenceState.shirtColor ||
+    next.hairStyle !== lastPresenceState.hairStyle ||
     next.accessory !== lastPresenceState.accessory ||
     next.pantsColor !== lastPresenceState.pantsColor ||
     next.shoeColor !== lastPresenceState.shoeColor ||
