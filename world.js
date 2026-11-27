@@ -88,6 +88,8 @@ const keys = new Set();
 let playerUser = null;
 let canPlayWorld = false;
 let authSequence = 0;
+let worldProfileStatus = "checking";
+let worldProfileErrorMessage = "";
 let storageKey = SAVE_PREFIX + ":locked";
 let save = {
   job: "", coins: 100, xp: 0, townProgress: 0, homeDecor: 0,
@@ -270,19 +272,31 @@ function updateWorldAccessUI() {
   const note = $("worldPrototypeNote");
   const message = $("worldAccessMessage");
   const signInLink = $("worldSignInLink");
+  const retryButton = $("worldAccountRetryButton");
   if (gate) gate.hidden = canPlayWorld;
   if (intro) intro.hidden = !canPlayWorld;
   if (game) game.hidden = !canPlayWorld;
   if (note) note.hidden = !canPlayWorld;
   if (!canPlayWorld) {
-    if (message) message.textContent = playerUser
-      ? "This account is not an active STELLARS class account."
-      : "Sign in with an active STELLARS class account to unlock the town.";
+    if (worldProfileStatus === "checking") {
+      if (message) message.textContent = "Checking your STELLARS account…";
+    } else if (worldProfileStatus === "error") {
+      if (message) message.textContent = worldProfileErrorMessage ||
+        "We couldn't verify your account right now. Check your connection and try again.";
+    } else if (message) {
+      message.textContent = playerUser
+        ? "This account is not an active STELLARS class account."
+        : "Sign in with an active STELLARS class account to unlock the town.";
+    }
     if (signInLink) signInLink.hidden = Boolean(playerUser);
-    $("saveState").textContent = "● ACCESS LOCKED";
+    if (retryButton) retryButton.hidden = worldProfileStatus !== "error";
+    $("saveState").textContent = worldProfileStatus === "checking"
+      ? "● CHECKING ACCOUNT"
+      : worldProfileStatus === "error" ? "● ACCOUNT CHECK FAILED" : "● ACCESS LOCKED";
     return;
   }
   if (signInLink) signInLink.hidden = true;
+  if ($("worldAccountRetryButton")) $("worldAccountRetryButton").hidden = true;
   $("saveState").textContent = "● LOCAL SAVE";
 }
 function updateCamera() {
@@ -791,8 +805,17 @@ function bindControls() {
 }
 async function loadMemberProfile(user) {
   if (!user) return { active: false, name: "Star", uid: null };
+  let timeoutId = null;
   try {
-    const snapshot = await getDoc(doc(db, "users", user.uid));
+    const profileRead = getDoc(doc(db, "users", user.uid));
+    const timeout = new Promise((_, reject) => {
+      timeoutId = setTimeout(() => {
+        const error = new Error("The STELLARS account check timed out.");
+        error.code = "world/profile-check-timeout";
+        reject(error);
+      }, 12000);
+    });
+    const snapshot = await Promise.race([profileRead, timeout]);
     if (!snapshot.exists()) return { active: false, name: "Star", uid: user.uid };
     const profile = snapshot.data() || {};
     return {
@@ -802,7 +825,17 @@ async function loadMemberProfile(user) {
     };
   } catch (error) {
     console.warn("Could not load STELLARS World profile:", error);
-    return { active: false, name: "Star", uid: user.uid };
+    return {
+      active: false,
+      name: "Star",
+      uid: user.uid,
+      error: true,
+      errorMessage: error.code === "world/profile-check-timeout"
+        ? "The account check is taking longer than usual. Check your connection, then retry."
+        : "We couldn't verify your account right now. Check your connection, then retry."
+    };
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
   }
 }
 function startAuth() {
@@ -810,10 +843,14 @@ function startAuth() {
     const sequence = ++authSequence;
     playerUser = user || null;
     canPlayWorld = false;
+    worldProfileStatus = user ? "checking" : "signed-out";
+    worldProfileErrorMessage = "";
     updateWorldAccessUI();
     const profile = await loadMemberProfile(user);
     if (sequence !== authSequence || (auth.currentUser?.uid || null) !== (user?.uid || null)) return;
     canPlayWorld = profile.active;
+    worldProfileStatus = profile.active ? "active" : profile.error ? "error" : "inactive";
+    worldProfileErrorMessage = profile.errorMessage || "";
     if (!canPlayWorld) {
       stopMultiplayer();
       remotePlayers.clear();
