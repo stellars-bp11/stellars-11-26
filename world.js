@@ -230,8 +230,11 @@ function updateHud() {
   $("playerName").textContent = player.name;
   $("playerJob").textContent = job ? job.name : "New Resident";
   $("avatarInitial").textContent = player.name.slice(0, 1).toUpperCase();
+  const genderText = save.gender === "female" ? "Female character" : save.gender === "male" ? "Male character" : "Choose your character";
   const genderLabel = $("playerGender");
-  if (genderLabel) genderLabel.textContent = save.gender === "female" ? "Female character" : save.gender === "male" ? "Male character" : "Choose your character";
+  if (genderLabel) genderLabel.textContent = genderText;
+  const settingsGenderLabel = $("settingsGenderLabel");
+  if (settingsGenderLabel) settingsGenderLabel.textContent = genderText;
   $("coinCount").textContent = Math.floor(save.coins).toLocaleString("en-US");
   $("xpLabel").textContent = (save.xp % 100) + " / 100 XP";
   $("xpBar").style.width = (save.xp % 100) + "%";
@@ -449,13 +452,16 @@ function drawCharacter(entity, isLocal, time) {
   if (sx < -60 || sx > VIEW_W + 60 || sy < -70 || sy > VIEW_H + 50) return;
   const moving = Boolean(entity.moving);
   const step = moving ? Math.floor(time / 115) % 2 : 0;
-  const palette = [
+  const basePalette = [
     { shirt: "#7b79bd", light: "#aaa4e4", pants: "#34465f", hair: "#44332e" },
     { shirt: "#cf8167", light: "#edac83", pants: "#4b5267", hair: "#49362e" },
     { shirt: "#5e9e83", light: "#9dd1a5", pants: "#394b50", hair: "#2c2929" },
     { shirt: "#6b94bd", light: "#b3d3e8", pants: "#444b6b", hair: "#3b302b" },
     { shirt: "#c18cba", light: "#e5b9da", pants: "#55435e", hair: "#4a302f" }
   ][entity.palette || 0];
+  const palette = entity.gender === "female"
+    ? { ...basePalette, shirt: "#e968ad", light: "#ffc0e4", pants: "#99547f" }
+    : basePalette;
 
   ctx.fillStyle = "rgba(28,54,29,.3)";
   ctx.beginPath();
