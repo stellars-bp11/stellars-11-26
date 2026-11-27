@@ -28,7 +28,7 @@
 <main>
     <span class="eyebrow">STELLARS · ONE-TIME SETUP</span>
     <h1>Birthday Directory</h1>
-    <p>This private setup page imports the class birthday calendar into Firestore. Only an active Super Admin account can submit the import. The JSON file stays on your device and is not uploaded to this website.</p>
+    <p>This private setup page imports the class birthday calendar directly into Firestore. Only an active Super Admin account can submit the import, and Firestore Security Rules verify every write. No Cloud Functions are required. The JSON file stays on your device and is not uploaded to this website.</p>
 
     <section class="panel" id="authPanel">
         <strong id="accountState">Checking STELLARS account…</strong>
@@ -49,8 +49,7 @@
 <script type="module">
     import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
-    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-functions.js";
+    import { getFirestore, collection, doc, getDoc, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyD3ptwKTkLqFCmvrTVJFooFiVLE63mh83c",
@@ -65,9 +64,6 @@
     const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const functions = getFunctions(app, "asia-southeast2");
-    const runImport = httpsCallable(functions, "importBirthdayDirectory");
-
     const authState = document.getElementById("accountState");
     const authHint = document.getElementById("accountHint");
     const importPanel = document.getElementById("importPanel");
@@ -124,13 +120,38 @@
     });
 
     importButton.addEventListener("click", async () => {
-        if (!isSuperAdmin || !currentRecords) return;
+        if (!isSuperAdmin || !currentRecords || !auth.currentUser) return;
         importButton.disabled = true;
         status.className = "";
-        status.textContent = "Importing the private birthday directory…";
+        status.textContent = "Verifying access and checking the existing directory…";
         try {
-            const result = await runImport({ records: currentRecords });
-            const importedCount = result.data?.importedCount || currentRecords.length;
+            // Re-check the account immediately before writing. Firestore Rules
+            // independently enforce the same Super Admin restriction.
+            const profileSnapshot = await getDoc(doc(db, "users", auth.currentUser.uid));
+            const profile = profileSnapshot.exists() ? profileSnapshot.data() || {} : {};
+            const stillSuperAdmin = profile.isActive === true &&
+                ["superAdmin", "super_admin"].includes(profile.role);
+            if (!stillSuperAdmin) {
+                isSuperAdmin = false;
+                importPanel.hidden = true;
+                throw new Error("This account is no longer an active Super Admin.");
+            }
+
+            const existingDirectory = await getDocs(collection(db, "birthdayDirectory"));
+            if (!existingDirectory.empty) {
+                throw new Error("The Birthday Directory already contains data. Import stopped; no records were changed.");
+            }
+
+            // A single Firestore batch writes all 45 documents atomically.
+            // This works on Firebase Spark and does not use Cloud Functions.
+            const batch = writeBatch(db);
+            currentRecords.forEach((record, index) => {
+                const memberId = "member-" + String(index + 1).padStart(3, "0");
+                batch.set(doc(db, "birthdayDirectory", memberId), record);
+            });
+            await batch.commit();
+
+            const importedCount = currentRecords.length;
             status.className = "ok";
             status.textContent = "SUCCESS — " + importedCount + " birthday records imported. The full calendar is now available to active STELLARS class accounts.";
             fileSummary.textContent = importedCount + " records imported successfully.";
@@ -138,8 +159,8 @@
             fileInput.value = "";
         } catch (error) {
             status.className = "error";
-            status.textContent = error.message || "The import failed. No existing birthday records were overwritten.";
-            importButton.disabled = !currentRecords;
+            status.textContent = error.message || "The import failed. Check the Firestore Rules deployment and try again.";
+            importButton.disabled = !currentRecords || !isSuperAdmin;
         }
     });
 
