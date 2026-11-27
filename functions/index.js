@@ -202,7 +202,7 @@ exports.importBirthdayDirectory = onCall(
         const cleanRecords = records.map((record, index) => {
             const fullName = String(record?.fullName || "").trim();
             const birthMonthDay = String(record?.birthMonthDay || "").trim();
-            const normalizedName = fullName.normalize("NFKD").replace(/[\\u0300-\\u036f]/g, "")
+            const normalizedName = fullName.normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
                 .toLocaleLowerCase("id-ID").replace(/[^a-z0-9]+/g, " ").trim();
 
             if (!fullName || fullName.length > 100 || !isValidBirthdayMonthDay(birthMonthDay)) {
@@ -216,28 +216,24 @@ exports.importBirthdayDirectory = onCall(
         });
 
         const directoryRef = db.collection("birthdayDirectory");
-        const existing = await directoryRef.get();
-        if (!existing.empty && request.data?.replaceExisting !== true) {
+        const existing = await directoryRef.limit(1).get();
+        if (!existing.empty) {
             throw new HttpsError(
                 "failed-precondition",
-                "The birthday directory already contains data. Set replaceExisting=true only when intentionally replacing it."
+                "The birthday directory already contains records. No data was changed."
             );
         }
 
         const batch = db.batch();
-        existing.docs.forEach(document => batch.delete(document.ref));
         cleanRecords.forEach((record, index) => {
             const documentId = "member-" + String(index + 1).padStart(3, "0");
-            batch.set(directoryRef.doc(documentId), record);
+            batch.create(directoryRef.doc(documentId), record);
         });
         await batch.commit();
 
-        const preview = await publishBirthdayPreview();
         return {
             success: true,
-            importedCount: cleanRecords.length,
-            previewDate: preview.previewDate,
-            previewPeople: preview.previewPeople
+            importedCount: cleanRecords.length
         };
     }
 );
