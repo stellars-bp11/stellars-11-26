@@ -87,6 +87,8 @@ const memoryCache = new Map();
 const libraryGrid = document.getElementById("libraryGrid");
 const libraryMemberContent = document.getElementById("libraryMemberContent");
 const libraryAccessGate = document.getElementById("libraryAccessGate");
+const libraryAccessMessage = document.getElementById("libraryAccessMessage");
+const libraryAccessLink = document.getElementById("libraryAccessLink");
 const addMemoryBtn = document.getElementById("addMemoryBtn");
 const modalOverlay = document.getElementById("modalOverlay");
 const modalCloseBtn = document.getElementById("modalCloseBtn");
@@ -603,23 +605,34 @@ onAuthStateChanged(auth, async (user) => {
     setLibraryAccess(false);
     updateDeleteButtons();
 
+    if (!user) {
+        if (libraryAccessMessage) libraryAccessMessage.textContent = "Sign in with an active STELLARS account to revisit shared class memories.";
+        if (libraryAccessLink) libraryAccessLink.hidden = false;
+    }
+
     if (user) {
+        if (libraryAccessMessage) libraryAccessMessage.textContent = "Checking your STELLARS account…";
+        if (libraryAccessLink) libraryAccessLink.hidden = true;
         try {
             const profileSnapshot = await getDoc(doc(db, "users", user.uid));
             if (auth.currentUser?.uid !== user.uid) return;
 
             const profile = profileSnapshot.exists() ? profileSnapshot.data() : null;
+            isActiveMember = !!profile && profile.isActive === true;
+            if (libraryAccessMessage && !isActiveMember) {
+                libraryAccessMessage.textContent = profile
+                    ? "Your account is signed in, but it is not active yet. Contact a STELLARS administrator."
+                    : "Your STELLARS profile could not be found. Contact a STELLARS administrator.";
+            }
             const normalizedRole = String(profile?.role || "").trim().toLowerCase();
-            const allowedRoles = ["student", "member", "admin", "superadmin", "super_admin"];
-            isActiveMember = !!profile &&
-                profile.isActive === true &&
-                allowedRoles.includes(normalizedRole);
             isSuperAdmin = isActiveMember &&
                 ["superadmin", "super_admin"].includes(normalizedRole);
             isLibraryEditor = isActiveMember &&
                 (isSuperAdmin || profile.canManageLibrary === true);
         } catch (error) {
             console.error("Could not verify Library member role:", error);
+            if (libraryAccessMessage) libraryAccessMessage.textContent = "We couldn't verify this account right now. Refresh the page and try again.";
+            if (libraryAccessLink) libraryAccessLink.hidden = true;
             isActiveMember = false;
             isSuperAdmin = false;
             isLibraryEditor = false;
