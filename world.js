@@ -813,7 +813,7 @@ const resourceSpots = [
   { id: "star-3", x: 108.5 * TILE, y: 91.5 * TILE, item: "starShard", amount: 1 }
 ];
 const interiorRooms = {
-  library: { station: { x: 310, y: 280, label: "BOOK SORTING DESK" }, floor: "#b98d60", wall: "#79609a" },
+  library: { station: { x: 670, y: 315, label: "BOOK SORTING DESK" }, floor: "#b98d60", wall: "#79609a" },
   townhall: { station: { x: 930, y: 285, label: "MURAL CANVAS" }, floor: "#bd9364", wall: "#a75e4d" },
   cafe: { station: { x: 920, y: 315, label: "COFFEE COUNTER" }, floor: "#b77f60", wall: "#9b604f" },
   home: { station: { x: 350, y: 330, label: "HOME CORNER" }, floor: "#b28a67", wall: "#657d9d" },
@@ -833,6 +833,19 @@ const indoorStaff = {
 };
 let insideBuilding = null;
 let outsidePosition = null;
+persist = function persistTownSave(force = false) {
+  const now = Date.now();
+  if (!force && now - lastSaveAt < 700) return;
+  lastSaveAt = now;
+  const position = insideBuilding && outsidePosition ? outsidePosition : player;
+  try {
+    localStorage.setItem(storageKey, JSON.stringify({ ...save, x: position.x, y: position.y }));
+    $("saveState").textContent = "● LOCAL SAVE";
+  } catch (error) {
+    $("saveState").textContent = "● SAVE UNAVAILABLE";
+    console.warn("Could not save STELLARS World progress:", error);
+  }
+};
 
 function createTownSave() {
   return {
