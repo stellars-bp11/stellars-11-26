@@ -100,6 +100,19 @@
             <button type="button" data-world-emote="✨" aria-label="Sparkles">✨</button>
             <small>Visible to nearby players</small>
           </div>
+          <section class="world-chat-panel" aria-label="STELLARS World chat">
+            <div class="world-chat-heading">
+              <div><strong>✦ TOWN CHAT</strong><small id="worldChatStatus" role="status">WAITING FOR WORLD…</small></div>
+              <span>CLASS MEMBERS</span>
+            </div>
+            <div class="world-chat-messages" id="worldChatMessages" role="log" aria-live="polite" aria-relevant="additions"></div>
+            <form class="world-chat-form" id="worldChatForm">
+              <label class="visually-hidden" for="worldChatInput">Write a message to town chat</label>
+              <input id="worldChatInput" type="text" maxlength="180" autocomplete="off" placeholder="Say something to the town…" />
+              <button id="worldChatSend" type="submit" disabled aria-label="Send message">SEND ↗</button>
+            </form>
+            <p class="world-chat-note">Keep it kind. Messages are visible to active STELLARS members.</p>
+          </section>
         </section>
 
         <aside class="world-sidebar">
@@ -283,7 +296,7 @@
     </div>
   </dialog>
 
-  <script type="module" src="world.js?v=world-account-check-v9-20261127"></script>
+  <script type="module" src="world.js?v=world-live-chat-v1-20261128"></script>
   <script src="letters-launcher.js?v=radio-comment-notifications-v8-20261127" defer></script>
 </body>
 </html>

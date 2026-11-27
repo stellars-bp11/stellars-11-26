@@ -4,16 +4,13 @@ import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12
 import {
   getDatabase, ref as databaseRef, get as databaseGet,
   onChildAdded, onChildChanged, onChildRemoved,
-  set as databaseSet, onDisconnect, remove as databaseRemove, serverTimestamp
+  set as databaseSet, onDisconnect, remove as databaseRemove, serverTimestamp,
+  push as databasePush, query as databaseQuery, orderByKey, limitToLast
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
 
 /*
- * STELLARS WORLD — Top-down single-player prototype.
- * Multiplayer-ready seam:
- * - The renderer accepts a collection of player entities.
- * - The local player already has a stable UID and serializable position state.
- * - A future Realtime Database adapter can call STELLARSWorld.setRemotePlayers().
- * No remote synchronization is enabled in this test.
+ * STELLARS WORLD — Top-down multiplayer town.
+ * Live player presence and class chat are synchronized through Firebase Realtime Database.
  */
 const firebaseConfig = {
   apiKey: "AIzaSyD3ptwKTkLqFCmvrTVJFooFiVLE63mh83c",
@@ -1835,6 +1832,104 @@ enterTownBuilding = function enterTownBuildingWithQuests(building) {
 };
 
 
+// ── LIVE WORLD CHAT (Firebase Realtime Database) ────────────────────────────
+const WORLD_CHAT_PATH = "worldChat";
+const WORLD_CHAT_LIMIT = 40;
+const WORLD_CHAT_MAX_LENGTH = 180;
+let worldChatUnsubscribe = null;
+let worldChatReady = false;
+let worldChatSendPending = false;
+
+function formatWorldChatTime(timestamp) {
+  const date = new Date(Number(timestamp));
+  if (!Number.isFinite(date.getTime())) return "";
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Jakarta", hour: "2-digit", minute: "2-digit", hour12: false
+  }).format(date);
+}
+function appendWorldChatMessage(message, messageId) {
+  const list = $("worldChatMessages");
+  if (!list || !message || typeof message.text !== "string") return;
+  if (list.querySelector('[data-message-id="' + messageId + '"]')) return;
+  const item = document.createElement("article");
+  item.className = "world-chat-message";
+  item.dataset.messageId = messageId;
+  const meta = document.createElement("div");
+  meta.className = "world-chat-message-meta";
+  const sender = document.createElement("strong");
+  sender.textContent = String(message.senderName || "Star").slice(0, 24);
+  const time = document.createElement("time");
+  time.textContent = formatWorldChatTime(message.createdAt);
+  meta.append(sender, time);
+  const body = document.createElement("p");
+  body.textContent = message.text.slice(0, WORLD_CHAT_MAX_LENGTH);
+  item.append(meta, body);
+  list.append(item);
+  while (list.children.length > WORLD_CHAT_LIMIT) list.firstElementChild.remove();
+  list.scrollTop = list.scrollHeight;
+}
+function setWorldChatStatus(label, ready = false) {
+  const status = $("worldChatStatus");
+  const send = $("worldChatSend");
+  if (status) status.textContent = label;
+  worldChatReady = ready;
+  if (send) send.disabled = !ready || worldChatSendPending;
+}
+function startWorldChat() {
+  stopWorldChat();
+  if (!canPlayWorld || !player.uid || player.uid === "local-preview") return;
+  const messagesRef = databaseQuery(
+    databaseRef(realtimeDb, WORLD_CHAT_PATH), orderByKey(), limitToLast(WORLD_CHAT_LIMIT)
+  );
+  const list = $("worldChatMessages");
+  if (list) list.replaceChildren();
+  setWorldChatStatus("CONNECTING…");
+  worldChatUnsubscribe = onChildAdded(messagesRef, snapshot => {
+    appendWorldChatMessage(snapshot.val(), snapshot.key);
+    setWorldChatStatus("LIVE CHAT", true);
+  }, error => {
+    console.warn("STELLARS World chat listener failed:", error);
+    setWorldChatStatus("CHAT UNAVAILABLE");
+  });
+}
+function stopWorldChat() {
+  if (worldChatUnsubscribe) {
+    worldChatUnsubscribe();
+    worldChatUnsubscribe = null;
+  }
+  worldChatReady = false;
+  worldChatSendPending = false;
+  const send = $("worldChatSend");
+  if (send) send.disabled = true;
+}
+async function sendWorldChatMessage() {
+  if (!requireWorldMember() || !worldChatReady || worldChatSendPending) return;
+  const input = $("worldChatInput");
+  const text = String(input?.value || "").trim().slice(0, WORLD_CHAT_MAX_LENGTH);
+  if (!text) return;
+  worldChatSendPending = true;
+  setWorldChatStatus("SENDING…", true);
+  try {
+    const messageRef = databasePush(databaseRef(realtimeDb, WORLD_CHAT_PATH));
+    await databaseSet(messageRef, {
+      senderUid: player.uid,
+      senderName: firstName(player.name).slice(0, 24),
+      text,
+      createdAt: serverTimestamp()
+    });
+    input.value = "";
+    setWorldChatStatus("LIVE CHAT", true);
+  } catch (error) {
+    console.warn("STELLARS World chat send failed:", error);
+    setWorldChatStatus("SEND FAILED");
+    showToast("Chat couldn't send. Check the Realtime Database Rules.");
+  } finally {
+    worldChatSendPending = false;
+    const send = $("worldChatSend");
+    if (send) send.disabled = !worldChatReady;
+  }
+}
+
 // ── LIVE MULTIPLAYER PRESENCE (Firebase Realtime Database) ──────────────────
 const WORLD_MEMBER_ALLOWLIST = "worldMembers";
 const WORLD_PLAYER_PATH = "worldPlayers";
@@ -1935,6 +2030,7 @@ async function startMultiplayer() {
     lastPresenceWriteAt = performance.now();
     lastPresenceState = currentWorldPresence();
     setWorldNetworkStatus("WORLD LIVE", 1);
+    startWorldChat();
   } catch (error) {
     console.warn("Could not connect STELLARS World multiplayer:", error);
     if (sequence !== multiplayerSequence) return;
@@ -1951,6 +2047,7 @@ async function startMultiplayer() {
   }
 }
 function stopMultiplayer() {
+  stopWorldChat();
   multiplayerSequence++;
   if (worldPresenceUnsubscribe) { worldPresenceUnsubscribe(); worldPresenceUnsubscribe = null; }
   if (worldPresenceRef) {
@@ -1979,8 +2076,8 @@ function syncWorldPresence(frameTime) {
 
 
 // ── LOCAL-FIRST WORLD EXPANSION DATA ────────────────────────────────────────
-// All quests, achievements, profession data, and mini-game progress stay in
-// this member's browser save. Firebase remains responsible for presence only.
+// Quests, achievements, profession data, and mini-game progress stay in
+// this member's browser save. Firebase also carries live presence and chat.
 DEFAULT_INVENTORY.fish = 0;
 DEFAULT_INVENTORY.shell = 0;
 if (!INVENTORY_ITEMS.some(item => item.key === "fish")) {
@@ -3270,6 +3367,16 @@ document.querySelectorAll("[data-world-emote]").forEach(button => {
 });
 $("editHomeLayoutButton").addEventListener("click", toggleHomeLayoutEditor);
 $("expandHomeButton").addEventListener("click", buyHomeExpansion);
+$("worldChatForm").addEventListener("submit", event => {
+  event.preventDefault();
+  void sendWorldChatMessage();
+});
+$("worldChatInput").addEventListener("keydown", event => {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    void sendWorldChatMessage();
+  }
+});
 drawClock();
 // The in-game clock now advances locally with the World day/night cycle.
 startAuth();

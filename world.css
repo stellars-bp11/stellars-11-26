@@ -674,3 +674,48 @@ kbd { min-width: 55px; padding: 5px 6px; border: 1px solid rgba(201,230,177,.22)
   .world-feature-dialog { padding: 16px; }
   .home-editor-controls .pixel-button { flex: 1; }
 }
+
+
+/* STELLARS World live town chat */
+.world-chat-panel {
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid rgba(201,230,177,.15);
+  border-radius: 8px;
+  background: linear-gradient(145deg,rgba(25,41,30,.96),rgba(13,25,19,.96));
+}
+.world-chat-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:9px; }
+.world-chat-heading strong { display:block; color:#f1dfaa; font:9px var(--silk); letter-spacing:.8px; }
+.world-chat-heading small { display:block; margin-top:5px; color:#9fb394; font:8px var(--silk); letter-spacing:.5px; }
+.world-chat-heading > span { color:#82977e; font:7px var(--silk); letter-spacing:.5px; }
+.world-chat-messages {
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  height:190px;
+  overflow-y:auto;
+  padding:9px;
+  border:1px solid rgba(201,230,177,.1);
+  border-radius:6px;
+  background:rgba(5,13,8,.34);
+  scrollbar-width:thin;
+  scrollbar-color:#617b5d transparent;
+}
+.world-chat-message { max-width:100%; padding:7px 9px; border:1px solid rgba(201,230,177,.1); border-radius:6px; background:rgba(255,255,255,.035); overflow-wrap:anywhere; }
+.world-chat-message-meta { display:flex; align-items:center; gap:9px; }
+.world-chat-message-meta strong { color:#dce9c9; font-size:10px; }
+.world-chat-message-meta time { color:#81917e; font-size:9px; }
+.world-chat-message p { margin:4px 0 0; color:#f0eee0; font-size:11px; line-height:1.45; white-space:pre-wrap; }
+.world-chat-form { display:flex; gap:7px; margin-top:9px; }
+.world-chat-form input { min-width:0; flex:1; height:39px; padding:0 11px; border:1px solid rgba(201,230,177,.2); border-radius:6px; outline:none; color:#f4f0df; background:rgba(5,13,8,.45); font:11px var(--body); }
+.world-chat-form input:focus { border-color:rgba(244,216,139,.65); }
+.world-chat-form input::placeholder { color:#81917e; }
+.world-chat-form button { min-width:75px; padding:0 11px; border:1px solid rgba(244,216,139,.35); border-radius:6px; color:#f5e6b5; background:rgba(244,216,139,.1); font:8px var(--silk); cursor:pointer; }
+.world-chat-form button:disabled { opacity:.42; cursor:not-allowed; }
+.world-chat-note { margin:8px 0 0; color:#84947f; font-size:9px; line-height:1.4; }
+.visually-hidden { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+@media (max-width:560px) {
+  .world-chat-panel { padding:10px; }
+  .world-chat-messages { height:170px; }
+  .world-chat-form button { min-width:66px; }
+}

@@ -272,3 +272,22 @@ For this first networking stage, live character positions, first names,
 profession labels, and building/area are shared. Inventory, crops, coins, and
 profession progress remain local to each browser and are not yet a shared
 economy.
+
+
+## STELLARS World — live town chat
+
+The World chat uses the same Realtime Database and active-member allowlist as
+multiplayer presence. It stores only the sender UID, first name, message text,
+and server timestamp. Messages are limited to 180 characters; the client shows
+the latest 40 messages. Members can create messages but cannot edit or delete
+messages from the client.
+
+After pulling the latest repository changes, publish the updated database rules:
+
+```bash
+firebase deploy --only database --project class-web-7241e
+```
+
+The chat becomes available after the member is allowlisted and the Realtime
+Database Rules deployment succeeds. GitHub Pages deployment alone does not
+publish these rules.
