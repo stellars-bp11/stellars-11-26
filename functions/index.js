@@ -58,8 +58,8 @@ exports.clearExpiredRadioSongs = onSchedule(
 );
 
 /**
- * Publish only the next birthday celebration for the public homepage.
- * The complete roster remains in the member-only birthdayDirectory collection.
+ * STELLARS Birthday data is stored privately in Firestore.
+ * Only the next celebration is copied into the public preview document.
  */
 function getJakartaDateParts(date = new Date()) {
     const parts = new Intl.DateTimeFormat("en-CA", {
@@ -73,6 +73,17 @@ function getJakartaDateParts(date = new Date()) {
 
 function isBirthdayLeapYear(year) {
     return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+}
+
+function isValidBirthdayMonthDay(value) {
+    const match = /^(0[1-9]|1[0-2])-([0-9]{2})$/.exec(String(value || ""));
+    if (!match) return false;
+    const month = Number(match[1]);
+    const day = Number(match[2]);
+    const check = new Date(Date.UTC(2000, month - 1, day));
+    return check.getUTCFullYear() === 2000 &&
+        check.getUTCMonth() === month - 1 &&
+        check.getUTCDate() === day;
 }
 
 function getBirthdayDateUtc(monthDay, year) {
@@ -92,6 +103,46 @@ function birthdayDateKey(date) {
     ].join("-");
 }
 
+async function publishBirthdayPreview() {
+    const today = getJakartaDateParts();
+    const todayUtc = Date.UTC(Number(today.year), Number(today.month) - 1, Number(today.day));
+    const year = Number(today.year);
+    const roster = await db.collection("birthdayDirectory").get();
+
+    const upcoming = roster.docs.map(snapshot => {
+        const data = snapshot.data() || {};
+        const monthDay = String(data.birthMonthDay || "");
+        const fullName = String(data.fullName || "").trim();
+        if (!isValidBirthdayMonthDay(monthDay) || !fullName) return null;
+
+        let nextDate = getBirthdayDateUtc(monthDay, year);
+        if (nextDate.getTime() < todayUtc) nextDate = getBirthdayDateUtc(monthDay, year + 1);
+        return { fullName, birthMonthDay: monthDay, nextDate, dateKey: birthdayDateKey(nextDate) };
+    }).filter(Boolean).sort((a, b) =>
+        a.nextDate.getTime() - b.nextDate.getTime() || a.fullName.localeCompare(b.fullName)
+    );
+
+    const previewRef = db.collection("birthdayPreview").doc("current");
+    if (!upcoming.length) {
+        await previewRef.set({ people: [], nextDate: "", updatedAt: new Date() });
+        logger.warn("Birthday preview is empty because no valid private birthdays were found.");
+        return { directoryCount: roster.size, previewDate: "", previewPeople: 0 };
+    }
+
+    const nextDate = upcoming[0].dateKey;
+    const people = upcoming
+        .filter(person => person.dateKey === nextDate)
+        .map(({ fullName, birthMonthDay }) => ({ fullName, birthMonthDay }));
+
+    await previewRef.set({ people, nextDate, updatedAt: new Date() });
+    logger.info("Public STELLARS birthday preview refreshed.", {
+        nextDate,
+        peopleCount: people.length,
+        directoryCount: roster.size
+    });
+    return { directoryCount: roster.size, previewDate: nextDate, previewPeople: people.length };
+}
+
 exports.refreshBirthdayPreviewDaily = onSchedule(
     {
         schedule: "5 0 * * *",
@@ -101,37 +152,7 @@ exports.refreshBirthdayPreviewDaily = onSchedule(
         timeoutSeconds: 120
     },
     async () => {
-        const today = getJakartaDateParts();
-        const todayUtc = Date.UTC(Number(today.year), Number(today.month) - 1, Number(today.day));
-        const year = Number(today.year);
-        const roster = await db.collection("birthdayDirectory").get();
-
-        const upcoming = roster.docs.map(snapshot => {
-            const data = snapshot.data() || {};
-            const monthDay = String(data.birthMonthDay || "");
-            const fullName = String(data.fullName || "").trim();
-            if (!/^(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/.test(monthDay) || !fullName) return null;
-            let nextDate = getBirthdayDateUtc(monthDay, year);
-            if (nextDate.getTime() < todayUtc) nextDate = getBirthdayDateUtc(monthDay, year + 1);
-            return { fullName, birthMonthDay: monthDay, nextDate, dateKey: birthdayDateKey(nextDate) };
-        }).filter(Boolean).sort((a, b) =>
-            a.nextDate.getTime() - b.nextDate.getTime() || a.fullName.localeCompare(b.fullName)
-        );
-
-        const previewRef = db.collection("birthdayPreview").doc("current");
-        if (!upcoming.length) {
-            await previewRef.set({ people: [], nextDate: "", updatedAt: new Date() });
-            logger.warn("Birthday preview is empty because no valid private birthdays were found.");
-            return;
-        }
-
-        const nextDate = upcoming[0].dateKey;
-        const people = upcoming
-            .filter(person => person.dateKey === nextDate)
-            .map(({ fullName, birthMonthDay }) => ({ fullName, birthMonthDay }));
-
-        await previewRef.set({ people, nextDate, updatedAt: new Date() });
-        logger.info("Public STELLARS birthday preview refreshed.", { nextDate, peopleCount: people.length });
+        await publishBirthdayPreview();
     }
 );
 
@@ -148,6 +169,78 @@ exports.refreshBirthdayPreviewDaily = onSchedule(
  */
 const { getAuth } = require("firebase-admin/auth");
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
+
+/**
+ * One-time private birthday roster import.
+ * The roster is supplied by an authenticated Super Admin and is never embedded
+ * in the public website or this source file.
+ */
+exports.importBirthdayDirectory = onCall(
+    {
+        region: "asia-southeast2",
+        timeoutSeconds: 180,
+        memory: "256MiB",
+        cors: true
+    },
+    async request => {
+        if (!request.auth) {
+            throw new HttpsError("unauthenticated", "Sign in with an active STELLARS Super Admin account.");
+        }
+
+        const profileSnapshot = await db.collection("users").doc(request.auth.uid).get();
+        const profile = profileSnapshot.exists ? profileSnapshot.data() || {} : {};
+        if (profile.isActive !== true || !["superAdmin", "super_admin"].includes(profile.role)) {
+            throw new HttpsError("permission-denied", "Only an active STELLARS Super Admin can import the birthday directory.");
+        }
+
+        const records = request.data?.records;
+        if (!Array.isArray(records) || records.length < 1 || records.length > 100) {
+            throw new HttpsError("invalid-argument", "The birthday import must contain between 1 and 100 records.");
+        }
+
+        const seenNames = new Set();
+        const cleanRecords = records.map((record, index) => {
+            const fullName = String(record?.fullName || "").trim();
+            const birthMonthDay = String(record?.birthMonthDay || "").trim();
+            const normalizedName = fullName.normalize("NFKD").replace(/[\\u0300-\\u036f]/g, "")
+                .toLocaleLowerCase("id-ID").replace(/[^a-z0-9]+/g, " ").trim();
+
+            if (!fullName || fullName.length > 100 || !isValidBirthdayMonthDay(birthMonthDay)) {
+                throw new HttpsError("invalid-argument", "Birthday record " + (index + 1) + " has an invalid name or month/day.");
+            }
+            if (seenNames.has(normalizedName)) {
+                throw new HttpsError("invalid-argument", "The birthday import contains a duplicate name: " + fullName);
+            }
+            seenNames.add(normalizedName);
+            return { fullName, birthMonthDay };
+        });
+
+        const directoryRef = db.collection("birthdayDirectory");
+        const existing = await directoryRef.get();
+        if (!existing.empty && request.data?.replaceExisting !== true) {
+            throw new HttpsError(
+                "failed-precondition",
+                "The birthday directory already contains data. Set replaceExisting=true only when intentionally replacing it."
+            );
+        }
+
+        const batch = db.batch();
+        existing.docs.forEach(document => batch.delete(document.ref));
+        cleanRecords.forEach((record, index) => {
+            const documentId = "member-" + String(index + 1).padStart(3, "0");
+            batch.set(directoryRef.doc(documentId), record);
+        });
+        await batch.commit();
+
+        const preview = await publishBirthdayPreview();
+        return {
+            success: true,
+            importedCount: cleanRecords.length,
+            previewDate: preview.previewDate,
+            previewPeople: preview.previewPeople
+        };
+    }
+);
 
 const RESET_SUPER_ADMINS = [
     "jasper vladino alvis",
