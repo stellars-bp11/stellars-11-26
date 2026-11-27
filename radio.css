@@ -482,6 +482,18 @@
 }
 .radio-search-button:disabled { opacity: .55; cursor: wait; }
 .artwork-search-row > span { color: #9b94aa; font-size: 9px; }
+.radio-spotify-tools { display: grid; gap: 9px; margin-top: 12px; padding: 12px; border: 1px solid rgba(29, 185, 84, .22); border-radius: 12px; background: #f7fbf7; }
+.radio-spotify-search-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.radio-spotify-search-row > span,
+.radio-spotify-help { color: #818b83; font-size: 9px; line-height: 1.5; }
+.radio-spotify-search-button,
+.radio-spotify-use-button { display: inline-flex; min-height: 36px; align-items: center; justify-content: center; gap: 7px; padding: 0 12px; border: 1px solid rgba(29, 185, 84, .25); border-radius: 9px; color: #176b38; background: #e8f7ec; font-family: inherit; font-size: 10px; font-weight: 700; cursor: pointer; }
+.radio-spotify-search-button i { font-size: 15px; }
+.radio-spotify-link-field { gap: 6px; }
+.radio-spotify-link-row { display: flex; gap: 7px; }
+.radio-spotify-link-row input { min-width: 0; flex: 1; }
+.radio-spotify-use-button { flex: 0 0 auto; }
+.radio-spotify-use-button:disabled { opacity: .55; cursor: wait; }
 .radio-artwork-results { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; max-height: 210px; overflow: auto; margin-top: 12px; }
 .radio-artwork-results[hidden] { display: none; }
 .artwork-result {

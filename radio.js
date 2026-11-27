@@ -58,6 +58,9 @@ const elements = {
     artist: document.getElementById("artistNameInput"),
     story: document.getElementById("songStoryInput"),
     searchButton: document.getElementById("searchArtworkBtn"),
+    spotifySearchButton: document.getElementById("searchSpotifyBtn"),
+    spotifyUrl: document.getElementById("spotifyTrackUrlInput"),
+    spotifyArtworkButton: document.getElementById("useSpotifyArtworkBtn"),
     results: document.getElementById("artworkResults"),
     upload: document.getElementById("artworkUploadInput"),
     cover: document.getElementById("coverPreview"),
@@ -1076,6 +1079,116 @@ function searchItunesArtworkJsonp(searchUrl, timeoutMs = 15000) {
     });
 }
 
+function openSpotifySearch() {
+    const songTitle = elements.title.value.trim();
+    const artistName = elements.artist.value.trim();
+    const searchUrl = buildSpotifySearchUrl(songTitle, artistName);
+    if (!searchUrl) {
+        setComposerMessage("Enter a song title or artist before searching Spotify.", "error");
+        return;
+    }
+    // Open only in response to the user's click; no Spotify credentials are embedded.
+    window.open(searchUrl, "_blank", "noopener,noreferrer");
+}
+
+function validateSpotifyTrackOrAlbumUrl(value) {
+    let url;
+    try {
+        url = new URL(value);
+    } catch {
+        throw new Error("Paste a valid Spotify track or album link.");
+    }
+
+    if (url.protocol !== "https:") {
+        throw new Error("Spotify links must use HTTPS.");
+    }
+
+    const host = url.hostname.toLowerCase();
+    if (host === "spotify.link" || host === "www.spotify.link") {
+        return url.toString();
+    }
+    if (host !== "open.spotify.com" && host !== "www.open.spotify.com") {
+        throw new Error("Use a link from open.spotify.com or spotify.link.");
+    }
+
+    const segments = url.pathname.split("/").filter(Boolean);
+    const typeIndex = segments.findIndex(segment => segment === "track" || segment === "album");
+    if (typeIndex < 0 || !segments[typeIndex + 1]) {
+        throw new Error("Use a Spotify song (track) or album link, not a search or artist page.");
+    }
+    return url.toString();
+}
+
+async function useSpotifyArtwork() {
+    const rawUrl = elements.spotifyUrl.value.trim();
+    if (!rawUrl) {
+        setComposerMessage("Paste a Spotify track or album link first.", "error");
+        elements.spotifyUrl.focus();
+        return;
+    }
+
+    let spotifyUrl;
+    try {
+        spotifyUrl = validateSpotifyTrackOrAlbumUrl(rawUrl);
+    } catch (error) {
+        setComposerMessage(error.message, "error");
+        return;
+    }
+
+    elements.spotifyArtworkButton.disabled = true;
+    elements.spotifyArtworkButton.textContent = "Loading…";
+    setComposerMessage("Getting the cover from Spotify…", "info");
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+    try {
+        const endpoint = "https://open.spotify.com/oembed?url=" + encodeURIComponent(spotifyUrl);
+        const response = await fetch(endpoint, { signal: controller.signal });
+        if (!response.ok) {
+            throw new Error(response.status === 404
+                ? "Spotify could not find that track or album link."
+                : "Spotify could not provide artwork for that link right now.");
+        }
+
+        const metadata = await response.json();
+        const thumbnailUrl = String(metadata.thumbnail_url || "");
+        if (!thumbnailUrl || new URL(thumbnailUrl).protocol !== "https:") {
+            throw new Error("Spotify did not return a usable cover for that link.");
+        }
+
+        uploadedArtworkFile = null;
+        elements.upload.value = "";
+        elements.results.querySelectorAll(".artwork-result").forEach(item => {
+            item.setAttribute("aria-pressed", "false");
+        });
+
+        selectedArtwork = {
+            url: thumbnailUrl,
+            source: "spotify",
+            storeUrl: spotifyUrl,
+            albumName: String(metadata.title || "Spotify artwork")
+        };
+        setCoverPreview(
+            thumbnailUrl,
+            String(metadata.title || "Spotify cover selected"),
+            "Cover loaded from Spotify. You can replace it manually if needed."
+        );
+        setComposerMessage("Spotify cover selected. You can now share your song.", "success");
+    } catch (error) {
+        console.error("Spotify artwork lookup failed:", error);
+        setComposerMessage(
+            error.name === "AbortError"
+                ? "Spotify took too long to return the cover. Try again or upload the image manually."
+                : (error.message || "Spotify artwork could not be loaded. Try another link."),
+            "error"
+        );
+    } finally {
+        clearTimeout(timeoutId);
+        elements.spotifyArtworkButton.disabled = false;
+        elements.spotifyArtworkButton.textContent = "Use cover";
+    }
+}
+
 async function searchArtwork() {
     const songTitle = elements.title.value.trim();
     const artistName = elements.artist.value.trim();
@@ -1331,6 +1444,8 @@ elements.signInButton.addEventListener("click", () => {
     window.location.assign("radio.html?login=1");
 });
 elements.searchButton.addEventListener("click", searchArtwork);
+ elements.spotifySearchButton.addEventListener("click", openSpotifySearch);
+ elements.spotifyArtworkButton.addEventListener("click", useSpotifyArtwork);
 elements.upload.addEventListener("change", () => previewUploadedArtwork(elements.upload.files?.[0]));
 elements.story.addEventListener("input", () => {
     elements.storyCount.textContent = `${elements.story.value.length} / 240`;

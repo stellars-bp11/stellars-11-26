@@ -13,7 +13,7 @@
 
     <link rel="stylesheet" href="account.css?v=activation-v1-20261125">
     <link rel="stylesheet" href="responsive.css">
-    <link rel="stylesheet" href="radio.css?v=threaded-song-comments-v2-20261127">
+    <link rel="stylesheet" href="radio.css?v=spotify-artwork-fallback-v1-20261128">
     <link rel="stylesheet" href="playful-theme.css?v=simple-motion-20261125">
     <link rel="icon" type="image/svg+xml" href="favicon.svg?v=stellars-constellation-20261125">
     <meta name="theme-color" content="#17152D">
@@ -209,7 +209,27 @@
                 <button class="radio-search-button" id="searchArtworkBtn" type="button">
                     <i class="bx bx-search"></i> Find album artwork
                 </button>
-                <span>Search powered by Apple Music catalog</span>
+                <span>Apple Music catalog search</span>
+            </div>
+
+            <div class="radio-spotify-tools">
+                <div class="radio-spotify-search-row">
+                    <button class="radio-spotify-search-button" id="searchSpotifyBtn" type="button">
+                        <i class="bx bxl-spotify"></i> Search on Spotify
+                    </button>
+                    <span>Use Spotify if Apple artwork search is unavailable.</span>
+                </div>
+                <label class="radio-field radio-spotify-link-field">
+                    <span>Paste a Spotify track or album link</span>
+                    <div class="radio-spotify-link-row">
+                        <input id="spotifyTrackUrlInput" type="url" inputmode="url"
+                               placeholder="https://open.spotify.com/track/..." autocomplete="url">
+                        <button class="radio-spotify-use-button" id="useSpotifyArtworkBtn" type="button">
+                            Use cover
+                        </button>
+                    </div>
+                </label>
+                <small class="radio-spotify-help">Open Spotify search, copy the song or album link, then paste it here to load its cover.</small>
             </div>
 
             <div class="radio-artwork-results" id="artworkResults" hidden></div>
@@ -248,7 +268,7 @@
 
     <div class="radio-toast" id="radioToast" role="status" aria-live="polite"></div>
 
-    <script type="module" src="radio.js?v=itunes-jsonp-search-v1-20261128"></script>
+    <script type="module" src="radio.js?v=itunes-spotify-cover-fallback-v1-20261128"></script>
     <script type="module" src="account.js?v=login-check-optimized-v11-20261127"></script>
     <script src="letters-launcher.js?v=radio-comment-notifications-v8-20261127" defer></script>
 </body>
