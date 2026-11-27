@@ -727,3 +727,183 @@
         height: 40px;
     }
 }
+
+
+/* STELLARS Radio — song conversations */
+.radio-song-card { grid-template-rows: auto auto; }
+.radio-comments {
+    grid-column: 1 / -1;
+    min-width: 0;
+    padding-top: 10px;
+    border-top: 1px solid rgba(112, 96, 173, .13);
+}
+.radio-comments-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 11px;
+    border: 1px solid rgba(117, 96, 190, .2);
+    border-radius: 9px;
+    color: #6857a8;
+    background: #f2effc;
+    font: 700 10px 'Ubuntu', sans-serif;
+    cursor: pointer;
+}
+.radio-comments-toggle::before { content: "✧"; font-size: 14px; }
+.radio-comments-panel { padding-top: 10px; }
+.radio-comments-panel[hidden] { display: none; }
+.radio-comments-list { display: grid; gap: 8px; max-height: 280px; overflow: auto; }
+.radio-comment-item {
+    position: relative;
+    padding: 10px 12px;
+    border: 1px solid rgba(112, 96, 173, .11);
+    border-radius: 11px;
+    background: rgba(243, 240, 252, .7);
+}
+.radio-comment-header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 5px 10px; }
+.radio-comment-header strong { color: #4a3d78; font-size: 10px; }
+.radio-comment-header time { color: #a09aae; font-size: 9px; }
+.radio-comment-text {
+    margin: 6px 0 0;
+    color: #645d78;
+    font-size: 11px;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+.radio-comment-delete {
+    margin-top: 7px;
+    padding: 0;
+    border: 0;
+    color: #a16b88;
+    background: transparent;
+    font: 700 9px 'Ubuntu', sans-serif;
+    cursor: pointer;
+}
+.radio-comment-delete:disabled { opacity: .5; cursor: wait; }
+.radio-comments-empty, .radio-comments-signin {
+    margin: 4px 0 10px;
+    color: #9891a8;
+    font-size: 10px;
+    line-height: 1.5;
+}
+.radio-comment-form {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) auto;
+    gap: 7px;
+    margin-top: 10px;
+}
+.radio-comment-form textarea {
+    width: 100%;
+    min-height: 43px;
+    padding: 10px 11px;
+    resize: vertical;
+    border: 1px solid rgba(112, 96, 173, .18);
+    border-radius: 10px;
+    outline: none;
+    color: #3d345f;
+    background: #fff;
+    font: 11px/1.5 'Ubuntu', sans-serif;
+}
+.radio-comment-form textarea:focus { border-color: #9583d9; box-shadow: 0 0 0 3px rgba(149,131,217,.11); }
+.radio-comment-submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    align-self: start;
+    min-height: 39px;
+    padding: 0 11px;
+    border: 0;
+    border-radius: 9px;
+    color: #fff;
+    background: linear-gradient(135deg, #7864c2, #55418e);
+    font: 700 9px 'Ubuntu', sans-serif;
+    cursor: pointer;
+}
+.radio-comment-submit:disabled { opacity: .5; cursor: wait; }
+.radio-comment-submit i { font-size: 13px; }
+.radio-comment-helper { grid-column: 1 / -1; color: #a29caf; font-size: 9px; }
+.radio-feed-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.radio-notifications-button {
+    position: relative;
+    display: inline-flex;
+    min-height: 36px;
+    align-items: center;
+    gap: 7px;
+    padding: 0 12px;
+    border: 1px solid rgba(112, 96, 173, .18);
+    border-radius: 999px;
+    color: #65539f;
+    background: rgba(255,255,255,.78);
+    font: 700 10px 'Ubuntu', sans-serif;
+    cursor: pointer;
+}
+.radio-notifications-button[hidden] { display: none; }
+.radio-notifications-button[aria-expanded="true"] { background: #ece8fb; border-color: #b7a9e7; }
+.radio-notifications-button > i { font-size: 15px; }
+.radio-notifications-count {
+    display: inline-grid;
+    min-width: 17px;
+    height: 17px;
+    place-items: center;
+    padding: 0 4px;
+    border-radius: 999px;
+    color: white;
+    background: #b95778;
+    font-size: 9px;
+}
+.radio-notifications-count[hidden] { display: none; }
+.radio-notifications-panel {
+    margin: 0 0 19px;
+    padding: 17px;
+    border: 1px solid rgba(112, 96, 173, .17);
+    border-radius: 17px;
+    background: rgba(255,255,255,.86);
+    box-shadow: 0 12px 30px rgba(45,35,94,.06);
+}
+.radio-notifications-panel[hidden] { display: none; }
+.radio-notifications-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.radio-notifications-heading span { color: #8a79c5; font-size: 8px; font-weight: 700; letter-spacing: 1.5px; }
+.radio-notifications-heading h3 { margin: 4px 0 0; color: #342a5e; font: 22px 'DM Serif Display', Georgia, serif; }
+.radio-notifications-heading button {
+    border: 0;
+    color: #7663be;
+    background: transparent;
+    font: 700 10px 'Ubuntu', sans-serif;
+    cursor: pointer;
+}
+.radio-notifications-heading button:disabled { opacity: .4; cursor: default; }
+.radio-notifications-list { display: grid; gap: 8px; max-height: 360px; overflow: auto; }
+.radio-notification-item {
+    display: grid;
+    width: 100%;
+    gap: 5px;
+    padding: 12px 13px;
+    border: 1px solid rgba(112, 96, 173, .12);
+    border-radius: 11px;
+    color: #625b75;
+    background: #fbfaff;
+    text-align: left;
+    cursor: pointer;
+}
+.radio-notification-item.is-unread { border-color: rgba(135, 111, 207, .3); background: #f3f0fd; }
+.radio-notification-top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.radio-notification-top strong { color: #493d75; font-size: 10px; }
+.radio-notification-top time { flex: 0 0 auto; color: #a19aae; font-size: 8px; }
+.radio-notification-song { color: #7a68b8; font-size: 10px; font-weight: 700; }
+.radio-notification-preview { color: #726b83; font-size: 10px; line-height: 1.5; overflow-wrap: anywhere; }
+.radio-notifications-empty { margin: 5px 0; color: #9992a8; font-size: 11px; line-height: 1.5; }
+@media (max-width: 760px) {
+    .radio-feed-actions { align-items: flex-start; flex-direction: column; }
+    .radio-song-card { grid-template-columns: 112px minmax(0,1fr); gap: 12px; }
+    .radio-notification-top { flex-direction: column; align-items: flex-start; gap: 3px; }
+}
+@media (max-width: 480px) {
+    .radio-song-card { grid-template-columns: 1fr; }
+    .radio-song-art { max-width: 190px; }
+    .radio-comments { grid-column: 1; }
+    .radio-comment-form { grid-template-columns: 1fr; }
+    .radio-comment-submit { justify-self: start; }
+    .radio-notifications-panel { padding: 13px; }
+}
