@@ -204,3 +204,220 @@
         padding: 12px 0;
     }
 }
+
+
+/* =========================================================
+   STELLARS BIRTHDAY — FEATURED UPCOMING PREVIEW
+   Shared layout for homepage and Birthday page.
+========================================================= */
+.birthday-preview-grid {
+    display: block;
+    width: 100%;
+}
+.birthday-preview-card {
+    display: grid;
+    grid-template-columns: minmax(250px, 40%) minmax(0, 1fr);
+    align-items: stretch;
+    gap: 26px;
+    width: 100%;
+    min-height: 300px;
+    margin: 0 auto;
+    padding: 17px;
+    overflow: hidden;
+    border: 1px solid rgba(130, 113, 190, .14);
+    border-radius: 22px;
+    background: linear-gradient(115deg, rgba(255,255,255,.98), rgba(249,247,255,.96));
+    box-shadow: 0 13px 34px rgba(45, 35, 94, .07);
+}
+.birthday-preview-people {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-content: stretch;
+    min-width: 0;
+    min-height: 266px;
+    gap: 10px;
+}
+.birthday-preview-people.is-shared {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.birthday-preview-person {
+    position: relative;
+    min-width: 0;
+    min-height: 266px;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    border-radius: 16px;
+    background: #e9e4f5;
+}
+.birthday-preview-person img {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    object-fit: cover;
+    object-position: center 28%;
+}
+.birthday-preview-person figcaption {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 28px 12px 11px;
+    color: #fff;
+    background: linear-gradient(transparent, rgba(22, 17, 47, .82));
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+.birthday-preview-copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    justify-content: center;
+    padding: 18px 20px 18px 0;
+}
+.birthday-preview-kicker {
+    display: block;
+    color: #8875c3;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.7px;
+    line-height: 1.5;
+}
+.birthday-preview-copy .birthday-preview-name {
+    margin: 13px 0 0;
+    color: #30236d;
+    font-size: clamp(25px, 3vw, 36px);
+    line-height: 1.15;
+    letter-spacing: -.8px;
+    overflow-wrap: anywhere;
+}
+.birthday-preview-date {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 15px 0 0;
+    color: #71658f;
+    font-size: 13px;
+    font-weight: 600;
+}
+.birthday-preview-date i { font-size: 17px; }
+.birthday-preview-countdown {
+    margin-top: 25px;
+}
+.birthday-countdown-label {
+    display: block;
+    margin-bottom: 10px;
+    color: #77708d;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+}
+.birthday-countdown-units {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+}
+.birthday-countdown-unit {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 10px 5px;
+    border: 1px solid rgba(130, 113, 190, .13);
+    border-radius: 12px;
+    background: rgba(242, 239, 250, .76);
+    text-align: center;
+}
+.birthday-countdown-unit strong {
+    color: #30236d;
+    font-size: clamp(18px, 2vw, 24px);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+.birthday-countdown-unit small {
+    color: #89819e;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: .7px;
+}
+.birthday-directory-state {
+    grid-column: 1 / -1;
+}
+.birthday-home-section .birthday-preview-grid {
+    display: block;
+}
+.birthday-home-section .birthday-preview-card {
+    grid-template-columns: minmax(145px, 23%) minmax(0, 1fr);
+    min-height: 190px;
+    gap: 20px;
+    padding: 13px;
+    border-radius: 18px;
+}
+.birthday-home-section .birthday-preview-people,
+.birthday-home-section .birthday-preview-person {
+    min-height: 164px;
+}
+.birthday-home-section .birthday-preview-person {
+    border-radius: 13px;
+}
+.birthday-home-section .birthday-preview-copy {
+    padding: 10px 12px 10px 0;
+}
+.birthday-home-section .birthday-preview-copy .birthday-preview-name {
+    margin-top: 8px;
+    font-size: clamp(21px, 2.4vw, 29px);
+}
+.birthday-home-section .birthday-preview-date {
+    margin-top: 9px;
+}
+.birthday-home-section .birthday-preview-countdown {
+    margin-top: 14px;
+}
+.birthday-home-section .birthday-countdown-label {
+    margin-bottom: 7px;
+}
+.birthday-home-section .birthday-countdown-unit {
+    padding: 8px 4px;
+}
+.birthday-home-section .birthday-countdown-unit strong {
+    font-size: 19px;
+}
+@media (max-width: 760px) {
+    .birthday-preview-card {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 15px;
+        padding: 13px;
+    }
+    .birthday-preview-people,
+    .birthday-preview-person {
+        min-height: clamp(205px, 58vw, 280px);
+    }
+    .birthday-preview-copy {
+        padding: 9px 6px 7px;
+    }
+    .birthday-preview-countdown {
+        margin-top: 19px;
+    }
+    .birthday-home-section .birthday-preview-card {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .birthday-home-section .birthday-preview-people,
+    .birthday-home-section .birthday-preview-person {
+        min-height: clamp(185px, 52vw, 235px);
+    }
+    .birthday-home-section .birthday-preview-copy {
+        padding: 7px 5px 5px;
+    }
+}
+@media (max-width: 420px) {
+    .birthday-countdown-units { gap: 5px; }
+    .birthday-countdown-unit { padding: 8px 3px; }
+    .birthday-countdown-unit small { font-size: 7px; }
+}
