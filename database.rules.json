@@ -36,13 +36,16 @@
           ".validate": "newData.isString() && newData.val().length <= 24"
         },
         "area": {
-          ".validate": "newData.val() === 'outside' || newData.val() === 'library' || newData.val() === 'townhall' || newData.val() === 'cafe' || newData.val() === 'home' || newData.val() === 'market' || newData.val() === 'workshop' || newData.val() === 'observatory' || newData.val() === 'bakery'"
+          ".validate": "newData.val() === 'outside' || newData.val() === 'library' || newData.val() === 'townhall' || newData.val() === 'cafe' || newData.val() === 'home' || newData.val() === 'market' || newData.val() === 'workshop' || newData.val() === 'observatory' || newData.val() === 'bakery' || newData.val() === 'fashion'"
         },
         "updatedAt": {
           ".validate": "newData.isNumber()"
         },
         "$other": {
           ".validate": false
+        },
+        "shirtColor": {
+          ".validate": "newData.isString() && newData.val().matches(/^#[0-9A-Fa-f]{6}$/)"
         }
       }
     }
