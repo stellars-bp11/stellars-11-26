@@ -3076,25 +3076,24 @@ function startMiniGame(id) {
     action.className = "pixel-button";
     action.textContent = "CAST LINE";
     action.addEventListener("click", () => {
-      action.disabled = true;
-      status.textContent = "Waiting for a bite…";
-      miniGameState = { id: "fishing", phase: "waiting" };
-      const delay = 1300 + Math.floor(Math.random() * 2200);
-      miniGameTimers.push(setTimeout(() => {
-        if (!miniGameState || miniGameState.id !== "fishing") return;
-        miniGameState.phase = "bite";
-        status.textContent = "A FISH BIT! REEL IT IN!";
-        pond.textContent = "💦  🐟  💦";
-        action.disabled = false;
-        action.textContent = "REEL IN!";
+      if (!miniGameState || miniGameState.phase === "ready") {
+        action.disabled = true;
+        status.textContent = "Waiting for a bite…";
+        miniGameState = { id: "fishing", phase: "waiting" };
+        const delay = 1300 + Math.floor(Math.random() * 2200);
         miniGameTimers.push(setTimeout(() => {
-          if (miniGameState && miniGameState.phase === "bite") finishMiniGame("fishing", false);
-        }, 1700));
-      }, delay));
-    });
-    action.addEventListener("click", () => {
-      if (miniGameState && miniGameState.phase === "bite") {
-        miniGameState.phase = "done";
+          if (!miniGameState || miniGameState.id !== "fishing" || miniGameState.phase !== "waiting") return;
+          miniGameState.phase = "bite";
+          status.textContent = "A FISH BIT! REEL IT IN!";
+          pond.textContent = "💦  🐟  💦";
+          action.disabled = false;
+          action.textContent = "REEL IN!";
+          miniGameTimers.push(setTimeout(() => {
+            if (miniGameState && miniGameState.phase === "bite") finishMiniGame("fishing", false);
+          }, 1700));
+        }, delay));
+      } else if (miniGameState.phase === "bite") {
+        miniGameState.phase = "caught";
         finishMiniGame("fishing", true, 18);
       }
     });
