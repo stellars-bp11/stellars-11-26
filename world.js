@@ -2098,7 +2098,8 @@ const WORLD_ACHIEVEMENTS = [
   { id: "first-mini-game", title: "Just One More Round", description: "Win your first mini-game.", reward: 25 },
   { id: "secret-star", title: "Stargazer", description: "Discover a hidden star.", reward: 35 },
   { id: "level-five", title: "Rising Star", description: "Reach World Level 5.", reward: 50 },
-  { id: "home-expansion", title: "Room to Grow", description: "Expand your little home.", reward: 40 }
+  { id: "home-expansion", title: "Room to Grow", description: "Expand your little home.", reward: 40 },
+  { id: "angler", title: "Riverside Regular", description: "Catch five fish.", reward: 30 }
 ];
 
 function ensureDailyQuests() {
@@ -2162,6 +2163,7 @@ function checkWorldAchievements() {
   if (!save.achievements.includes("first-harvest") && (save.inventory.rice || 0) >= 3) unlockWorldAchievement("first-harvest");
   if (!save.achievements.includes("home-decorator") && (save.placedFurniture || []).length >= 3) unlockWorldAchievement("home-decorator");
   if (!save.achievements.includes("first-mini-game") && Object.values(save.minigameStats || {}).some(value => Number(value) > 0)) unlockWorldAchievement("first-mini-game");
+  if (!save.achievements.includes("angler") && Number(save.fishCaught || 0) >= 5) unlockWorldAchievement("angler");
   if (!save.achievements.includes("secret-star") && (save.secretFinds || []).length) unlockWorldAchievement("secret-star");
 }
 
@@ -2564,8 +2566,634 @@ function drawHomeExpansion() {
   }
 }
 
+
+// ── AVATAR STUDIO, SECRET EXPLORATION & WORLD ATMOSPHERE ────────────────────
+const AVATAR_COLOR_PALETTE = [
+  "#e968ad", "#a578ce", "#6d9fce", "#4d8c99",
+  "#6d9b73", "#dc9061", "#c5a44e", "#53547f",
+  "#e9d7be", "#745b50"
+];
+
+function setAvatarAppearance(field, value) {
+  const hairAllowed = FASHION_HAIR_STYLES
+    .filter(style => style.gender === save.gender).map(style => style.id);
+  if (field === "hairStyle" && !hairAllowed.includes(value)) return;
+  if (field === "accessory" && !FASHION_ACCESSORIES.some(item => item.id === value)) return;
+  if (["pantsColor", "shoeColor"].includes(field) && !isSafeWorldColor(value)) return;
+  if (!["hairStyle", "accessory", "pantsColor", "shoeColor"].includes(field)) return;
+  save[field] = value;
+  player[field] = value;
+  persist(true);
+  if (worldPresenceReady) syncWorldPresence(performance.now());
+  renderFashionAppearanceOptions();
+}
+
+function renderFashionAppearanceOptions() {
+  const groups = [
+    ["hairStyleGrid", "hairStyle", FASHION_HAIR_STYLES
+      .filter(item => item.gender === save.gender)
+      .map(item => ({ id: item.id, label: item.icon + " " + item.name }))],
+    ["accessoryGrid", "accessory", FASHION_ACCESSORIES
+      .map(item => ({ id: item.id, label: item.icon + " " + item.name }))]
+  ];
+  groups.forEach(([elementId, field, items]) => {
+    const grid = $(elementId);
+    if (!grid) return;
+    grid.replaceChildren();
+    items.forEach(item => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "appearance-choice" + (save[field] === item.id ? " selected" : "");
+      button.textContent = item.label;
+      button.addEventListener("click", () => setAvatarAppearance(field, item.id));
+      grid.append(button);
+    });
+  });
+  [["pantsColorGrid", "pantsColor"], ["shoeColorGrid", "shoeColor"]].forEach(([elementId, field]) => {
+    const grid = $(elementId);
+    if (!grid) return;
+    grid.replaceChildren();
+    AVATAR_COLOR_PALETTE.forEach(color => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "fashion-color-swatch" + (save[field] === color ? " selected" : "");
+      button.style.setProperty("--swatch-color", color);
+      button.title = color;
+      button.setAttribute("aria-label", field + " " + color);
+      button.addEventListener("click", () => setAvatarAppearance(field, color));
+      grid.append(button);
+    });
+  });
+}
+const worldRenderFashionBeforeAvatar = renderFashionShop;
+renderFashionShop = function renderFashionShopWithAvatar() {
+  worldRenderFashionBeforeAvatar();
+  renderFashionAppearanceOptions();
+};
+const worldSetGenderBeforeHair = setGender;
+setGender = function setGenderWithHair(gender) {
+  worldSetGenderBeforeHair(gender);
+  save.hairStyle = gender === "female" ? "long" : "short";
+  player.hairStyle = save.hairStyle;
+  player.accessory = save.accessory || "none";
+  player.pantsColor = save.pantsColor || "#34465f";
+  player.shoeColor = save.shoeColor || "#594331";
+  persist(true);
+  if (worldPresenceReady) syncWorldPresence(performance.now());
+};
+
+const worldDrawCharacterBeforeAvatar = drawCharacter;
+drawCharacter = function drawCharacterWithAvatar(entity, isLocal, time) {
+  worldDrawCharacterBeforeAvatar(entity, isLocal, time);
+  const sx = entity.x - camera.x;
+  const sy = entity.y - camera.y;
+  if (sx < -60 || sx > VIEW_W + 60 || sy < -70 || sy > VIEW_H + 50) return;
+  const top = sy - 32 + (entity.moving && Math.floor(time / 115) % 2 ? -2 : 0);
+  if (isSafeWorldColor(entity.pantsColor)) {
+    ctx.fillStyle = entity.pantsColor;
+    ctx.fillRect(sx - 7, top + 26, 6, 5);
+    ctx.fillRect(sx + 1, top + 26, 6, 5);
+  }
+  if (isSafeWorldColor(entity.shoeColor)) {
+    ctx.fillStyle = entity.shoeColor;
+    ctx.fillRect(sx - 8, top + 30, 7, 3);
+    ctx.fillRect(sx + 1, top + 30, 7, 3);
+  }
+  const hair = entity.hairStyle || (entity.gender === "female" ? "long" : "short");
+  ctx.fillStyle = "#49362e";
+  if (hair === "wave") ctx.fillRect(sx + 2, top - 2, 9, 5);
+  else if (hair === "curly") {
+    ctx.fillRect(sx - 10, top - 2, 5, 5);
+    ctx.fillRect(sx - 4, top - 5, 6, 6);
+    ctx.fillRect(sx + 3, top - 2, 7, 5);
+  } else if (hair === "bob") {
+    ctx.fillRect(sx - 10, top + 7, 4, 13);
+    ctx.fillRect(sx + 6, top + 7, 4, 13);
+  } else if (hair === "bun") {
+    ctx.fillRect(sx - 4, top - 7, 8, 7);
+    ctx.fillRect(sx - 2, top - 10, 4, 4);
+  }
+  const accessory = entity.accessory || "none";
+  if (accessory === "starclip" || accessory === "bow") {
+    ctx.fillStyle = accessory === "starclip" ? "#ffe18b" : "#f39ac9";
+    ctx.fillRect(sx + 7, top + 2, 5, 5);
+    ctx.fillRect(sx + 9, top, 2, 9);
+  } else if (accessory === "glasses" && entity.direction !== "up") {
+    ctx.strokeStyle = "#403c50"; ctx.lineWidth = 2;
+    ctx.strokeRect(sx - 7, top + 9, 6, 5);
+    ctx.strokeRect(sx + 1, top + 9, 6, 5);
+    ctx.beginPath(); ctx.moveTo(sx - 1, top + 11); ctx.lineTo(sx + 1, top + 11); ctx.stroke();
+  } else if (accessory === "cap") {
+    ctx.fillStyle = "#526b85";
+    ctx.fillRect(sx - 9, top - 3, 18, 6);
+    ctx.fillRect(sx - 11, top + 1, 22, 3);
+    ctx.fillStyle = "#d8e4e8"; ctx.fillRect(sx - 2, top - 2, 5, 2);
+  }
+  if (entity.emote && entity.emoteUntil > Date.now()) {
+    const bubbleY = top - 25;
+    ctx.fillStyle = "rgba(255,250,228,.96)";
+    ctx.fillRect(sx - 15, bubbleY - 11, 30, 25);
+    ctx.fillStyle = "#473b54";
+    ctx.font = "17px Ubuntu";
+    ctx.textAlign = "center";
+    ctx.fillText(entity.emote, sx, bubbleY + 8);
+    ctx.fillStyle = "rgba(255,250,228,.96)";
+    ctx.fillRect(sx - 2, bubbleY + 13, 5, 4);
+  }
+};
+
+const worldPresenceBeforeAvatar = currentWorldPresence;
+currentWorldPresence = function currentWorldPresenceWithAvatar() {
+  const base = worldPresenceBeforeAvatar();
+  return {
+    ...base,
+    hairStyle: save.hairStyle || (save.gender === "female" ? "long" : "short"),
+    accessory: save.accessory || "none",
+    pantsColor: save.pantsColor || "#34465f",
+    shoeColor: save.shoeColor || "#594331",
+    emote: player.emoteUntil > Date.now() ? (player.emote || "") : ""
+  };
+};
+const worldPresenceChangeBeforeAvatar = presenceHasChanged;
+presenceHasChanged = function presenceHasChangedWithAvatar(next) {
+  if (worldPresenceChangeBeforeAvatar(next)) return true;
+  return next.hairStyle !== lastPresenceState.hairStyle ||
+    next.accessory !== lastPresenceState.accessory ||
+    next.pantsColor !== lastPresenceState.pantsColor ||
+    next.shoeColor !== lastPresenceState.shoeColor ||
+    next.emote !== lastPresenceState.emote;
+};
+function sendWorldEmote(emote) {
+  if (!requireWorldMember()) return;
+  if (!["👋", "💖", "🎉", "🎵", "✨"].includes(emote)) return;
+  player.emote = emote;
+  player.emoteUntil = Date.now() + 3200;
+  if (worldPresenceReady) syncWorldPresence(performance.now());
+}
+
+// ── HIDDEN COLLECTIBLES & LEVEL-GATED MOON GARDEN ───────────────────────────
+const SECRET_STAR_SPOTS = [
+  { id: "secret-star-north", x: 97 * TILE + 16, y: 13 * TILE + 16, reward: 1 },
+  { id: "secret-star-east", x: 130 * TILE + 16, y: 65 * TILE + 16, reward: 1 },
+  { id: "secret-star-south", x: 91 * TILE + 16, y: 91 * TILE + 16, reward: 2 }
+];
+function canSenseSecretStars() {
+  return save.job === "explorer" || getWorldLevelProgress(save.xp).level >= 3 ||
+    hasProfessionSkill("explorer-shard");
+}
+function nearestSecretStar(maxDistance = 48) {
+  if (!canSenseSecretStars()) return null;
+  let nearest = null;
+  SECRET_STAR_SPOTS.forEach(spot => {
+    if (save.secretFinds.includes(spot.id)) return;
+    const distance = Math.hypot(player.x - spot.x, player.y - spot.y);
+    if (distance < maxDistance && (!nearest || distance < nearest.distance)) nearest = { ...spot, distance };
+  });
+  return nearest;
+}
+function drawSecretStars(time) {
+  if (!canSenseSecretStars()) return;
+  SECRET_STAR_SPOTS.forEach(spot => {
+    if (save.secretFinds.includes(spot.id)) return;
+    const x = spot.x - camera.x, y = spot.y - camera.y;
+    if (x < -35 || x > VIEW_W + 35 || y < -35 || y > VIEW_H + 35) return;
+    if (Math.hypot(player.x - spot.x, player.y - spot.y) > 170) return;
+    const pulse = 9 + Math.sin(time / 180 + x) * 3;
+    ctx.fillStyle = "rgba(255,231,146,.18)";
+    ctx.beginPath(); ctx.arc(x, y, pulse + 8, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#fff0a8";
+    ctx.beginPath(); ctx.moveTo(x, y - pulse); ctx.lineTo(x + 4, y);
+    ctx.lineTo(x, y + pulse); ctx.lineTo(x - 4, y); ctx.closePath(); ctx.fill();
+  });
+}
+function collectSecretStar(spot) {
+  if (!spot || save.secretFinds.includes(spot.id)) return;
+  save.secretFinds.push(spot.id);
+  addTownItem("starShard", spot.reward);
+  save.coins += 12 * spot.reward;
+  awardWorldXp(12 * spot.reward);
+  trackQuestAction("secret");
+  checkWorldAchievements();
+  persist(true);
+  updateHud();
+  showToast("HIDDEN STAR FOUND · +" + spot.reward + " STAR SHARD" + (spot.reward > 1 ? "S" : "") + "!");
+}
+
+const moonGardenBuilding = {
+  id: "moon-garden", name: "Moon Garden", x: 125, y: 84, w: 5, h: 4,
+  roof: "#556e92", wall: "#c9d5d8", sign: "MOON GARDEN"
+};
+buildings.push(moonGardenBuilding);
+interiorRooms["moon-garden"] = {
+  station: { x: 650, y: 300, label: "MOONLIGHT SHRINE" },
+  floor: "#7f8eaa", wall: "#52627f"
+};
+indoorStaff["moon-garden"] = { name: "Lumina", x: 470, y: 300, palette: 0 };
+function isWorldBuildingUnlocked(building) {
+  return !building || building.id !== "moon-garden" ||
+    getWorldLevelProgress(save.xp).level >= 5;
+}
+const worldNearbyBuildingBeforeGate = nearbyBuilding;
+nearbyBuilding = function nearbyBuildingWithLevelGate() {
+  const building = worldNearbyBuildingBeforeGate();
+  return isWorldBuildingUnlocked(building) ? building : null;
+};
+const worldEnterBuildingBeforeGate = enterTownBuilding;
+enterTownBuilding = function enterTownBuildingWithLevelGate(building) {
+  if (!isWorldBuildingUnlocked(building)) {
+    showToast("Reach World Level 5 to discover the Moon Garden.");
+    return;
+  }
+  worldEnterBuildingBeforeGate(building);
+};
+const worldDrawBuildingBeforeGate = drawBuilding;
+drawBuilding = function drawBuildingWithLevelGate(building) {
+  if (!isWorldBuildingUnlocked(building)) return;
+  worldDrawBuildingBeforeGate(building);
+};
+const worldInteractBeforeSecrets = interact;
+interact = function interactWithSecrets() {
+  if (!insideBuilding) {
+    const secret = nearestSecretStar();
+    if (secret) { collectSecretStar(secret); return; }
+  }
+  worldInteractBeforeSecrets();
+};
+
+// ── DAY / NIGHT, WEATHER & SEASONAL PIXEL DETAILS ───────────────────────────
+let worldEnvironmentSaveTimer = 0;
+let lastEnvironmentUiAt = 0;
+function worldSeasonName() {
+  return ["BLOOM SEASON", "SUN SEASON", "GOLDEN SEASON", "STARLIGHT SEASON"][
+    Math.floor((Math.max(1, save.worldDay) - 1) / 7) % 4
+  ];
+}
+function worldWeatherName() {
+  const season = Math.floor((Math.max(1, save.worldDay) - 1) / 7) % 4;
+  const weather = ["Sunny", "Cloudy", "Rainy", "Breezy", "Clear Skies"];
+  return weather[hash(save.worldDay, season, 81) % weather.length];
+}
+function updateWorldEnvironment(delta) {
+  const previousDay = save.worldDay;
+  save.worldMinutes = Number(save.worldMinutes || 540) + Math.max(0, delta) * 1.5;
+  while (save.worldMinutes >= 1440) {
+    save.worldMinutes -= 1440;
+    save.worldDay += 1;
+  }
+  if (save.worldDay !== previousDay) showToast("A new day begins in Stellars Town · " + worldSeasonName() + "!");
+  worldEnvironmentSaveTimer += delta;
+  if (worldEnvironmentSaveTimer >= 25) {
+    worldEnvironmentSaveTimer = 0;
+    persist(true);
+  }
+  if (performance.now() - lastEnvironmentUiAt > 5000) {
+    lastEnvironmentUiAt = performance.now();
+    const hour = Math.floor(save.worldMinutes / 60);
+    const minute = Math.floor(save.worldMinutes % 60);
+    $("worldClock").textContent = "DAY " + save.worldDay + " · " +
+      String(hour).padStart(2, "0") + ":" + String(minute).padStart(2, "0");
+    $("weatherLabel").textContent = worldWeatherName();
+    $("weatherIcon").textContent = worldWeatherName() === "Rainy" ? "☂" :
+      worldWeatherName() === "Cloudy" ? "☁" : worldWeatherName() === "Breezy" ? "🍃" : "☀";
+    const seasonLabel = $("worldSeasonLabel");
+    if (seasonLabel) seasonLabel.textContent = worldSeasonName();
+  }
+}
+function drawWorldAtmosphere(time) {
+  if (insideBuilding) return;
+  const hour = save.worldMinutes / 60;
+  let darkness = 0;
+  if (hour < 5.5 || hour >= 20) darkness = .42;
+  else if (hour < 7.5) darkness = .42 * (1 - (hour - 5.5) / 2);
+  else if (hour >= 18 && hour < 20) darkness = .42 * ((hour - 18) / 2);
+  if (darkness > .01) {
+    ctx.fillStyle = "rgba(18,25,60," + darkness.toFixed(3) + ")";
+    ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+  }
+  const sunProgress = Math.max(0, Math.min(1, (hour - 6) / 12));
+  const orbX = 100 + sunProgress * (VIEW_W - 200);
+  if (hour >= 6 && hour < 18) {
+    ctx.fillStyle = "rgba(255,222,132,.12)";
+    ctx.beginPath(); ctx.arc(orbX, 95, 42, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#ffe39a";
+    ctx.beginPath(); ctx.arc(orbX, 95, 13, 0, Math.PI * 2); ctx.fill();
+  } else {
+    const moonX = VIEW_W - 130;
+    ctx.fillStyle = "rgba(190,210,255,.12)";
+    ctx.beginPath(); ctx.arc(moonX, 86, 34, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#e4eaff";
+    ctx.beginPath(); ctx.arc(moonX, 86, 13, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "rgba(110,128,174,.6)";
+    ctx.beginPath(); ctx.arc(moonX + 7, 82, 11, 0, Math.PI * 2); ctx.fill();
+    for (let i = 0; i < 18; i++) {
+      const x = hash(i, 9, save.worldDay) % VIEW_W;
+      const y = hash(i, 27, save.worldDay) % 270;
+      ctx.globalAlpha = .45 + .45 * Math.sin(time / 230 + i);
+      ctx.fillStyle = "#fff3c5"; ctx.fillRect(x, y, 2, 2);
+    }
+    ctx.globalAlpha = 1;
+  }
+  const weather = worldWeatherName();
+  if (weather === "Rainy") {
+    ctx.strokeStyle = "rgba(196,222,239,.42)";
+    ctx.lineWidth = 1.5;
+    for (let i = 0; i < 42; i++) {
+      const x = (hash(i, 11, save.worldDay) + time * .48) % VIEW_W;
+      const y = (hash(i, 29, save.worldDay) + time * 1.05) % VIEW_H;
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 5, y + 17); ctx.stroke();
+    }
+  } else if (weather === "Breezy") {
+    for (let i = 0; i < 15; i++) {
+      const x = (hash(i, 44, save.worldDay) + time * .11) % VIEW_W;
+      const y = (hash(i, 72, save.worldDay) + Math.sin(time / 330 + i) * 16) % VIEW_H;
+      ctx.fillStyle = ["#d6bf73", "#a7c88c", "#e9d6a1"][i % 3];
+      ctx.fillRect(x, y, 6, 3);
+    }
+  }
+  if (worldSeasonName() === "STARLIGHT SEASON") {
+    for (let i = 0; i < 18; i++) {
+      const x = hash(i, 91, save.worldDay) % VIEW_W;
+      const y = (hash(i, 93, save.worldDay) + time * .025) % VIEW_H;
+      ctx.fillStyle = "rgba(226,237,255,.72)"; ctx.fillRect(x, y, 3, 3);
+    }
+  }
+}
+const worldDrawBeforeAtmosphere = drawWorld;
+drawWorld = function drawWorldWithAtmosphere(time) {
+  worldDrawBeforeAtmosphere(time);
+  if (!canPlayWorld) return;
+  drawSecretStars(time);
+  drawWorldAtmosphere(time);
+  if (insideBuilding === "home" && typeof drawHomeExpansion === "function") drawHomeExpansion();
+};
+const worldDrawTreeBeforeSeason = drawTree;
+drawTree = function drawTreeWithSeasonDetails(tree) {
+  worldDrawTreeBeforeSeason(tree);
+  const sx = tree.x - camera.x, sy = tree.y - camera.y;
+  if (sx < -70 || sx > VIEW_W + 70 || sy < -90 || sy > VIEW_H + 40) return;
+  if (worldSeasonName() === "BLOOM SEASON") {
+    ctx.fillStyle = "#ffd4e7";
+    ctx.fillRect(sx - 13, sy - 72, 4, 4);
+    ctx.fillRect(sx + 17, sy - 60, 4, 4);
+  } else if (worldSeasonName() === "GOLDEN SEASON") {
+    ctx.fillStyle = "#e0b767"; ctx.fillRect(sx - 17, sy - 64, 4, 4);
+    ctx.fillRect(sx + 12, sy - 72, 4, 4);
+  } else if (worldSeasonName() === "STARLIGHT SEASON") {
+    ctx.fillStyle = "#dce8f6"; ctx.fillRect(sx - 18, sy - 68, 6, 4);
+    ctx.fillRect(sx + 11, sy - 77, 5, 4);
+  }
+};
+const worldDrawBuildingBeforeDetail = drawBuilding;
+drawBuilding = function drawBuildingWithPixelDetail(building) {
+  if (!isWorldBuildingUnlocked(building)) return;
+  worldDrawBuildingBeforeDetail(building);
+  const x = building.x * TILE - camera.x, y = building.y * TILE - camera.y;
+  const w = building.w * TILE, h = building.h * TILE;
+  if (x > VIEW_W + 40 || x + w < -40 || y > VIEW_H + 40 || y + h < -50) return;
+  ctx.fillStyle = "rgba(42,35,29,.18)";
+  ctx.fillRect(x + 7, y + h - 9, w - 14, 5);
+  ctx.fillStyle = "rgba(255,247,214,.5)";
+  ctx.fillRect(x + 12, y + 15, 3, 18);
+  ctx.fillRect(x + w - 15, y + 15, 3, 18);
+  ctx.fillStyle = "#d8ecdf";
+  ctx.fillRect(x + 15, y + h - 32, 12, 13);
+  ctx.fillRect(x + w - 27, y + h - 32, 12, 13);
+  ctx.fillStyle = shadeColor(building.roof, -30);
+  ctx.fillRect(x + 6, y + 6, w - 12, 3);
+};
+
+// ── MINI-GAMES: local-only fishing, memory, cooking and rhythm ───────────────
+let miniGameState = null;
+let miniGameTimers = [];
+function clearMiniGameTimers() {
+  miniGameTimers.forEach(id => clearTimeout(id));
+  miniGameTimers = [];
+}
+function showMiniGameMenu() {
+  clearMiniGameTimers();
+  miniGameState = null;
+  $("miniGameMenu").hidden = false;
+  $("miniGameStage").hidden = true;
+  $("miniGameMenu").replaceChildren();
+  const games = [
+    { id: "fishing", icon: "🎣", name: "Riverside Fishing", description: "Wait for a bite, then reel it in." },
+    { id: "memory", icon: "🧠", name: "Stellar Memory", description: "Find all six matching pairs." },
+    { id: "cooking", icon: "🍳", name: "Comet Kitchen", description: "Repeat the recipe in the right order." },
+    { id: "rhythm", icon: "🎵", name: "Starbeat Rhythm", description: "Tap the notes in the sequence." }
+  ];
+  games.forEach(game => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "world-minigame-card";
+    const icon = document.createElement("span");
+    icon.textContent = game.icon;
+    const title = document.createElement("strong");
+    title.textContent = game.name;
+    const description = document.createElement("small");
+    description.textContent = game.description;
+    button.append(icon, title, description);
+    button.addEventListener("click", () => startMiniGame(game.id));
+    $("miniGameMenu").append(button);
+  });
+}
+function openMiniGameHub() {
+  if (!requireWorldMember()) return;
+  showMiniGameMenu();
+  $("miniGameDialog").showModal();
+}
+function showMiniGameStage(title, description, content) {
+  $("miniGameMenu").hidden = true;
+  $("miniGameStage").hidden = false;
+  $("miniGameTitle").textContent = title;
+  $("miniGameDescription").textContent = description;
+  $("miniGameContent").replaceChildren();
+  $("miniGameContent").append(content);
+}
+function finishMiniGame(id, success, amount = 0) {
+  clearMiniGameTimers();
+  if (success) {
+    save.minigameStats[id] = (Number(save.minigameStats[id]) || 0) + 1;
+    save.coins += amount;
+    if (id === "fishing") {
+      addTownItem("fish", 1);
+      save.fishCaught = (save.fishCaught || 0) + 1;
+      if (Math.random() < .28) addTownItem("shell", 1);
+    }
+    awardWorldXp(id === "fishing" ? 12 : 16);
+    trackQuestAction("minigame");
+    checkWorldAchievements();
+    persist(true);
+    updateHud();
+    showToast("MINI-GAME COMPLETE · +" + amount + " STAR COINS!");
+  } else {
+    showToast("Not quite! Give it another try.");
+  }
+  const result = document.createElement("div");
+  result.className = "minigame-result" + (success ? " success" : "");
+  result.textContent = success
+    ? "✦ Well played! +" + amount + " Star Coins · XP earned."
+    : "The round ended. Try again when you're ready.";
+  const retry = document.createElement("button");
+  retry.type = "button";
+  retry.className = "pixel-button minigame-retry-button";
+  retry.textContent = "PLAY AGAIN";
+  retry.addEventListener("click", () => startMiniGame(id));
+  const back = document.createElement("button");
+  back.type = "button";
+  back.className = "pixel-button secondary-button minigame-retry-button";
+  back.textContent = "ALL MINI-GAMES";
+  back.addEventListener("click", showMiniGameMenu);
+  $("miniGameContent").replaceChildren(result, retry, back);
+}
+function startMiniGame(id) {
+  clearMiniGameTimers();
+  if (id === "fishing") {
+    const wrapper = document.createElement("div");
+    wrapper.className = "fishing-game-stage";
+    const pond = document.createElement("div");
+    pond.className = "fishing-pond";
+    pond.textContent = "🌊  🌊  🌊  🌊";
+    const status = document.createElement("p");
+    status.textContent = "Cast your line and watch the water…";
+    const action = document.createElement("button");
+    action.type = "button";
+    action.className = "pixel-button";
+    action.textContent = "CAST LINE";
+    action.addEventListener("click", () => {
+      action.disabled = true;
+      status.textContent = "Waiting for a bite…";
+      miniGameState = { id: "fishing", phase: "waiting" };
+      const delay = 1300 + Math.floor(Math.random() * 2200);
+      miniGameTimers.push(setTimeout(() => {
+        if (!miniGameState || miniGameState.id !== "fishing") return;
+        miniGameState.phase = "bite";
+        status.textContent = "A FISH BIT! REEL IT IN!";
+        pond.textContent = "💦  🐟  💦";
+        action.disabled = false;
+        action.textContent = "REEL IN!";
+        miniGameTimers.push(setTimeout(() => {
+          if (miniGameState && miniGameState.phase === "bite") finishMiniGame("fishing", false);
+        }, 1700));
+      }, delay));
+    });
+    action.addEventListener("click", () => {
+      if (miniGameState && miniGameState.phase === "bite") {
+        miniGameState.phase = "done";
+        finishMiniGame("fishing", true, 18);
+      }
+    });
+    wrapper.append(pond, status, action);
+    showMiniGameStage("Riverside Fishing", "Cast a line, then reel in quickly when a fish bites.", wrapper);
+    miniGameState = { id: "fishing", phase: "ready" };
+    return;
+  }
+
+  if (id === "memory") {
+    const symbols = ["🌙", "⭐", "🍀", "🎵", "☕", "📚"];
+    const deck = [...symbols, ...symbols].sort(() => Math.random() - .5);
+    const wrapper = document.createElement("div");
+    wrapper.className = "memory-game-grid";
+    let opened = [];
+    let matched = 0;
+    let locked = false;
+    deck.forEach((symbol, index) => {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "memory-card";
+      card.textContent = "✦";
+      card.addEventListener("click", () => {
+        if (locked || card.classList.contains("matched") || opened.includes(index)) return;
+        card.textContent = symbol;
+        card.classList.add("revealed");
+        opened.push(index);
+        if (opened.length === 2) {
+          locked = true;
+          const first = wrapper.children[opened[0]];
+          const second = wrapper.children[opened[1]];
+          if (deck[opened[0]] === deck[opened[1]]) {
+            first.classList.add("matched");
+            second.classList.add("matched");
+            matched += 1;
+            opened = [];
+            locked = false;
+            if (matched === symbols.length) finishMiniGame("memory", true, 24);
+          } else {
+            miniGameTimers.push(setTimeout(() => {
+              first.textContent = "✦";
+              second.textContent = "✦";
+              first.classList.remove("revealed");
+              second.classList.remove("revealed");
+              opened = [];
+              locked = false;
+            }, 650));
+          }
+        }
+      });
+      wrapper.append(card);
+    });
+    showMiniGameStage("Stellar Memory", "Find all six matching pairs.", wrapper);
+    return;
+  }
+
+  if (id === "cooking" || id === "rhythm") {
+    const isCooking = id === "cooking";
+    const choices = isCooking
+      ? [{id:"bean",label:"🫘 BEANS"},{id:"milk",label:"🥛 MILK"},{id:"pour",label:"☕ POUR"},{id:"star",label:"⭐ FINISH"}]
+      : [{id:"star",label:"⭐ STAR"},{id:"moon",label:"🌙 MOON"},{id:"note",label:"🎵 NOTE"},{id:"leaf",label:"🍃 LEAF"}];
+    const sequence = isCooking
+      ? ["bean", "milk", "pour", "star"]
+      : ["star", "note", "moon", "leaf", "star"];
+    let step = 0;
+    const wrapper = document.createElement("div");
+    wrapper.className = "sequence-game-stage";
+    const progress = document.createElement("p");
+    progress.textContent = "STEP 1 / " + sequence.length;
+    const buttons = document.createElement("div");
+    buttons.className = "sequence-game-buttons";
+    choices.forEach(choice => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "sequence-game-button";
+      button.textContent = choice.label;
+      button.addEventListener("click", () => {
+        if (choice.id !== sequence[step]) {
+          finishMiniGame(id, false);
+          return;
+        }
+        step += 1;
+        progress.textContent = step >= sequence.length ? "PERFECT!" : "STEP " + (step + 1) + " / " + sequence.length;
+        button.classList.add("is-correct");
+        if (step >= sequence.length) finishMiniGame(id, true, isCooking ? 26 : 28);
+      });
+      buttons.append(button);
+    });
+    wrapper.append(progress, buttons);
+    showMiniGameStage(
+      isCooking ? "Comet Kitchen" : "Starbeat Rhythm",
+      isCooking ? "Tap the ingredients in the recipe order." : "Follow the little sequence and tap each note in order.",
+      wrapper
+    );
+    return;
+  }
+}
+
+
 bindControls();
 bindHomeEditorPointer();
+$("openQuestBoardButton").addEventListener("click", openQuestBoard);
+$("openSkillTreeButton").addEventListener("click", openSkillTree);
+$("openMiniGameButton").addEventListener("click", openMiniGameHub);
+$("closeQuestDialog").addEventListener("click", () => $("questDialog").close());
+$("closeSkillDialog").addEventListener("click", () => $("skillDialog").close());
+$("closeMiniGameDialog").addEventListener("click", () => {
+  clearMiniGameTimers();
+  $("miniGameDialog").close();
+});
+document.querySelectorAll("[data-world-emote]").forEach(button => {
+  button.addEventListener("click", () => sendWorldEmote(button.dataset.worldEmote));
+});
+$("editHomeLayoutButton").addEventListener("click", toggleHomeLayoutEditor);
+$("expandHomeButton").addEventListener("click", buyHomeExpansion);
 drawClock();
 setInterval(drawClock, 30000);
 startAuth();
