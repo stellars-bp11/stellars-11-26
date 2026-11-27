@@ -1375,47 +1375,6 @@ function openFashionShop() {
   $("fashionDialog").showModal();
 }
 
-function drawHomeFurniture() {
-  const placed = new Set(save.placedFurniture || []);
-  for (const item of FURNITURE_CATALOG) {
-    if (!placed.has(item.id)) continue;
-    if (item.kind === "sofa") {
-      ctx.fillStyle = "rgba(45,34,31,.22)"; ctx.fillRect(220, 490, 185, 20);
-      ctx.fillStyle = "#6e879c"; ctx.fillRect(225, 430, 178, 72);
-      ctx.fillStyle = "#a8bfd1"; ctx.fillRect(235, 438, 158, 48);
-      ctx.fillStyle = "#516c86"; ctx.fillRect(215, 453, 20, 47); ctx.fillRect(393, 453, 20, 47);
-      ctx.fillStyle = "#e7e6dc"; ctx.fillRect(248, 447, 44, 29); ctx.fillRect(300, 447, 44, 29);
-    } else if (item.kind === "rug") {
-      ctx.fillStyle = "#8b6c9b"; ctx.fillRect(490, 475, 275, 96);
-      ctx.fillStyle = "#d5b7d9"; ctx.fillRect(502, 487, 251, 72);
-      ctx.fillStyle = "#9c79aa"; ctx.fillRect(520, 505, 215, 36);
-    } else if (item.kind === "lamp") {
-      ctx.fillStyle = "#74513a"; ctx.fillRect(1035, 440, 9, 65);
-      ctx.fillStyle = "#f2d98c"; ctx.fillRect(1010, 420, 60, 28);
-      ctx.fillStyle = "rgba(255,225,143,.18)"; ctx.beginPath(); ctx.arc(1040, 445, 50, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = "#74513a"; ctx.fillRect(1020, 504, 38, 7);
-    } else if (item.kind === "bookcase") {
-      ctx.fillStyle = "#684832"; ctx.fillRect(920, 190, 115, 155);
-      ctx.fillStyle = "#c08a59"; ctx.fillRect(928, 197, 99, 7);
-      for (let row = 0; row < 3; row++) {
-        for (let col = 0; col < 6; col++) {
-          ctx.fillStyle = ["#b86e5c", "#7c8fbd", "#d0b36b", "#6b9b79", "#9f74a7"][(row + col) % 5];
-          ctx.fillRect(933 + col * 15, 210 + row * 42, 10, 32);
-        }
-      }
-    } else if (item.kind === "plant") {
-      ctx.fillStyle = "#a66b4e"; ctx.fillRect(430, 338, 42, 33);
-      ctx.fillStyle = "#426f47"; ctx.fillRect(448, 285, 8, 55);
-      ctx.fillStyle = "#5e9e65"; ctx.fillRect(414, 300, 34, 19); ctx.fillRect(455, 280, 35, 18);
-      ctx.fillStyle = "#83bd76"; ctx.fillRect(440, 268, 28, 25);
-    } else if (item.kind === "table") {
-      ctx.fillStyle = "#755238"; ctx.fillRect(650, 430, 110, 12);
-      ctx.fillStyle = "#bd8d5c"; ctx.fillRect(645, 420, 120, 14);
-      ctx.fillStyle = "#6b4b31"; ctx.fillRect(655, 442, 9, 45); ctx.fillRect(747, 442, 9, 45);
-      ctx.fillStyle = "#f3e0bd"; ctx.fillRect(680, 409, 42, 9);
-    }
-  }
-}
 
 function addTownItem(item, amount = 1) {
   if (Object.prototype.hasOwnProperty.call(save.inventory, item)) save.inventory[item] = Math.max(0, save.inventory[item] + amount);
