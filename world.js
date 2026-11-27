@@ -230,6 +230,8 @@ function updateHud() {
   $("playerName").textContent = player.name;
   $("playerJob").textContent = job ? job.name : "New Resident";
   $("avatarInitial").textContent = player.name.slice(0, 1).toUpperCase();
+  const genderLabel = $("playerGender");
+  if (genderLabel) genderLabel.textContent = save.gender === "female" ? "Female character" : save.gender === "male" ? "Male character" : "Choose your character";
   $("coinCount").textContent = Math.floor(save.coins).toLocaleString("en-US");
   $("xpLabel").textContent = (save.xp % 100) + " / 100 XP";
   $("xpBar").style.width = (save.xp % 100) + "%";
@@ -462,13 +464,22 @@ function drawCharacter(entity, isLocal, time) {
 
   const bob = moving && step ? -2 : 0;
   const top = sy - 32 + bob;
+  const isFemale = entity.gender === "female";
   ctx.fillStyle = palette.hair;
-  ctx.fillRect(sx - 8, top, 16, 8);
-  ctx.fillRect(sx - 10, top + 4, 3, 7);
-  ctx.fillRect(sx + 7, top + 4, 3, 7);
+  if (isFemale) {
+    ctx.fillRect(sx - 9, top - 1, 18, 9);
+    ctx.fillRect(sx - 10, top + 5, 4, 17);
+    ctx.fillRect(sx + 6, top + 5, 4, 17);
+    ctx.fillRect(sx - 8, top + 18, 3, 5);
+    ctx.fillRect(sx + 5, top + 18, 3, 5);
+  } else {
+    ctx.fillRect(sx - 8, top, 16, 8);
+    ctx.fillRect(sx - 10, top + 4, 3, 7);
+    ctx.fillRect(sx + 7, top + 4, 3, 7);
+  }
   if (entity.direction === "up") {
     ctx.fillStyle = palette.hair;
-    ctx.fillRect(sx - 8, top + 5, 16, 9);
+    ctx.fillRect(sx - (isFemale ? 9 : 8), top + 5, isFemale ? 18 : 16, isFemale ? 17 : 9);
   } else {
     ctx.fillStyle = "#efbd91";
     ctx.fillRect(sx - 7, top + 8, 14, 10);
@@ -642,6 +653,33 @@ function drawClock() {
   }).format(now);
   $("worldClock").textContent = date + " · " + time + " WIB";
 }
+function setGender(gender) {
+  if (!requireWorldMember() || !["male", "female"].includes(gender)) return;
+  save.gender = gender;
+  player.gender = gender;
+  persist(true);
+  updateHud();
+  $("genderDialog").close();
+  if (!worldPresenceReady) void startMultiplayer();
+  else syncWorldPresence(performance.now());
+  showToast(gender === "female" ? "✦ Female character selected!" : "✦ Male character selected!");
+}
+function openGenderPicker() {
+  if (!requireWorldMember()) return;
+  $("genderDialog").showModal();
+}
+function bindGenderPicker() {
+  document.querySelectorAll("[data-gender]").forEach(button => {
+    button.addEventListener("click", () => setGender(button.dataset.gender));
+  });
+  $("changeGenderButton").addEventListener("click", openGenderPicker);
+  $("closeGenderDialog").addEventListener("click", () => {
+    if (save.gender) $("genderDialog").close();
+  });
+  $("genderDialog").addEventListener("cancel", event => {
+    if (!save.gender) event.preventDefault();
+  });
+}
 function setJob(id) {
   if (!requireWorldMember()) return;
   const job = jobs.find(item => item.id === id);
@@ -726,6 +764,7 @@ function bindControls() {
   $("mobileInteract").addEventListener("click", interact);
   $("chooseJobButton").addEventListener("click", openJobs);
   $("closeJobDialog").addEventListener("click", () => $("jobDialog").close());
+  bindGenderPicker();
   $("gameFrame").addEventListener("contextmenu", event => event.preventDefault());
 }
 async function loadMemberProfile(user) {
@@ -766,12 +805,18 @@ function startAuth() {
     player.palette = paletteFor(profile.uid);
     storageKey = SAVE_PREFIX + ":member:" + profile.uid;
     applySave();
+    player.gender = save.gender || "male";
     updateHud();
     updateWorldAccessUI();
     drawClock();
     updateCamera();
     drawWorld(performance.now());
-    void startMultiplayer();
+    if (!save.gender) {
+      $("genderDialog").showModal();
+      setWorldNetworkStatus("CHOOSE YOUR CHARACTER", 1);
+    } else {
+      void startMultiplayer();
+    }
   });
 }
 
@@ -781,6 +826,7 @@ window.STELLARSWorld = Object.freeze({
   getLocalPlayer: () => ({
     uid: player.uid, name: player.name, x: player.x, y: player.y,
     direction: player.direction, moving: player.moving,
+    gender: save.gender || "male",
     area: insideBuilding || "outside", job: save.job || ""
   }),
   setRemotePlayers: (players) => {
@@ -807,6 +853,7 @@ window.STELLARSWorld = Object.freeze({
         x: startX, y: startY, targetX, targetY, area,
         direction: ["up", "down", "left", "right"].includes(person.direction) ? person.direction : "down",
         moving: person.moving === true,
+        gender: person.gender === "female" ? "female" : "male",
         job: typeof person.job === "string" ? person.job : "",
         receivedAt: now, palette: paletteFor(person.uid)
       });
@@ -884,7 +931,7 @@ function createTownSave() {
   return {
     job: "", coins: 100, xp: 0, townProgress: 0, homeDecor: 0,
     inventory: { ...DEFAULT_INVENTORY }, plots: {}, npcRewards: {}, gathered: [],
-    benches: 0, murals: 0, x: 37 * TILE + 16, y: 43 * TILE + 16
+    benches: 0, murals: 0, gender: "", x: 37 * TILE + 16, y: 43 * TILE + 16
   };
 }
 readSave = function readSaveTown(key) {
@@ -898,6 +945,7 @@ readSave = function readSaveTown(key) {
     }
     return {
       ...defaults, ...parsed,
+      gender: ["male", "female"].includes(parsed.gender) ? parsed.gender : "",
       job: jobs.some(job => job.id === parsed.job) ? parsed.job : "",
       coins: Math.max(0, Math.floor(Number(parsed.coins) || 0)),
       xp: Math.max(0, Math.floor(Number(parsed.xp) || 0)),
@@ -1335,6 +1383,7 @@ function currentWorldPresence() {
     x: Math.round(player.x * 10) / 10, y: Math.round(player.y * 10) / 10,
     direction: ["up", "down", "left", "right"].includes(player.direction) ? player.direction : "down",
     moving: player.moving === true, job: typeof save.job === "string" ? save.job : "",
+    gender: save.gender === "female" ? "female" : "male",
     area: insideBuilding || "outside"
   };
 }
@@ -1342,6 +1391,7 @@ function presenceHasChanged(next) {
   if (!lastPresenceState) return true;
   return next.area !== lastPresenceState.area || next.direction !== lastPresenceState.direction ||
     next.moving !== lastPresenceState.moving || next.job !== lastPresenceState.job ||
+    next.gender !== lastPresenceState.gender ||
     Math.hypot(next.x - lastPresenceState.x, next.y - lastPresenceState.y) >= 22;
 }
 async function startMultiplayer() {
