@@ -1426,10 +1426,7 @@ function spendTownItems(cost) {
   Object.entries(cost).forEach(([item, amount]) => addTownItem(item, -amount));
   return true;
 }
-function awardWorldXp(amount) {
-  save.xp = Math.max(0, Math.floor(Number(save.xp) || 0)) +
-    Math.max(0, Math.floor(Number(amount) || 0));
-}
+
 function rewardTown(coins, xp = 0, progress = 0) {
   save.coins += coins;
   if (xp) awardWorldXp(xp);
