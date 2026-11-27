@@ -330,3 +330,332 @@ kbd { min-width: 55px; padding: 5px 6px; border: 1px solid rgba(201,230,177,.22)
   .store-card-description { min-height: 0; }
   .fashion-color-grid { grid-template-columns: repeat(4, minmax(0,1fr)); }
 }
+
+
+/* ── STELLARS WORLD: expanded play systems ─────────────────────────────── */
+.world-season-label {
+  margin-left: 5px;
+  padding: 4px 6px;
+  border: 1px solid rgba(230,214,165,.14);
+  border-radius: 4px;
+  color: #e6d9ab;
+  background: rgba(12,22,18,.24);
+  font: 7px var(--silk);
+  letter-spacing: .5px;
+}
+.world-activities-panel { grid-column: 1 / -1; }
+.activity-copy { margin: 5px 0 12px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.world-activity-buttons { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 7px; }
+.world-activity-buttons .pixel-button { min-height: 36px; padding: 0 6px; font-size: 8px; }
+.world-social-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  padding: 9px 12px;
+  border: 1px solid rgba(201,230,177,.12);
+  border-top: 0;
+  border-radius: 0 0 7px 7px;
+  color: #c6d4b8;
+  background: rgba(17,28,21,.86);
+}
+.world-social-actions > span {
+  margin-right: 5px;
+  color: #e6d7a7;
+  font: 8px var(--silk);
+  letter-spacing: .8px;
+}
+.world-social-actions button {
+  display: grid;
+  width: 31px;
+  height: 29px;
+  place-items: center;
+  border: 1px solid rgba(201,230,177,.16);
+  border-radius: 6px;
+  background: rgba(255,255,255,.055);
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform .15s, background .15s;
+}
+.world-social-actions button:hover {
+  transform: translateY(-2px);
+  background: rgba(244,216,139,.13);
+}
+.world-social-actions small { margin-left: auto; color: #8fa18b; font-size: 9px; }
+
+.home-editor-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0 4px;
+  padding: 10px;
+  border: 1px solid rgba(244,216,139,.16);
+  border-radius: 7px;
+  background: rgba(244,216,139,.045);
+}
+.home-editor-controls span {
+  margin-right: auto;
+  color: #e8d9ad;
+  font: 8px var(--silk);
+}
+.home-editor-controls .pixel-button {
+  width: auto;
+  min-height: 34px;
+  padding: 0 10px;
+  font-size: 8px;
+}
+.home-editor-controls .pixel-button:disabled { opacity: .45; cursor: default; }
+
+.appearance-choice-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid rgba(239,154,199,.15);
+  border-radius: 8px;
+  background: rgba(12,20,16,.3);
+}
+.appearance-choice {
+  min-height: 34px;
+  padding: 0 11px;
+  border: 1px solid rgba(239,154,199,.2);
+  border-radius: 7px;
+  color: #f7d6e7;
+  background: rgba(233,104,173,.07);
+  font: 9px var(--body);
+  cursor: pointer;
+}
+.appearance-choice:hover,
+.appearance-choice.selected {
+  border-color: #e99bc3;
+  color: #fff;
+  background: rgba(233,104,173,.22);
+}
+.world-feature-dialog {
+  width: min(820px, calc(100% - 26px));
+  max-height: min(88vh, 820px);
+}
+.world-feature-dialog .store-section-title { margin-top: 22px; }
+.quest-board-date,
+.skill-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  border: 1px solid rgba(244,216,139,.15);
+  border-radius: 7px;
+  color: #e7d8a6;
+  background: rgba(14,25,18,.37);
+  font: 8px var(--silk);
+}
+.world-quest-grid,
+.world-skill-grid {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 9px;
+}
+.world-quest-card,
+.world-skill-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid rgba(214,230,198,.13);
+  border-radius: 8px;
+  background: rgba(11,23,15,.32);
+}
+.world-quest-card.is-ready {
+  border-color: rgba(244,216,139,.55);
+  background: rgba(244,216,139,.07);
+}
+.world-quest-card.is-claimed,
+.world-skill-card.is-unlocked {
+  border-color: rgba(157,224,173,.35);
+  background: rgba(157,224,173,.06);
+}
+.world-quest-card strong,
+.world-skill-card strong { color: #fff2d4; font-size: 12px; }
+.world-quest-card p,
+.world-skill-card p {
+  margin: 0;
+  color: #b8c6ae;
+  font-size: 10px;
+  line-height: 1.5;
+}
+.world-quest-card small { color: #e4cb89; font: 8px var(--silk); }
+.world-quest-card .pixel-button,
+.world-skill-card .pixel-button {
+  width: 100%;
+  min-height: 34px;
+  margin-top: auto;
+  padding: 0 8px;
+  font-size: 8px;
+}
+.world-quest-card .pixel-button:disabled,
+.world-skill-card .pixel-button:disabled { opacity: .45; cursor: default; }
+.world-achievement-grid {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 8px;
+}
+.world-achievement-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 11px;
+  border: 1px solid rgba(214,230,198,.1);
+  border-radius: 7px;
+  background: rgba(11,23,15,.23);
+}
+.world-achievement-card > span {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  flex: 0 0 27px;
+  place-items: center;
+  border: 1px solid rgba(214,230,198,.12);
+  border-radius: 6px;
+  color: #7c897a;
+}
+.world-achievement-card.is-unlocked > span {
+  border-color: rgba(244,216,139,.4);
+  color: #ffe4a0;
+  background: rgba(244,216,139,.1);
+}
+.world-achievement-card strong { color: #e7edda; font-size: 10px; }
+.world-achievement-card p { margin: 4px 0 0; color: #9ead9a; font-size: 9px; line-height: 1.45; }
+
+.minigame-dialog { width: min(760px, calc(100% - 26px)); }
+.minigame-menu-grid {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 10px;
+}
+.world-minigame-card {
+  display: grid;
+  grid-template-columns: 42px minmax(0,1fr);
+  gap: 4px 11px;
+  align-items: center;
+  min-height: 76px;
+  padding: 12px;
+  border: 1px solid rgba(201,230,177,.17);
+  border-radius: 8px;
+  color: #fff2d6;
+  background: linear-gradient(135deg,rgba(158,190,125,.10),rgba(255,255,255,.025));
+  text-align: left;
+  cursor: pointer;
+  transition: transform .15s,border-color .15s,background .15s;
+}
+.world-minigame-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(244,216,139,.48);
+  background: rgba(244,216,139,.08);
+}
+.world-minigame-card > span {
+  grid-row: span 2;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 8px;
+  background: rgba(244,216,139,.1);
+  font-size: 23px;
+}
+.world-minigame-card strong { font-size: 12px; }
+.world-minigame-card small { color: #aebbab; font-size: 9px; line-height: 1.4; }
+.mini-game-stage {
+  margin-top: 12px;
+  padding: 14px;
+  border: 1px solid rgba(201,230,177,.14);
+  border-radius: 9px;
+  background: rgba(11,22,17,.35);
+}
+.mini-game-stage[hidden] { display: none; }
+.fishing-game-stage {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 10px;
+  text-align: center;
+}
+.fishing-pond {
+  display: grid;
+  width: min(100%,390px);
+  min-height: 100px;
+  place-items: center;
+  border: 5px solid #8d7048;
+  border-radius: 12px;
+  color: #e8f3f4;
+  background: repeating-linear-gradient(0deg,#3b83a0 0 12px,#4f9db5 12px 24px);
+  font-size: 28px;
+  letter-spacing: 8px;
+  box-shadow: inset 0 0 25px rgba(15,39,66,.28);
+}
+.fishing-game-stage p { margin: 2px; color: #e4ddb9; font-size: 12px; }
+.fishing-game-stage .pixel-button { width: min(100%,220px); }
+.memory-game-grid {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 9px;
+  max-width: 450px;
+  margin: 8px auto;
+}
+.memory-card {
+  aspect-ratio: 1;
+  border: 1px solid rgba(201,230,177,.22);
+  border-radius: 9px;
+  color: #e7d39b;
+  background: linear-gradient(145deg,#435d4b,#24382c);
+  font-size: clamp(20px,4vw,30px);
+  cursor: pointer;
+  transition: transform .12s,background .12s;
+}
+.memory-card.revealed { color: #39483a; background: #efe4c7; transform: rotateY(180deg); }
+.memory-card.matched { color: #f5f3d8; background: #5d9066; cursor: default; }
+.sequence-game-stage { display: grid; justify-items: center; gap: 14px; padding: 12px; }
+.sequence-game-stage p { color: #f4df9a; font: 10px var(--silk); }
+.sequence-game-buttons { display: flex; justify-content: center; flex-wrap: wrap; gap: 9px; }
+.sequence-game-button {
+  min-height: 48px;
+  padding: 0 13px;
+  border: 1px solid rgba(201,230,177,.2);
+  border-radius: 8px;
+  color: #f4edda;
+  background: rgba(169,190,128,.1);
+  font: 9px var(--silk);
+  cursor: pointer;
+}
+.sequence-game-button:hover,
+.sequence-game-button.is-correct { border-color: #f0d78f; background: rgba(244,216,139,.17); }
+.minigame-result {
+  padding: 14px;
+  border: 1px solid rgba(214,230,198,.12);
+  border-radius: 8px;
+  color: #e2c8a6;
+  background: rgba(255,255,255,.035);
+  font-size: 12px;
+  text-align: center;
+}
+.minigame-result.success {
+  border-color: rgba(157,224,173,.32);
+  color: #d4f2cb;
+  background: rgba(157,224,173,.07);
+}
+.minigame-retry-button { width: 100%; margin-top: 8px; }
+
+@media (max-width: 900px) {
+  .world-activities-panel { grid-column: auto; }
+}
+@media (max-width: 560px) {
+  .world-activity-buttons { grid-template-columns: 1fr; }
+  .world-social-actions small { width: 100%; margin-left: 0; }
+  .world-quest-grid, .world-skill-grid, .world-achievement-grid, .minigame-menu-grid {
+    grid-template-columns: 1fr;
+  }
+  .world-feature-dialog { padding: 16px; }
+  .home-editor-controls .pixel-button { flex: 1; }
+}
