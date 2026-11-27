@@ -1789,6 +1789,41 @@ interact = function interactWithTown() {
 };
 
 
+// Action tracking wrappers are deliberately local and run after existing game logic.
+const collectTownResourceBeforeQuests = collectTownResource;
+collectTownResource = function collectTownResourceWithQuests(resource) {
+  collectTownResourceBeforeQuests(resource);
+  trackQuestAction("collect");
+  checkWorldAchievements();
+};
+const talkTownNpcBeforeQuests = talkTownNpc;
+talkTownNpc = function talkTownNpcWithQuests(npc) {
+  talkTownNpcBeforeQuests(npc);
+  trackQuestAction("talk");
+  checkWorldAchievements();
+};
+const tendRicePlotBeforeQuests = tendRicePlot;
+tendRicePlot = function tendRicePlotWithQuests(plot) {
+  const oldRice = Number(save.inventory.rice) || 0;
+  tendRicePlotBeforeQuests(plot);
+  const harvested = (Number(save.inventory.rice) || 0) > oldRice;
+  if (harvested) {
+    if (hasProfessionSkill("farmer-yield")) addTownItem("rice", 1);
+    trackQuestAction("harvest");
+    checkWorldAchievements();
+    persist(true);
+    updateHud();
+  }
+};
+const enterTownBuildingBeforeQuests = enterTownBuilding;
+enterTownBuilding = function enterTownBuildingWithQuests(building) {
+  enterTownBuildingBeforeQuests(building);
+  if (insideBuilding) {
+    trackQuestAction("visit");
+  }
+};
+
+
 // ── LIVE MULTIPLAYER PRESENCE (Firebase Realtime Database) ──────────────────
 const WORLD_MEMBER_ALLOWLIST = "worldMembers";
 const WORLD_PLAYER_PATH = "worldPlayers";
@@ -1902,6 +1937,378 @@ function syncWorldPresence(frameTime) {
       worldPresenceReady = false; setWorldNetworkStatus("CONNECTION ERROR", 1);
     })
     .finally(() => { worldPresencePending = false; });
+}
+
+
+
+// ── LOCAL-FIRST WORLD EXPANSION DATA ────────────────────────────────────────
+// All quests, achievements, profession data, and mini-game progress stay in
+// this member's browser save. Firebase remains responsible for presence only.
+DEFAULT_INVENTORY.fish = 0;
+DEFAULT_INVENTORY.shell = 0;
+if (!INVENTORY_ITEMS.some(item => item.key === "fish")) {
+  INVENTORY_ITEMS.push({ key: "fish", label: "Fresh Fish", icon: "🐟" });
+  INVENTORY_ITEMS.push({ key: "shell", label: "Seashells", icon: "🐚" });
+}
+
+const FASHION_HAIR_STYLES = [
+  { id: "short", gender: "male", name: "Classic Short", icon: "✂" },
+  { id: "wave", gender: "male", name: "Soft Waves", icon: "〰" },
+  { id: "curly", gender: "male", name: "Curly Crop", icon: "✿" },
+  { id: "long", gender: "female", name: "Long Flow", icon: "〰" },
+  { id: "bob", gender: "female", name: "Little Bob", icon: "✂" },
+  { id: "bun", gender: "female", name: "Star Bun", icon: "✦" }
+];
+const FASHION_ACCESSORIES = [
+  { id: "none", name: "No Accessory", icon: "—" },
+  { id: "starclip", name: "Star Clip", icon: "✦" },
+  { id: "glasses", name: "Round Glasses", icon: "◉" },
+  { id: "cap", name: "Comet Cap", icon: "⌂" },
+  { id: "bow", name: "Ribbon Bow", icon: "🎀" }
+];
+
+function defaultHomeFurnitureLayout() {
+  return {
+    "starter-sofa": { x: 225, y: 430, rotation: 0 },
+    "star-rug": { x: 490, y: 475, rotation: 0 },
+    "moon-lamp": { x: 1010, y: 420, rotation: 0 },
+    "bookcase": { x: 920, y: 190, rotation: 0 },
+    "potted-plant": { x: 430, y: 268, rotation: 0 },
+    "coffee-table": { x: 645, y: 420, rotation: 0 }
+  };
+}
+function cloneDefaultHomeLayout() {
+  return JSON.parse(JSON.stringify(defaultHomeFurnitureLayout()));
+}
+function getJakartaDayKey() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Jakarta", year: "numeric", month: "2-digit", day: "2-digit"
+  }).formatToParts(new Date());
+  const values = {};
+  parts.forEach(part => { values[part.type] = part.value; });
+  return values.year + "-" + values.month + "-" + values.day;
+}
+
+const worldReadSaveBeforeExpansion = readSave;
+readSave = function readSaveWithExpandedProgress(key) {
+  const base = worldReadSaveBeforeExpansion(key);
+  const layoutDefaults = cloneDefaultHomeLayout();
+  const rawLayout = base.homeLayout && typeof base.homeLayout === "object" ? base.homeLayout : {};
+  const layout = {};
+  (base.placedFurniture || ["starter-sofa"]).forEach(id => {
+    const raw = rawLayout[id] && typeof rawLayout[id] === "object" ? rawLayout[id] : layoutDefaults[id];
+    const fallback = layoutDefaults[id] || { x: 520, y: 420, rotation: 0 };
+    layout[id] = {
+      x: Math.max(130, Math.min(1130, Number.isFinite(Number(raw && raw.x)) ? Number(raw.x) : fallback.x)),
+      y: Math.max(170, Math.min(610, Number.isFinite(Number(raw && raw.y)) ? Number(raw.y) : fallback.y)),
+      rotation: Math.max(0, Math.min(3, Math.floor(Number(raw && raw.rotation) || 0)))
+    };
+  });
+
+  const professionXp = {};
+  const skillPoints = {};
+  jobs.forEach(job => {
+    professionXp[job.id] = Math.max(0, Math.floor(Number(base.professionXp && base.professionXp[job.id]) || 0));
+    skillPoints[job.id] = Math.max(0, Math.floor(Number(base.skillPoints && base.skillPoints[job.id]) || 0));
+  });
+  const validHair = FASHION_HAIR_STYLES.some(style =>
+    style.id === base.hairStyle && style.gender === (base.gender === "female" ? "female" : "male")
+  );
+  const defaultHair = base.gender === "female" ? "long" : "short";
+
+  return {
+    ...base,
+    homeLayout: layout,
+    homeExpansion: Math.max(0, Math.min(2, Math.floor(Number(base.homeExpansion) || 0))),
+    professionXp,
+    skillPoints,
+    unlockedSkills: Array.isArray(base.unlockedSkills) ? [...new Set(base.unlockedSkills.filter(id =>
+      Object.values(PROFESSION_SKILL_TREE).flat().some(skill => skill.id === id)
+    ))] : [],
+    achievements: Array.isArray(base.achievements) ? [...new Set(base.achievements)] : [],
+    dailyQuestDate: typeof base.dailyQuestDate === "string" ? base.dailyQuestDate : "",
+    dailyQuests: Array.isArray(base.dailyQuests) ? base.dailyQuests.filter(id =>
+      DAILY_QUEST_POOL.some(quest => quest.id === id)
+    ) : [],
+    dailyQuestProgress: base.dailyQuestProgress && typeof base.dailyQuestProgress === "object" ? base.dailyQuestProgress : {},
+    dailyQuestClaimed: base.dailyQuestClaimed && typeof base.dailyQuestClaimed === "object" ? base.dailyQuestClaimed : {},
+    secretFinds: Array.isArray(base.secretFinds) ? [...new Set(base.secretFinds)] : [],
+    fishCaught: Math.max(0, Math.floor(Number(base.fishCaught) || 0)),
+    minigameStats: base.minigameStats && typeof base.minigameStats === "object" ? base.minigameStats : {},
+    worldDay: Math.max(1, Math.floor(Number(base.worldDay) || 1)),
+    worldMinutes: Math.max(0, Math.min(1439.99, Number(base.worldMinutes) || 540)),
+    hairStyle: validHair ? base.hairStyle : defaultHair,
+    accessory: ["none", "starclip", "glasses", "cap", "bow"].includes(base.accessory) ? base.accessory : "none",
+    pantsColor: isSafeWorldColor(base.pantsColor) ? base.pantsColor : "#34465f",
+    shoeColor: isSafeWorldColor(base.shoeColor) ? base.shoeColor : "#594331"
+  };
+};
+
+// Daily missions are generated from the Jakarta calendar date, so every
+// member receives the same three themes without a server-side scheduler.
+const DAILY_QUEST_POOL = [
+  { id: "gather-three", title: "Little Forager", description: "Collect resources three times.", action: "collect", target: 3, coins: 22, xp: 14 },
+  { id: "say-hello", title: "Friendly Faces", description: "Talk to two townsfolk.", action: "talk", target: 2, coins: 20, xp: 14 },
+  { id: "visit-places", title: "Town Wanderer", description: "Visit three different places.", action: "visit", target: 3, coins: 25, xp: 16 },
+  { id: "honest-work", title: "A Little Day's Work", description: "Complete two profession tasks.", action: "work", target: 2, coins: 28, xp: 18 },
+  { id: "harvest-rice", title: "Golden Harvest", description: "Harvest rice once.", action: "harvest", target: 1, coins: 24, xp: 16 },
+  { id: "play-together", title: "Playful Star", description: "Finish a mini-game.", action: "minigame", target: 1, coins: 26, xp: 16 },
+  { id: "find-secret", title: "Hidden in Plain Sight", description: "Find a secret star.", action: "secret", target: 1, coins: 32, xp: 20 }
+];
+
+const PROFESSION_SKILL_TREE = {
+  farmer: [
+    { id: "farmer-green", name: "Green Thumb", description: "Gain 10% more profession XP.", bonus: "xp" },
+    { id: "farmer-golden", name: "Golden Harvest", description: "Earn 10% more Star Coins from work.", bonus: "coins" },
+    { id: "farmer-seed", name: "Seed Saver", description: "Harvest one extra Rice.", bonus: "yield" }
+  ],
+  barista: [
+    { id: "barista-pour", name: "Perfect Pour", description: "Gain 10% more profession XP.", bonus: "xp" },
+    { id: "barista-tips", name: "Friendly Service", description: "Earn 10% more Star Coins from work.", bonus: "coins" },
+    { id: "barista-blend", name: "Signature Blend", description: "Get one extra Coffee when serving.", bonus: "yield" }
+  ],
+  builder: [
+    { id: "builder-craft", name: "Careful Craft", description: "Gain 10% more profession XP.", bonus: "xp" },
+    { id: "builder-contract", name: "Good Contracts", description: "Earn 10% more Star Coins from work.", bonus: "coins" },
+    { id: "builder-reuse", name: "Resourceful", description: "Occasionally recover one Wood.", bonus: "yield" }
+  ],
+  librarian: [
+    { id: "librarian-study", name: "Deep Reader", description: "Gain 10% more profession XP.", bonus: "xp" },
+    { id: "librarian-donation", name: "Community Shelf", description: "Earn 10% more Star Coins from work.", bonus: "coins" },
+    { id: "librarian-rare", name: "Rare Edition", description: "Occasionally find one extra Book.", bonus: "yield" }
+  ],
+  explorer: [
+    { id: "explorer-trail", name: "Trail Sense", description: "Gain 10% more profession XP.", bonus: "xp" },
+    { id: "explorer-trade", name: "Relic Trader", description: "Earn 10% more Star Coins from work.", bonus: "coins" },
+    { id: "explorer-shard", name: "Shard Finder", description: "Occasionally discover an extra Star Shard.", bonus: "yield" }
+  ],
+  artist: [
+    { id: "artist-inspire", name: "Inspiration", description: "Gain 10% more profession XP.", bonus: "xp" },
+    { id: "artist-commission", name: "Town Commissions", description: "Earn 10% more Star Coins from work.", bonus: "coins" },
+    { id: "artist-palette", name: "Full Palette", description: "Occasionally recover one Dye.", bonus: "yield" }
+  ]
+};
+
+const WORLD_ACHIEVEMENTS = [
+  { id: "first-friend", title: "First Hello", description: "Talk to your first townsfolk.", reward: 15 },
+  { id: "first-gather", title: "Forager", description: "Collect your first resource.", reward: 15 },
+  { id: "five-gathers", title: "Field Collector", description: "Collect five resources.", reward: 25 },
+  { id: "first-harvest", title: "Homegrown", description: "Harvest your first Rice.", reward: 20 },
+  { id: "home-decorator", title: "Room to Bloom", description: "Place three pieces of furniture.", reward: 30 },
+  { id: "first-mini-game", title: "Just One More Round", description: "Win your first mini-game.", reward: 25 },
+  { id: "secret-star", title: "Stargazer", description: "Discover a hidden star.", reward: 35 },
+  { id: "level-five", title: "Rising Star", description: "Reach World Level 5.", reward: 50 },
+  { id: "home-expansion", title: "Room to Grow", description: "Expand your little home.", reward: 40 }
+];
+
+function ensureDailyQuests() {
+  const today = getJakartaDayKey();
+  if (save.dailyQuestDate === today && Array.isArray(save.dailyQuests) && save.dailyQuests.length) return;
+  const seed = today.split("-").join("").split("").reduce((total, digit) => total + Number(digit), 0);
+  const shuffled = [...DAILY_QUEST_POOL].sort((a, b) =>
+    ((hash(seed, a.id.length, a.id.charCodeAt(0)) % 997) -
+     (hash(seed, b.id.length, b.id.charCodeAt(0)) % 997))
+  );
+  save.dailyQuestDate = today;
+  save.dailyQuests = shuffled.slice(0, 3).map(quest => quest.id);
+  save.dailyQuestProgress = {};
+  save.dailyQuestClaimed = {};
+  persist(true);
+}
+
+function hasProfessionSkill(id) {
+  return Array.isArray(save.unlockedSkills) && save.unlockedSkills.includes(id);
+}
+function getProfessionLevel(jobId = save.job) {
+  return Math.max(1, Math.floor((Number(save.professionXp && save.professionXp[jobId]) || 0) / 100) + 1);
+}
+function getProfessionBonus(type) {
+  const skills = PROFESSION_SKILL_TREE[save.job] || [];
+  return skills.filter(skill => skill.bonus === type && hasProfessionSkill(skill.id)).length;
+}
+function awardWorldXp(amount) {
+  const safeAmount = Math.max(0, Math.floor(Number(amount) || 0));
+  if (!safeAmount) return;
+  const oldLevel = getWorldLevelProgress(save.xp).level;
+  save.xp = Math.max(0, Math.floor(Number(save.xp) || 0)) + safeAmount;
+  if (save.job) {
+    const oldProfessionLevel = getProfessionLevel(save.job);
+    save.professionXp[save.job] = Math.max(0, Number(save.professionXp[save.job]) || 0) + safeAmount;
+    const newProfessionLevel = getProfessionLevel(save.job);
+    if (newProfessionLevel > oldProfessionLevel) {
+      save.skillPoints[save.job] = (save.skillPoints[save.job] || 0) + (newProfessionLevel - oldProfessionLevel);
+      showToast(save.job.toUpperCase() + " LEVEL " + newProfessionLevel + " · SKILL POINT EARNED!");
+    }
+  }
+  const newLevel = getWorldLevelProgress(save.xp).level;
+  if (newLevel > oldLevel) showToast("✦ LEVEL UP! YOU REACHED LEVEL " + newLevel + "!");
+  if (newLevel >= 5) unlockWorldAchievement("level-five");
+}
+
+function unlockWorldAchievement(id) {
+  if (!WORLD_ACHIEVEMENTS.some(item => item.id === id) || save.achievements.includes(id)) return;
+  const achievement = WORLD_ACHIEVEMENTS.find(item => item.id === id);
+  save.achievements.push(id);
+  save.coins += achievement.reward;
+  persist(true);
+  updateHud();
+  showToast("✦ ACHIEVEMENT UNLOCKED: " + achievement.title + " · +" + achievement.reward + " COINS");
+}
+
+function checkWorldAchievements() {
+  if (!save.achievements.includes("first-friend") && Object.keys(save.npcRewards || {}).length) unlockWorldAchievement("first-friend");
+  if (!save.achievements.includes("first-gather") && (save.gathered || []).length >= 1) unlockWorldAchievement("first-gather");
+  if (!save.achievements.includes("five-gathers") && (save.gathered || []).length >= 5) unlockWorldAchievement("five-gathers");
+  if (!save.achievements.includes("first-harvest") && (save.inventory.rice || 0) >= 3) unlockWorldAchievement("first-harvest");
+  if (!save.achievements.includes("home-decorator") && (save.placedFurniture || []).length >= 3) unlockWorldAchievement("home-decorator");
+  if (!save.achievements.includes("first-mini-game") && Object.values(save.minigameStats || {}).some(value => Number(value) > 0)) unlockWorldAchievement("first-mini-game");
+  if (!save.achievements.includes("secret-star") && (save.secretFinds || []).length) unlockWorldAchievement("secret-star");
+}
+
+function trackQuestAction(action, amount = 1) {
+  ensureDailyQuests();
+  let changed = false;
+  save.dailyQuests.forEach(id => {
+    const quest = DAILY_QUEST_POOL.find(item => item.id === id);
+    if (!quest || quest.action !== action || save.dailyQuestClaimed[id]) return;
+    const current = Math.max(0, Number(save.dailyQuestProgress[id]) || 0);
+    save.dailyQuestProgress[id] = Math.min(quest.target, current + amount);
+    changed = true;
+  });
+  if (changed) {
+    persist(true);
+    if ($("questDialog") && $("questDialog").open) renderQuestBoard();
+  }
+}
+
+const worldRewardTownBeforeSkills = rewardTown;
+rewardTown = function rewardTownWithProfessionSkills(coins, xp = 0, progress = 0) {
+  const coinMultiplier = 1 + .1 * getProfessionBonus("coins");
+  const xpMultiplier = 1 + .1 * getProfessionBonus("xp");
+  const finalCoins = Math.round(Math.max(0, Number(coins) || 0) * coinMultiplier);
+  const finalXp = Math.round(Math.max(0, Number(xp) || 0) * xpMultiplier);
+  worldRewardTownBeforeSkills(finalCoins, finalXp, progress);
+  if (coins > 0 || xp > 0) trackQuestAction("work");
+};
+
+function claimDailyQuest(id) {
+  ensureDailyQuests();
+  const quest = DAILY_QUEST_POOL.find(item => item.id === id);
+  if (!quest || !save.dailyQuests.includes(id) || save.dailyQuestClaimed[id]) return;
+  if ((Number(save.dailyQuestProgress[id]) || 0) < quest.target) return;
+  save.dailyQuestClaimed[id] = true;
+  save.coins += quest.coins;
+  awardWorldXp(quest.xp);
+  persist(true);
+  updateHud();
+  renderQuestBoard();
+  showToast("DAILY QUEST COMPLETE · +" + quest.coins + " COINS · +" + quest.xp + " XP");
+}
+
+function renderQuestBoard() {
+  ensureDailyQuests();
+  const questGrid = $("dailyQuestGrid");
+  const achievementGrid = $("achievementGrid");
+  if (!questGrid || !achievementGrid) return;
+  questGrid.replaceChildren();
+  const completed = save.dailyQuests.filter(id => save.dailyQuestClaimed[id]).length;
+  $("questBoardDate").textContent = "JAKARTA · " + save.dailyQuestDate + " · " + completed + "/3 CLAIMED";
+  save.dailyQuests.forEach(id => {
+    const quest = DAILY_QUEST_POOL.find(item => item.id === id);
+    const progress = Math.min(quest.target, Number(save.dailyQuestProgress[id]) || 0);
+    const claimed = Boolean(save.dailyQuestClaimed[id]);
+    const card = document.createElement("article");
+    card.className = "world-quest-card" + (claimed ? " is-claimed" : progress >= quest.target ? " is-ready" : "");
+    const title = document.createElement("strong");
+    title.textContent = quest.title;
+    const description = document.createElement("p");
+    description.textContent = quest.description;
+    const meta = document.createElement("small");
+    meta.textContent = progress + "/" + quest.target + " · " + quest.coins + " COINS · " + quest.xp + " XP";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "pixel-button quest-claim-button";
+    button.textContent = claimed ? "CLAIMED" : progress >= quest.target ? "CLAIM REWARD" : "IN PROGRESS";
+    button.disabled = claimed || progress < quest.target;
+    button.addEventListener("click", () => claimDailyQuest(id));
+    card.append(title, description, meta, button);
+    questGrid.append(card);
+  });
+
+  achievementGrid.replaceChildren();
+  WORLD_ACHIEVEMENTS.forEach(item => {
+    const unlocked = save.achievements.includes(item.id);
+    const card = document.createElement("article");
+    card.className = "world-achievement-card" + (unlocked ? " is-unlocked" : "");
+    const icon = document.createElement("span");
+    icon.textContent = unlocked ? "✦" : "◇";
+    const copy = document.createElement("div");
+    const title = document.createElement("strong");
+    title.textContent = item.title;
+    const description = document.createElement("p");
+    description.textContent = item.description;
+    copy.append(title, description);
+    card.append(icon, copy);
+    achievementGrid.append(card);
+  });
+}
+
+function openQuestBoard() {
+  if (!requireWorldMember()) return;
+  renderQuestBoard();
+  $("questDialog").showModal();
+}
+
+function unlockProfessionSkill(id) {
+  const tree = PROFESSION_SKILL_TREE[save.job] || [];
+  const skill = tree.find(item => item.id === id);
+  if (!skill || hasProfessionSkill(id) || Number(save.skillPoints[save.job] || 0) < 1) return;
+  save.skillPoints[save.job] -= 1;
+  save.unlockedSkills.push(id);
+  persist(true);
+  updateHud();
+  renderSkillTree();
+  showToast(skill.name + " unlocked!");
+}
+
+function renderSkillTree() {
+  const grid = $("professionSkillGrid");
+  if (!grid) return;
+  grid.replaceChildren();
+  const tree = PROFESSION_SKILL_TREE[save.job] || [];
+  const points = Number(save.skillPoints[save.job] || 0);
+  $("skillProfessionName").textContent = save.job
+    ? jobs.find(item => item.id === save.job).name.toUpperCase() + " · LEVEL " + getProfessionLevel(save.job)
+    : "CHOOSE A PROFESSION FIRST";
+  $("skillPointCount").textContent = points + " SKILL POINTS";
+  if (!save.job) {
+    const empty = document.createElement("p");
+    empty.textContent = "Choose a profession to unlock its own skill tree.";
+    grid.append(empty);
+    return;
+  }
+  tree.forEach(skill => {
+    const owned = hasProfessionSkill(skill.id);
+    const card = document.createElement("article");
+    card.className = "world-skill-card" + (owned ? " is-unlocked" : "");
+    const title = document.createElement("strong");
+    title.textContent = skill.name;
+    const description = document.createElement("p");
+    description.textContent = skill.description;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "pixel-button skill-unlock-button";
+    button.textContent = owned ? "UNLOCKED" : "UNLOCK · 1 POINT";
+    button.disabled = owned || points < 1;
+    button.addEventListener("click", () => unlockProfessionSkill(skill.id));
+    card.append(title, description, button);
+    grid.append(card);
+  });
+}
+function openSkillTree() {
+  if (!requireWorldMember()) return;
+  renderSkillTree();
+  $("skillDialog").showModal();
 }
 
 bindControls();
