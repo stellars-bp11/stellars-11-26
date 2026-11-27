@@ -649,6 +649,7 @@ function loop(time) {
   deltaSeconds = Math.min(.04, lastFrame ? (time - lastFrame) / 1000 : 0);
   lastFrame = time;
   updatePlayer();
+  if (canPlayWorld) updateWorldEnvironment(deltaSeconds);
   drawWorld(time);
   syncWorldPresence(time);
   requestAnimationFrame(loop);
@@ -827,6 +828,10 @@ function startAuth() {
     applySave();
     player.gender = save.gender || "male";
     player.shirtColor = save.shirtColor || "#6687a7";
+    player.hairStyle = save.hairStyle || (save.gender === "female" ? "long" : "short");
+    player.accessory = save.accessory || "none";
+    player.pantsColor = save.pantsColor || "#34465f";
+    player.shoeColor = save.shoeColor || "#594331";
     updateHud();
     updateWorldAccessUI();
     drawClock();
@@ -849,12 +854,16 @@ window.STELLARSWorld = Object.freeze({
     direction: player.direction, moving: player.moving,
     gender: save.gender || "male",
     shirtColor: save.shirtColor || "#6687a7",
+    hairStyle: save.hairStyle || (save.gender === "female" ? "long" : "short"),
+    accessory: save.accessory || "none",
+    pantsColor: save.pantsColor || "#34465f",
+    shoeColor: save.shoeColor || "#594331",
     area: insideBuilding || "outside", job: save.job || ""
   }),
   setRemotePlayers: (players) => {
     if (!Array.isArray(players)) return;
     const now = performance.now();
-    const allowedAreas = ["outside", "library", "townhall", "cafe", "home", "market", "workshop", "observatory", "bakery", "fashion"];
+    const allowedAreas = ["outside", "library", "townhall", "cafe", "home", "market", "workshop", "observatory", "bakery", "fashion", "moon-garden"];
     const keep = new Set();
     players.forEach(person => {
       if (!person || typeof person.uid !== "string" || person.uid === player.uid ||
@@ -877,6 +886,12 @@ window.STELLARSWorld = Object.freeze({
         moving: person.moving === true,
         gender: person.gender === "female" ? "female" : "male",
         shirtColor: isSafeWorldColor(person.shirtColor) ? person.shirtColor : "",
+        hairStyle: ["short", "wave", "curly", "long", "bob", "bun"].includes(person.hairStyle) ? person.hairStyle : "",
+        accessory: ["none", "starclip", "glasses", "cap", "bow"].includes(person.accessory) ? person.accessory : "none",
+        pantsColor: isSafeWorldColor(person.pantsColor) ? person.pantsColor : "",
+        shoeColor: isSafeWorldColor(person.shoeColor) ? person.shoeColor : "",
+        emote: ["👋", "💖", "🎉", "🎵", "✨"].includes(person.emote) ? person.emote : "",
+        emoteUntil: person.emote ? Date.now() + 2800 : 0,
         job: typeof person.job === "string" ? person.job : "",
         receivedAt: now, palette: paletteFor(person.uid)
       });
@@ -1673,6 +1688,7 @@ areaName = function townAreaName(x, y) {
   if (tx > 65 && tx < 82 && ty > 61 && ty < 75) return "SUNRISE CORNER";
   if (tx > 46 && ty > 18 && ty < 29) return "LITTLE COMET CAFE";
   if (tx > 56 && tx < 65 && ty > 31 && ty < 40) return "STELLAR FASHION HOUSE";
+  if (tx > 122 && ty > 81) return "MOON GARDEN GATE";
   if (tx > 33 && ty < 19) return "TOWN SQUARE";
   if (tx < 30 && ty < 25) return "STELLAR LIBRARY";
   if (tx > 45 && ty > 30 && ty < 42) return "STAR MARKET";
@@ -1808,7 +1824,7 @@ tendRicePlot = function tendRicePlotWithQuests(plot) {
   tendRicePlotBeforeQuests(plot);
   const harvested = (Number(save.inventory.rice) || 0) > oldRice;
   if (harvested) {
-    if (hasProfessionSkill("farmer-yield")) addTownItem("rice", 1);
+    if (hasProfessionSkill("farmer-seed")) addTownItem("rice", 1);
     trackQuestAction("harvest");
     checkWorldAchievements();
     persist(true);
